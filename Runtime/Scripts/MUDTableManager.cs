@@ -84,7 +84,7 @@ public abstract class MUDTableManager : MUDTable
             return;
         }
 
-        MUDEntity entity = MUDEntity.GetEntitySafe(entityKey);
+        MUDEntity entity = EntityDictionary.GetEntitySafe(entityKey);
         IMudTable mudTable = RecordUpdateToTable(tableUpdate);
 
         if(eventType == TableEvent.Insert) {
@@ -122,12 +122,11 @@ public abstract class MUDTableManager : MUDTable
 
     protected virtual MUDEntity SpawnEntity(string newKey) {
 
-
+        //get the entity if it exists or spawn it
         MUDEntity newEntity = null;
+        EntityDictionary.Entities.TryGetValue(newKey, out newEntity);
 
-        if(MUDEntity.Entities.ContainsKey(newKey)) {
-            //get the entity if it exists
-            newEntity = MUDEntity.Entities[newKey];
+        if(newEntity) {
             Debug.Log(gameObject.name + " Found " + newEntity.name,gameObject);
         } else {
             if(entityPrefab == null) {
@@ -140,7 +139,6 @@ public abstract class MUDTableManager : MUDTable
             Entities.Add(newKey, newEntity);
 
             newEntity.SetMudKey(newKey);
-            MUDEntity.ToggleEntity(true, newEntity);
 
             Debug.Log(gameObject.name + " Spawned " + newEntity.name,gameObject);
 
