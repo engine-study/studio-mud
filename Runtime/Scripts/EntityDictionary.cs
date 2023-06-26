@@ -6,12 +6,12 @@ public class EntityDictionary : MonoBehaviour
 {
     public static System.Action OnEntitySpawned;
     public static System.Action OnEntityDestroyed;
-    public static GameObject entityPrefab;
-
     public static EntityDictionary Instance;
-    public static Dictionary<string, MUDEntity> Entities;
-    public static MUDEntity GetEntity(string Key) { return Entities[Key]; }
-    public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; Entities.TryGetValue(Key, out e); return e; }
+
+    private static GameObject entityPrefab;
+    private static Dictionary<string, MUDEntity> m_Entities;
+    public static MUDEntity GetEntity(string Key) { return m_Entities[Key]; }
+    public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
 
 
     void Awake()
@@ -22,7 +22,7 @@ public class EntityDictionary : MonoBehaviour
         }
 
         Instance = this;
-        Entities = new Dictionary<string, MUDEntity>();
+        m_Entities = new Dictionary<string, MUDEntity>();
 
     }
 
@@ -31,14 +31,13 @@ public class EntityDictionary : MonoBehaviour
         Instance = null;
     }
 
-    public static MUDEntity SpawnEntity(string newKey)
+    public static MUDEntity FindOrSpawnEntity(string newKey)
     {
 
         //get the entity if it exists or spawn it
-        MUDEntity newEntity = null;
-        EntityDictionary.Entities.TryGetValue(newKey, out newEntity);
+        MUDEntity newEntity = GetEntitySafe(newKey);
 
-        if (newEntity)
+        if (newEntity != null)
         {
             Debug.Log("Found " + newEntity.name, Instance);
         }
@@ -52,16 +51,16 @@ public class EntityDictionary : MonoBehaviour
             //spawn the entity if it doesnt exist
             newEntity = Instantiate(entityPrefab, Vector3.up * -1000f, Quaternion.identity).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
-            Entities.Add(newKey, newEntity);
 
             newEntity.SetMudKey(newKey);
             ToggleEntity(true, newEntity);
 
             Debug.Log("Spawned " + newEntity.name, Instance);
 
+            OnEntitySpawned?.Invoke();
+
         }
 
-        OnEntitySpawned?.Invoke();
 
         return newEntity;
     }
@@ -71,11 +70,11 @@ public class EntityDictionary : MonoBehaviour
 
         OnEntityDestroyed?.Invoke();
 
-        MUDEntity newEntity = Entities[newKey];
+        MUDEntity newEntity = m_Entities[newKey];
 
         ToggleEntity(false, null);
 
-        Entities.Remove(newKey);
+        m_Entities.Remove(newKey);
         Destroy(newEntity);
 
 
@@ -83,8 +82,8 @@ public class EntityDictionary : MonoBehaviour
 
     public static void ToggleEntity(bool toggle, MUDEntity entity)
     {
-        if (toggle) { Entities.Add(entity.Key, entity); }
-        else { Entities.Remove(entity.Key); }
+        if (toggle) { m_Entities.Add(entity.Key, entity); }
+        else { m_Entities.Remove(entity.Key); }
     }
 
 }

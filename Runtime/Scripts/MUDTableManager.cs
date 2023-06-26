@@ -88,15 +88,21 @@ public abstract class MUDTableManager : MUDTable
 
         if(eventType == TableEvent.Insert) {
             //create the entity if it doesn't exist
-            if(entity == null) {
-                entity = EntityDictionary.SpawnEntity(entityKey);
+            entity = EntityDictionary.FindOrSpawnEntity(entityKey);
+
+            //create the component
+            if(!Components.ContainsKey(entityKey)) {
+                MUDComponent c = entity.AddComponent(componentPrefab, this);
             }
-            MUDComponent c = entity.AddComponent(componentPrefab, this);
             Components[entityKey].UpdateComponent(mudTable, eventType);
         } else if(eventType == TableEvent.Update) {
             Components[entityKey].UpdateComponent(mudTable, eventType);
         } else if(eventType == TableEvent.Delete) {
             entity.RemoveComponent(Components[entityKey]);
+
+            if(deletedRecordDestroysEntity) {
+                EntityDictionary.DestroyEntity(entityKey);
+            }
         }
 
 

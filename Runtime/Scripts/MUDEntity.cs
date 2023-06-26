@@ -70,15 +70,11 @@ namespace mud.Client
                 return;
             }
 
-            EntityDictionary.ToggleEntity(true, this);
-
         }
 
         protected override void Destroy()
         {
             base.Destroy();
-
-            EntityDictionary.ToggleEntity(false, this);
 
             if (net)
             {
@@ -116,7 +112,7 @@ namespace mud.Client
 
             if (c)
             {
-                // Debug.Log(componentPrefab.gameObject.name + " already exists.", gameObject);
+                Debug.LogError(componentPrefab.gameObject.name + " already exists.", gameObject);
             }
             else
             {
