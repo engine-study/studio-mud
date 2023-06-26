@@ -39,7 +39,7 @@ public class EntityDictionary : MonoBehaviour
 
         if (newEntity != null)
         {
-            Debug.Log("Found " + newEntity.name, Instance);
+            // Debug.Log("Found " + newEntity.name, Instance);
         }
         else
         {
@@ -55,7 +55,7 @@ public class EntityDictionary : MonoBehaviour
             newEntity.SetMudKey(newKey);
             ToggleEntity(true, newEntity);
 
-            Debug.Log("Spawned " + newEntity.name, Instance);
+            // Debug.Log("Spawned " + newEntity.name, Instance);
 
             OnEntitySpawned?.Invoke();
 
