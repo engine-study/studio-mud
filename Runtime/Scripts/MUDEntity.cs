@@ -81,6 +81,10 @@ namespace mud.Client
                 net.OnNetworkInitialized -= InitOnNetwork;
             }
 
+            for(int i = components.Count-1; i > -1; i--) {
+                RemoveComponent(components[i]);
+            }
+
             
         }
         
