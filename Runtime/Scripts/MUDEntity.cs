@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace mud.Client
 {
-    public class MUDEntity : MonoBehaviour
+    public class MUDEntity : Entity
     {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
         public static Dictionary<string, MUDEntity> Entities;
-
+        
         [Header("MUD")]
         [SerializeField] protected string mudKey;
         [SerializeField] protected bool isLocal;
@@ -67,6 +67,7 @@ namespace mud.Client
 
         protected virtual void Awake()
         {
+            base.Awake();
             if (Entities == null)
             {
                 Entities = new Dictionary<string, MUDEntity>();
@@ -77,8 +78,10 @@ namespace mud.Client
 
 
 
-        protected virtual void Start()
+        protected override void Start()
         {
+            base.Start();
+
             net = mud.Unity.NetworkManager.Instance;
 
             if (net.isNetworkInitialized)
@@ -92,8 +95,9 @@ namespace mud.Client
 
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             if (net)
             {
                 net.OnNetworkInitialized -= InitOnNetwork;
@@ -114,9 +118,9 @@ namespace mud.Client
 
         }
 
-        public virtual void Init()
+        public override void Init()
         {
-
+            base.Init();
         }
     }
 }
