@@ -14,7 +14,6 @@ public abstract class MUDTableManager : MUDTable
     //dictionary of all entities
     public static Dictionary<int, MUDTableManager> Tables;
     public static Dictionary<string, MUDEntity> Entities;
-    public static GameObject entityPrefab;
     public static int AddedTables = 0;
 
 
@@ -90,7 +89,7 @@ public abstract class MUDTableManager : MUDTable
         if(eventType == TableEvent.Insert) {
             //create the entity if it doesn't exist
             if(entity == null) {
-                entity = SpawnEntity(entityKey);
+                entity = EntityDictionary.SpawnEntity(entityKey);
             }
             MUDComponent c = entity.AddComponent(componentPrefab, this);
             Components[entityKey].UpdateComponent(mudTable, eventType);
@@ -120,40 +119,5 @@ public abstract class MUDTableManager : MUDTable
 
 
 
-    protected virtual MUDEntity SpawnEntity(string newKey) {
-
-        //get the entity if it exists or spawn it
-        MUDEntity newEntity = null;
-        EntityDictionary.Entities.TryGetValue(newKey, out newEntity);
-
-        if(newEntity) {
-            Debug.Log(gameObject.name + " Found " + newEntity.name,gameObject);
-        } else {
-            if(entityPrefab == null) {
-                entityPrefab = (Resources.Load("Entity") as GameObject);
-            }
-
-            //spawn the entity if it doesnt exist
-            newEntity = Instantiate(entityPrefab,Vector3.up * -1000f, Quaternion.identity).GetComponent<MUDEntity>();
-            newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
-            Entities.Add(newKey, newEntity);
-
-            newEntity.SetMudKey(newKey);
-
-            Debug.Log(gameObject.name + " Spawned " + newEntity.name,gameObject);
-
-        }
-
-
-        return newEntity;
-    }
-
-    protected virtual void DestroyEntity(string newKey) {
-        MUDEntity newEntity = Entities[newKey];
-        Entities.Remove(newKey);
-
-        Destroy(newEntity);
-
-    }
 
 }
