@@ -17,11 +17,11 @@ public abstract class MUDComponent : MonoBehaviour
 
 
     [Header("Debug")]
-    [SerializeField] protected MUDEntity entity;
-    [SerializeField] protected MUDTableManager table;
-    [SerializeField] bool hasInit;
-    [SerializeField] int componentsLoaded = 0;
-    [SerializeField] bool loaded = false;
+    protected MUDEntity entity;
+    protected MUDTableManager table;
+    int componentsLoaded = 0;
+    bool hasInit;
+    bool loaded = false;
 
     public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable)
     {
@@ -29,12 +29,12 @@ public abstract class MUDComponent : MonoBehaviour
         table = ourTable;
         table.Components.Add(entity.Key, this);
 
-        CheckIfLoaded();
+        LoadComponents();
 
         hasInit = true;
     }
 
-    async UniTaskVoid CheckIfLoaded() {
+    async UniTaskVoid LoadComponents() {
 
         //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake
         await UniTask.Delay(100);
