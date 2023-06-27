@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace mud.Client
 {
@@ -8,6 +9,7 @@ namespace mud.Client
     {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
+        public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
@@ -104,9 +106,29 @@ namespace mud.Client
             for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i]; } }
             return null;
         }
+
+        public async Task<MUDComponent> GetMUDComponentAsync<T>() {
+
+            MUDComponent component = GetMUDComponent<T>();
+            
+            int timeout = 100;
+            while(component == null) {
+
+                timeout--;
+                if(timeout < 0) {
+                    return null;
+                }
+
+                await Task.Delay(100);
+                component = GetMUDComponent<T>();
+       
+            }
+
+            return component;
+        }
         public MUDComponent GetMUDComponent<T>()
         {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i]; } }
+            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (Components[i]); } }
             return null;
         }
         public MUDComponent AddComponent(MUDComponent componentPrefab, MUDTableManager fromTable)
@@ -124,15 +146,19 @@ namespace mud.Client
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
                 components.Add(c);
                 c.Init(this, fromTable);
+                OnComponentAdded?.Invoke(c);
             }
 
             return c;
         }
         
-        public void RemoveComponent(MUDComponent component)
+        public void RemoveComponent(MUDComponent c)
         {
-            components.Remove(component);
-            Destroy(component);
+
+            components.Remove(c);
+            OnComponentRemoved?.Invoke(c);
+
+            Destroy(c);
         }
 
 
