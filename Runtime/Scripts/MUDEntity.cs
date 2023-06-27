@@ -144,9 +144,15 @@ namespace mud.Client
             }
             else
             {
+                //spawn the compoment
                 c = Instantiate(componentPrefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
+
+                //helpful to show in inspector that this is the compoment instance, not the prefab
+                c.gameObject.name += "(I)"; 
                 components.Add(c);
+
+                //init it
                 c.Init(this, fromTable);
                 OnComponentAdded?.Invoke(c);
             }
