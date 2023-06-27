@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace mud.Client
 {
@@ -119,7 +120,7 @@ namespace mud.Client
                     return null;
                 }
 
-                await Task.Delay(100);
+                await UniTask.Delay(100);
                 component = GetMUDComponent<T>();
        
             }
