@@ -38,6 +38,7 @@ public abstract class MUDComponent : MonoBehaviour
 
         for(int i = 0; i < expectedComponents.Count; i++) {
             await entity.GetMUDComponentAsync(expectedComponents[i]);
+            componentsLoaded++;
         }        
        
         loaded = true;
