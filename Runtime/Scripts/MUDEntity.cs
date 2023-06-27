@@ -10,14 +10,19 @@ namespace mud.Client
     {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
+        public System.Action OnLoaded;
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
+
+
+        [Header("Settings")]
+        [SerializeField] List<MUDComponent> expectedComponents;
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
         [SerializeField] protected bool isLocal;
-
-        [Header("Debug")]
         [SerializeField] protected List<MUDComponent> components;
+        int componentsLoaded = 0;
+        bool loaded = false;
 
         private mud.Unity.NetworkManager net;
 
@@ -38,17 +43,51 @@ namespace mud.Client
 
             net = mud.Unity.NetworkManager.Instance;
 
-            if (net.isNetworkInitialized)
+            if (net.isNetworkInitialized) { InitOnNetwork(net); }
+            else { net.OnNetworkInitialized += InitOnNetwork; }
+
+            OnComponentAdded += CheckIfLoaded;
+
+        }
+
+
+        public override void Init()
+        {
+            base.Init();
+
+            if (string.IsNullOrEmpty(mudKey))
             {
-                InitOnNetwork(net);
-            }
-            else
-            {
-                net.OnNetworkInitialized += InitOnNetwork;
+                Debug.LogError("NO entity key");
+                return;
             }
 
         }
 
+        protected override void Destroy()
+        {
+            base.Destroy();
+
+            net.OnNetworkInitialized -= InitOnNetwork;
+            OnComponentAdded -= CheckIfLoaded;
+
+            for (int i = components.Count - 1; i > -1; i--)
+            {
+                RemoveComponent(components[i]);
+            }
+
+
+        }
+
+        void CheckIfLoaded(MUDComponent newComponent)
+        {
+            componentsLoaded++;
+            if (componentsLoaded >= expectedComponents.Count)
+            {
+                loaded = true;
+                OnComponentAdded -= CheckIfLoaded;
+                OnLoaded?.Invoke();
+            }
+        }
 
         protected virtual void InitOnNetwork(mud.Unity.NetworkManager nm)
         {
@@ -64,36 +103,11 @@ namespace mud.Client
 
         }
 
-        public override void Init()
-        {
-            base.Init();
 
-            if(string.IsNullOrEmpty(mudKey)) {
-                Debug.LogError("NO entity key");
-                return;
-            }
-
-        }
-
-        protected override void Destroy()
-        {
-            base.Destroy();
-
-            if (net)
-            {
-                net.OnNetworkInitialized -= InitOnNetwork;
-            }
-
-            for(int i = components.Count-1; i > -1; i--) {
-                RemoveComponent(components[i]);
-            }
-
-            
-        }
-        
         public void SetMudKey(string newKey)
         {
-            if(!string.IsNullOrEmpty(mudKey)) {
+            if (!string.IsNullOrEmpty(mudKey))
+            {
                 Debug.LogError("Can we change mudKeys? Probably not.");
             }
 
@@ -108,21 +122,24 @@ namespace mud.Client
             return null;
         }
 
-        public async Task<MUDComponent> GetMUDComponentAsync<T>() {
+        public async Task<MUDComponent> GetMUDComponentAsync<T>()
+        {
 
             MUDComponent component = GetMUDComponent<T>();
-            
+
             int timeout = 100;
-            while(component == null) {
+            while (component == null)
+            {
 
                 timeout--;
-                if(timeout < 0) {
+                if (timeout < 0)
+                {
                     return null;
                 }
 
                 await UniTask.Delay(100);
                 component = GetMUDComponent<T>();
-       
+
             }
 
             return component;
@@ -152,7 +169,7 @@ namespace mud.Client
 
             return c;
         }
-        
+
         public void RemoveComponent(MUDComponent c)
         {
 
