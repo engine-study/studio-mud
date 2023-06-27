@@ -7,13 +7,13 @@ using mud.Client;
 
 public abstract class MUDComponent : MonoBehaviour
 {
-    public System.Action OnUpdated;
     public MUDEntity Entity { get { return entity; } }
     public bool Loaded { get { return loaded; } }
-    public System.Action OnLoaded;
+    public List<MUDComponent> RequiredComponents {get{return requiredComponents;}}
+    public System.Action OnLoaded, OnUpdated;
 
     [Header("Settings")]
-    [SerializeField] List<MUDComponent> expectedComponents;
+    [SerializeField] List<MUDComponent> requiredComponents;
 
 
     [Header("Debug")]
@@ -36,8 +36,11 @@ public abstract class MUDComponent : MonoBehaviour
 
     async UniTaskVoid CheckIfLoaded() {
 
-        for(int i = 0; i < expectedComponents.Count; i++) {
-            await entity.GetMUDComponentAsync(expectedComponents[i]);
+        //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake
+        await UniTask.Delay(100);
+
+        for(int i = 0; i < requiredComponents.Count; i++) {
+            await entity.GetMUDComponentAsync(requiredComponents[i]);
             componentsLoaded++;
         }        
        
@@ -75,6 +78,7 @@ public abstract class MUDComponent : MonoBehaviour
 
         }
 
+        OnUpdated?.Invoke();
     }
 
 

@@ -21,8 +21,6 @@ namespace mud.Client
 
         private mud.Unity.NetworkManager net;
 
-
-
         protected virtual void Awake()
         {
             base.Awake();
