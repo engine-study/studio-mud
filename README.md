@@ -1,6 +1,8 @@
 # studio-mud
 
-# WIP WIP WIP
+# ⚠️ HEAVILY WORK IN PROGRESS ⚠️
+
+![example4](https://github.com/engine-study/studio-mud/assets/7606952/5ddf082c-d84b-41c0-b31f-8cbc560fee1a)
 
 ## Installation 
 1. Install Unity 2022.3.x
@@ -11,9 +13,9 @@
 
 For each MUD table you must do the following:
 
-1. Create a new C# script of MUDComponent class (ex. PositionComponent).
-2. Design a prefab and attach the component script to it (ie. a DamageComponnt might have spark FX).
-3. Make a matching MUDTableManager class (ex. PositionManager).
+1. Create a new C# script of `MUDComponent` class (ex. `PositionComponent`).
+2. Design a prefab and attach the component script to it (ie. a `DamageComponent` might have spark FX).
+3. Make a matching `MUDTableManager` class (ex. `PositionManager`).
 4. Attach your new **manager** to an object in the scene.
 5. Link the **component prefab** to the **manager** in the inspector.
 6. Run `pnpm run dev:node` and `pnpm run dev` and enter Play Mode
