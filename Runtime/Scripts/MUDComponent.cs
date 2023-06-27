@@ -9,6 +9,7 @@ public abstract class MUDComponent : MonoBehaviour
 {
     public System.Action OnUpdated;
     public MUDEntity Entity { get { return entity; } }
+    public bool Loaded { get { return loaded; } }
     public System.Action OnLoaded;
 
     [Header("Settings")]
@@ -19,7 +20,6 @@ public abstract class MUDComponent : MonoBehaviour
     [SerializeField] protected MUDEntity entity;
     [SerializeField] protected MUDTableManager table;
     [SerializeField] bool hasInit;
-    [SerializeField] bool hasExpectedComponents = false;
     [SerializeField] int componentsLoaded = 0;
     [SerializeField] bool loaded = false;
 
@@ -29,18 +29,9 @@ public abstract class MUDComponent : MonoBehaviour
         table = ourTable;
         table.Components.Add(entity.Key, this);
 
-        Load();
+        CheckIfLoaded();
 
         hasInit = true;
-    }
-
-    async UniTaskVoid Load() {
-        
-        hasExpectedComponents = expectedComponents.Count == 0;
-        if(!hasExpectedComponents) {
-           CheckIfLoaded();
-        }
-        return;
     }
 
     async UniTaskVoid CheckIfLoaded() {

@@ -132,7 +132,7 @@ namespace mud.Client
 
         public MUDComponent GetMUDComponent<T>()
         {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (Components[i]); } }
+            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i]; } }
             return null;
         }
         public MUDComponent AddComponent(MUDComponent componentPrefab, MUDTableManager fromTable)
