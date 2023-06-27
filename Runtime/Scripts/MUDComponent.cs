@@ -12,6 +12,7 @@ public abstract class MUDComponent : MonoBehaviour
     public List<MUDComponent> RequiredComponents {get{return requiredComponents;}}
     public System.Action OnLoaded, OnUpdated;
 
+
     [Header("Settings")]
     [SerializeField] List<MUDComponent> requiredComponents;
 
@@ -33,6 +34,7 @@ public abstract class MUDComponent : MonoBehaviour
 
         hasInit = true;
     }
+
 
     async UniTaskVoid LoadComponents() {
 

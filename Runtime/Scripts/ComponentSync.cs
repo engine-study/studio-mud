@@ -5,7 +5,6 @@ using UnityEngine;
 namespace mud.Client
 {
 
-
     public abstract class ComponentSync : MonoBehaviour
     {
         public enum ComponentSyncType { Instant, Lerp, InitialSyncOnly }
@@ -20,14 +19,21 @@ namespace mud.Client
         [SerializeField] protected MUDComponent ourComponent;
         [SerializeField] protected MUDComponent targetComponent;
 
+        System.Type componentType;
+        string componentString;
 
-        protected abstract string GetComponentName();
 
+        //if we wanted to sync position, we would return the Position component class for example
+        public abstract System.Type TargetComponentType();
 
-        protected virtual void Awake() {
+        protected virtual void Start() {
 
             ourComponent = GetComponent<MUDComponent>();
-            componentPrefab = ComponentDictionary.StringToComponentPrefab(GetComponentName());
+
+            componentType = TargetComponentType();
+            componentString = componentType.ToString();
+
+            componentPrefab = ComponentDictionary.StringToComponentPrefab(componentString);
 
             if (!ourComponent.RequiredComponents.Contains(componentPrefab))
             {

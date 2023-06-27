@@ -12,24 +12,39 @@ using System.Threading.Tasks;
 public abstract class MUDTableManager : MUDTable
 {
     //dictionary of all entities
-    public static Dictionary<int, MUDTableManager> Tables;
+    public static Dictionary<string, MUDTableManager> Tables;
     public static Dictionary<string, MUDEntity> Entities;
-    public static int AddedTables = 0;
 
 
-    [Header("Table")]
-    public MUDComponent componentPrefab;
-    [Header("Options")]
-    public bool deletedRecordDestroysEntity = false;
+
+    public virtual System.Type ComponentType {get{return componentType;}}
+    public virtual string ComponentString {get{return componentString;}}
 
 
     //dictionary of all the components this specific table has
     public Dictionary<string, MUDComponent> Components;
+    public MUDComponent Prefab {get{return componentPrefab;}}
+
+    [Header("Settings")]
+    public MUDComponent componentPrefab;
+
+
+    [Header("Options")]
+    public bool deletedRecordDestroysEntity = false;
+
+
+
+    System.Type componentType;
+
+    string componentString;
     // public Dictionary<string, MUDComponent> Components;
 
     protected override void Awake()
     {
         base.Awake();
+
+        componentType = componentPrefab.GetType();
+        componentString = componentType.ToString();
 
         if(componentPrefab == null) {
             Debug.LogError("No MUDComponent prefab to spawn");
@@ -37,11 +52,15 @@ public abstract class MUDTableManager : MUDTable
         }
 
         if(Tables == null) {
-            Tables = new Dictionary<int, MUDTableManager>();
+            Tables = new Dictionary<string, MUDTableManager>();
         }
 
-        Tables.Add(AddedTables,this);
-        AddedTables++;
+        if(Tables.ContainsKey(ComponentType.ToString())) {
+            Debug.LogError("Fatal error, multiple tables of same type " + ComponentType);
+        }
+
+        Debug.Log("Adding " + componentString + " Manager");
+        Tables.Add(ComponentType.ToString(),this);
 
         if(Entities == null) {
             Entities = new Dictionary<string, MUDEntity>();
@@ -66,7 +85,6 @@ public abstract class MUDTableManager : MUDTable
         base.OnDeleteRecord(tableUpdate);
         IngestTableEvent(tableUpdate, TableEvent.Delete);
     }
-
 
 
     protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);

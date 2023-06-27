@@ -22,8 +22,6 @@ public abstract class MUDTable : MonoBehaviour
     }
     protected virtual void Start()
     {
-        Debug.Log(gameObject.name + " Start");
-
         net = mud.Unity.NetworkManager.Instance;
         net.OnNetworkInitialized += InitTable;
     }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace mud.Client
 {
@@ -20,6 +21,14 @@ namespace mud.Client
             Instance = null;
         }
 
+
+        // public MUDComponent TypeToPrefab<T>
+
+        public static T GetComponentPrefab<T>() where T: MUDComponent {
+            return null;
+        }
+
+
         public static MUDComponent StringToComponentPrefab(string componentName)
         {
 
@@ -30,7 +39,10 @@ namespace mud.Client
             if (prefab == null)
             {
 
-                prefab = (Resources.Load("Components/" + componentName) as GameObject).GetComponent<MUDComponent>();
+                //NO, lets try to use the prefab the table assigned to its "componentPrefab" slot
+                // prefab = (Resources.Load("Components/" + componentName) as GameObject).GetComponent<MUDComponent>();
+
+                prefab = MUDTableManager.Tables[componentName].Prefab;
 
                 if (prefab)
                 {
