@@ -11,15 +11,16 @@
 
 For each MUD table you must do the following:
 
-1. Inherit the MUDComponent script
-2. Create a prefab with the new script attached.
-3. Place the prefab into a `Resources/Components` subdirectory anywhere in the Assets folder.
-5. Create your inherited MUDTableManager and attach it to a gameobject.
-6. Deploy your contracts with `pnpm run dev:node` and `pnpm run dev` and enter Play Mode
-7. Your MUDComponent should spawn under its MUDEntity.
+1. Inherit the MUDComponent class (ex. PositionComponent).
+2. Create a prefab and attach the component script to it.
+3. Make a matching MUDTableManager class (ex. PositionManager).
+4. Attach your `TableManager` to an object in the scene.
+5. Link the *component prefab* to the TableManager in the inspector.
+6. Run `pnpm run dev:node` and `pnpm run dev` and enter Play Mode
+8. Your MUDComponent should spawn under its MUDEntity.
 
 ## Syncing
 
-Inherit from ComponentSync and add to a component prefab to easily keep it synced with the other components the entity has.
+Inherit from ComponentSync and add to a *component prefab* to easily keep it synced with the other components on the entity.
 For example: ___
 
