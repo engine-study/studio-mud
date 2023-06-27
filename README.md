@@ -11,16 +11,16 @@
 
 For each MUD table you must do the following:
 
-1. Inherit the MUDComponent class (ex. PositionComponent).
-2. Create a prefab and attach the component script to it.
+1. Create a new C# script of MUDComponent class (ex. PositionComponent).
+2. Design a prefab and attach the component script to it (ie. a DamageComponnt might have spark FX).
 3. Make a matching MUDTableManager class (ex. PositionManager).
-4. Attach your `TableManager` to an object in the scene.
-5. Link the *component prefab* to the TableManager in the inspector.
+4. Attach your new **manager** to an object in the scene.
+5. Link the **component prefab** to the **manager** in the inspector.
 6. Run `pnpm run dev:node` and `pnpm run dev` and enter Play Mode
-8. Your MUDComponent should spawn under its MUDEntity.
+8. Your **component prefab** should spawn under its Entity.
 
 ## Syncing
 
-Inherit from ComponentSync and add to a *component prefab* to easily keep it synced with the other components on the entity.
+Inherit from ComponentSync and add to a **component prefab** to easily keep it synced with the other components on the entity.
 For example: ___
 
