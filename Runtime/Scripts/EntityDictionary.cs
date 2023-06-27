@@ -13,6 +13,8 @@ public class EntityDictionary : MonoBehaviour
     public static MUDEntity GetEntity(string Key) { return m_Entities[Key]; }
     public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
 
+    [Header("Settings")]
+    [SerializeField] Transform entityParent;
 
     void Awake()
     {
@@ -33,7 +35,11 @@ public class EntityDictionary : MonoBehaviour
 
     public static MUDEntity FindOrSpawnEntity(string newKey)
     {
-
+        if(Instance == null) {
+            Debug.LogError("No EntityDictionary Instance found");
+            return null;
+        }
+        
         //get the entity if it exists or spawn it
         MUDEntity newEntity = GetEntitySafe(newKey);
 
@@ -49,7 +55,7 @@ public class EntityDictionary : MonoBehaviour
             }
 
             //spawn the entity if it doesnt exist
-            newEntity = Instantiate(entityPrefab, Vector3.up * -1000f, Quaternion.identity).GetComponent<MUDEntity>();
+            newEntity = Instantiate(entityPrefab, Vector3.up * -1000f, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
 
             newEntity.SetMudKey(newKey);

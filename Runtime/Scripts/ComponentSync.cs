@@ -37,7 +37,7 @@ namespace mud.Client
 
             if (!ourComponent.RequiredComponents.Contains(componentPrefab))
             {
-                Debug.Log("Adding our required component.", gameObject);
+                // Debug.Log("Adding our required component.", gameObject);
                 ourComponent.RequiredComponents.Add(componentPrefab);
             }
 

@@ -28,7 +28,8 @@ public abstract class MUDComponent : MonoBehaviour
     {
         entity = ourEntity;
         table = ourTable;
-        table.Components.Add(entity.Key, this);
+
+        table.RegisterComponent(true, this);
 
         LoadComponents();
 
@@ -61,7 +62,7 @@ public abstract class MUDComponent : MonoBehaviour
 
     public virtual void Cleanup()
     {
-        table.Components.Remove(entity.Key);
+        table.RegisterComponent(false,this);
     }
 
     public virtual void UpdateComponent(mud.Client.IMudTable table, TableEvent eventType)

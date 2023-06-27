@@ -15,14 +15,13 @@ public abstract class MUDTableManager : MUDTable
     public static Dictionary<string, MUDTableManager> Tables;
     public static Dictionary<string, MUDEntity> Entities;
 
-
-
     public virtual System.Type ComponentType {get{return componentType;}}
     public virtual string ComponentString {get{return componentString;}}
 
 
     //dictionary of all the components this specific table has
     public Dictionary<string, MUDComponent> Components;
+    public List<MUDComponent> SpawnedComponents;
     public MUDComponent Prefab {get{return componentPrefab;}}
 
     [Header("Settings")]
@@ -136,6 +135,24 @@ public abstract class MUDTableManager : MUDTable
         //     DestroyEntity(entityKey);
         // }
         
+    }
+
+    public void RegisterComponent(bool toggle, MUDComponent component) {
+        if(toggle) {
+            if(SpawnedComponents.Contains(component)) {
+                Debug.LogError("Component already added", component);
+            }
+            Components.Add(component.Entity.Key, component);
+            SpawnedComponents.Add(component);
+        } else {
+
+            if(!SpawnedComponents.Contains(component)) {
+                Debug.LogError("Component was never added", component);
+            }
+            
+            Components.Remove(component.Entity.Key);
+            SpawnedComponents.Remove(component);
+        }
     }
 
     protected virtual void UpdateComponent(MUDComponent update, TableEvent eventType) {
