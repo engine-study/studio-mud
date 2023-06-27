@@ -1,6 +1,8 @@
 # studio-mud
 
-# WIP WIP WIP
+# ⚠️ HEAVILY WORK IN PROGRESS ⚠️
+
+![example4](https://github.com/engine-study/studio-mud/assets/7606952/5ddf082c-d84b-41c0-b31f-8cbc560fee1a)
 
 ## Installation 
 1. Install Unity 2022.3.x
