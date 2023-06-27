@@ -6,8 +6,9 @@
 
 ## Installation 
 1. Install Unity 2022.3.x
-2. Open Unity Package Manager
-3. Click "Add package from git URL" and paste `https://github.com/engine-study/studio-mud.git`
+2. Create a project with template - https://github.com/emergenceland/mud-template-unity
+3. Open Unity Package Manager
+4. Click "Add package from git URL" and paste `https://github.com/engine-study/studio-mud.git`
 
 ## Usage
 
