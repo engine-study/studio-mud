@@ -10,19 +10,14 @@ namespace mud.Client
     {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
-        public System.Action OnLoaded;
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
 
-
-        [Header("Settings")]
-        [SerializeField] List<MUDComponent> expectedComponents;
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
         [SerializeField] protected bool isLocal;
         [SerializeField] protected List<MUDComponent> components;
-        int componentsLoaded = 0;
-        bool loaded = false;
+
 
         private mud.Unity.NetworkManager net;
 
@@ -31,8 +26,8 @@ namespace mud.Client
         protected virtual void Awake()
         {
             base.Awake();
-
             components = new List<MUDComponent>();
+
         }
 
 
@@ -45,8 +40,6 @@ namespace mud.Client
 
             if (net.isNetworkInitialized) { InitOnNetwork(net); }
             else { net.OnNetworkInitialized += InitOnNetwork; }
-
-            OnComponentAdded += CheckIfLoaded;
 
         }
 
@@ -63,58 +56,32 @@ namespace mud.Client
 
         }
 
+        protected virtual void InitOnNetwork(mud.Unity.NetworkManager nm)
+        {
+            Init();
+        }
+
         protected override void Destroy()
         {
             base.Destroy();
 
             net.OnNetworkInitialized -= InitOnNetwork;
-            OnComponentAdded -= CheckIfLoaded;
 
             for (int i = components.Count - 1; i > -1; i--)
             {
                 RemoveComponent(components[i]);
             }
-
-
         }
-
-        void CheckIfLoaded(MUDComponent newComponent)
-        {
-            componentsLoaded++;
-            if (componentsLoaded >= expectedComponents.Count)
-            {
-                loaded = true;
-                OnComponentAdded -= CheckIfLoaded;
-                OnLoaded?.Invoke();
-            }
-        }
-
-        protected virtual void InitOnNetwork(mud.Unity.NetworkManager nm)
-        {
-
-            // for (int i = 0; i < components.Length; i++)
-            // {
-            //     //copy the scriptable object (so we don't write to the original)
-            //     components[i] = Instantiate(components[i]);
-            //     components[i].Init(this);
-            // }
-
-            Init();
-
-        }
-
 
         public void SetMudKey(string newKey)
         {
-            if (!string.IsNullOrEmpty(mudKey))
-            {
-                Debug.LogError("Can we change mudKeys? Probably not.");
-            }
-
+            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("Can we change mudKeys? Probably not.");}
             mudKey = newKey;
-
         }
+
         public void SetIsLocal(bool newValue) { isLocal = newValue; }
+
+
 
         public MUDComponent GetMUDComponent(MUDComponent component)
         {
@@ -122,9 +89,27 @@ namespace mud.Client
             return null;
         }
 
-        public async Task<MUDComponent> GetMUDComponentAsync<T>()
-        {
+        public async UniTask<MUDComponent> GetMUDComponentAsync(MUDComponent componentType) {
+            MUDComponent component = GetMUDComponent(componentType);
 
+            int timeout = 100;
+            while (component == null)
+            {
+
+                timeout--;
+                if (timeout < 0)
+                {
+                    return null;
+                }
+
+                await UniTask.Delay(100);
+                component = GetMUDComponent(componentType);
+
+            }
+
+            return component;
+        }
+        public async UniTask<MUDComponent> GetMUDComponentAsync<T>() {
             MUDComponent component = GetMUDComponent<T>();
 
             int timeout = 100;
@@ -144,6 +129,7 @@ namespace mud.Client
 
             return component;
         }
+
         public MUDComponent GetMUDComponent<T>()
         {
             for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (Components[i]); } }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
-    
+    public bool HasInit{get{return hasInit;}}
     bool hasInit = false; 
 
     protected virtual void Awake() {
