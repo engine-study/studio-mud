@@ -15,9 +15,9 @@ namespace mud.Client
         [SerializeField] protected ComponentSyncType syncType;
 
         [Header("Debug")]
-        [SerializeField] protected MUDComponent componentPrefab;
-        [SerializeField] protected MUDComponent ourComponent;
-        [SerializeField] protected MUDComponent targetComponent;
+        protected MUDComponent componentPrefab;
+        protected MUDComponent ourComponent;
+        protected MUDComponent targetComponent;
 
         System.Type componentType;
         string componentString;

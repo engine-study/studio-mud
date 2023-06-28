@@ -65,7 +65,12 @@ public abstract class MUDComponent : MonoBehaviour
         table.RegisterComponent(false,this);
     }
 
-    public virtual void UpdateComponent(mud.Client.IMudTable table, TableEvent eventType)
+    public void DoUpdate(mud.Client.IMudTable table, TableEvent eventType) {
+        UpdateComponent(table,eventType);
+        OnUpdated?.Invoke();
+    }
+
+    protected virtual void UpdateComponent(mud.Client.IMudTable table, TableEvent eventType)
     {
 
         if (eventType == TableEvent.Insert)
@@ -81,7 +86,6 @@ public abstract class MUDComponent : MonoBehaviour
 
         }
 
-        OnUpdated?.Invoke();
     }
 
 

@@ -112,17 +112,17 @@ public abstract class MUDTableManager : MUDTable
             if(!Components.ContainsKey(entityKey)) {
                 MUDComponent c = entity.AddComponent(componentPrefab, this);
             }
-            Components[entityKey].UpdateComponent(mudTable, eventType);
+            Components[entityKey].DoUpdate(mudTable, eventType);
 
 
         } else if(eventType == TableEvent.Update) {
 
-            Components[entityKey].UpdateComponent(mudTable, eventType);
+            Components[entityKey].DoUpdate(mudTable, eventType);
 
 
         } else if(eventType == TableEvent.Delete) {
 
-            Components[entityKey].UpdateComponent(mudTable, eventType);
+            Components[entityKey].DoUpdate(mudTable, eventType);
             entity.RemoveComponent(Components[entityKey]);
 
             if(deletedRecordDestroysEntity) {
