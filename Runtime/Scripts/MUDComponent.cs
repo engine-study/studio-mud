@@ -65,23 +65,23 @@ public abstract class MUDComponent : MonoBehaviour
         table.RegisterComponent(false,this);
     }
 
-    public void DoUpdate(mud.Client.IMudTable table, TableEvent eventType) {
+    public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
         UpdateComponent(table,eventType);
         OnUpdated?.Invoke();
     }
 
-    protected virtual void UpdateComponent(mud.Client.IMudTable table, TableEvent eventType)
+    protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType)
     {
 
-        if (eventType == TableEvent.Insert)
+        if (eventType == UpdateEvent.Insert)
         {
 
         }
-        else if (eventType == TableEvent.Delete)
+        else if (eventType == UpdateEvent.Delete)
         {
 
         }
-        else if (eventType == TableEvent.Update)
+        else if (eventType == UpdateEvent.Update)
         {
 
         }
