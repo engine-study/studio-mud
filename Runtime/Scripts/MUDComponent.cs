@@ -24,6 +24,11 @@ public abstract class MUDComponent : MonoBehaviour
     bool hasInit;
     bool loaded = false;
 
+
+    protected virtual void Awake() {
+
+    }
+    
     public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable)
     {
         entity = ourEntity;
