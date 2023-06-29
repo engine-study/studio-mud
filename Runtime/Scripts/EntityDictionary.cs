@@ -16,6 +16,9 @@ public class EntityDictionary : MonoBehaviour
     [Header("Settings")]
     [SerializeField] Transform entityParent;
 
+    [Header("Debug")]
+    public List<MUDEntity> EntityList;
+
     void Awake()
     {
         if (Instance != null)
@@ -35,11 +38,12 @@ public class EntityDictionary : MonoBehaviour
 
     public static MUDEntity FindOrSpawnEntity(string newKey)
     {
-        if(Instance == null) {
+        if (Instance == null)
+        {
             Debug.LogError("No EntityDictionary Instance found");
             return null;
         }
-        
+
         //get the entity if it exists or spawn it
         MUDEntity newEntity = GetEntitySafe(newKey);
 
@@ -55,7 +59,7 @@ public class EntityDictionary : MonoBehaviour
             }
 
             //spawn the entity if it doesnt exist
-            newEntity = Instantiate(entityPrefab, Vector3.up * -1000f, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
+            newEntity = Instantiate(entityPrefab, Vector3.up * -1000f + Vector3.down * Instance.EntityList.Count * 10f, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
 
             newEntity.SetMudKey(newKey);
@@ -88,8 +92,16 @@ public class EntityDictionary : MonoBehaviour
 
     public static void ToggleEntity(bool toggle, MUDEntity entity)
     {
-        if (toggle) { m_Entities.Add(entity.Key, entity); }
-        else { m_Entities.Remove(entity.Key); }
+        if (toggle)
+        {
+            Instance.EntityList.Add(entity);
+            m_Entities.Add(entity.Key, entity);
+        }
+        else
+        {
+            Instance.EntityList.Remove(entity);
+            m_Entities.Remove(entity.Key);
+        }
     }
 
 }
