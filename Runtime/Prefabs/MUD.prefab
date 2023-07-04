@@ -94,6 +94,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 279eab845fdd45d4bb877ea2c9e142d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  entityParent: {fileID: 0}
+  EntityList: []
+--- !u!1 &5434828356542120334
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1965001346719452247}
+  - component: {fileID: 9131142393774808648}
+  - component: {fileID: 2483542152087410652}
+  m_Layer: 0
+  m_Name: ChunkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1965001346719452247
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5434828356542120334}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8786384311073745310}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9131142393774808648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5434828356542120334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e0ca1918f678f46a25c89e546f7daa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chunkSize: {x: 0, y: 0}
+  Entities: []
+  sync: {fileID: 2483542152087410652}
+--- !u!114 &2483542152087410652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5434828356542120334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26c6994f1ba750b409ec50acdba2274e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5817104349256014668
 GameObject:
   m_ObjectHideFlags: 0
@@ -169,6 +231,7 @@ Transform:
   - {fileID: 4350644691518084555}
   - {fileID: 1719053654389764560}
   - {fileID: 100069912734561001}
+  - {fileID: 1965001346719452247}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

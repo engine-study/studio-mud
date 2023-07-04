@@ -17,6 +17,7 @@ namespace mud.Client
     public abstract class MUDTableManager : MUDTable
     {
         //dictionary of all entities
+        public static System.Action<bool,MUDTableManager> OnTableToggle;
         public static Dictionary<string, MUDTableManager> Tables;
 
         public virtual System.Type ComponentType { get { return componentType; } }
@@ -65,9 +66,26 @@ namespace mud.Client
                 return;
             }
 
-            Debug.Log("Adding " + componentString + " Manager");
-            Tables.Add(ComponentType.ToString(), this);
 
+
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+
+            Debug.Log("Adding " + componentString + " Manager");
+
+            Tables.Add(ComponentString, this);
+            OnTableToggle?.Invoke(true,this);
+
+        }
+
+        protected override void OnDestroy() {
+            base.OnDestroy();
+
+            Tables.Remove(ComponentString);
+            OnTableToggle?.Invoke(false, this);
         }
 
         protected override void OnInsertRecord(RecordUpdate tableUpdate)
@@ -103,7 +121,6 @@ namespace mud.Client
             
 
         }
-
 
         protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType)
         {

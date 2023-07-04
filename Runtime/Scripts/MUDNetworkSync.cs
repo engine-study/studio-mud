@@ -11,6 +11,7 @@ namespace mud.Client
     public class MUDNetworkSync : MonoBehaviour
     {
 
+        public System.Action OnNetworkInit;
         mud.Unity.NetworkManager net;
         protected CompositeDisposable _disposers = new();
 
@@ -22,13 +23,13 @@ namespace mud.Client
         protected virtual void Start()
         {
             net = mud.Unity.NetworkManager.Instance;
-            net.OnNetworkInitialized += Init;
+            net.OnNetworkInitialized += DoInit;
         }
 
         protected virtual void OnDestroy()
         {
             _disposers?.Dispose();
-            net.OnNetworkInitialized -= Init;
+            net.OnNetworkInitialized -= DoInit;
         }
 
         // var SpawnSubscription = table.OnRecordInsert().ObserveOnMainThread().Subscribe(OnUpdateTable);
@@ -38,6 +39,10 @@ namespace mud.Client
         //         OnChainPositionUpdate);
         // _disposers.Add(UpdateSubscription);
 
+        void DoInit(mud.Unity.NetworkManager nm) {
+            Init(nm);
+            OnNetworkInit?.Invoke();
+        }
         protected virtual async void Init(mud.Unity.NetworkManager nm)
         {
 
