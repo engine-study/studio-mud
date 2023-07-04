@@ -25,17 +25,14 @@ namespace mud.Client
 
         //dictionary of all the components this specific table has
         public Dictionary<string, MUDComponent> Components;
-        public List<MUDComponent> SpawnedComponents;
         public MUDComponent Prefab { get { return componentPrefab; } }
 
         [Header("Settings")]
         public MUDComponent componentPrefab;
-
-
-        [Header("Options")]
         public bool deletedRecordDestroysEntity = false;
 
-
+        [Header("Debug")]
+        public List<MUDComponent> SpawnedComponents;
 
         System.Type componentType;
 
