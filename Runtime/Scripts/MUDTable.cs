@@ -45,6 +45,7 @@ namespace mud.Client
         protected virtual async void InitTable(NetworkManager nm)
         {
             Subscribe(nm);
+            Debug.Log("Init: " + gameObject.name);
         }
 
         protected abstract void Subscribe(NetworkManager nm);

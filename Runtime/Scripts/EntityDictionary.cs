@@ -10,6 +10,7 @@ public class EntityDictionary : MonoBehaviour
 
     private static GameObject entityPrefab;
     private static Dictionary<string, MUDEntity> m_Entities;
+    private static Dictionary<string, MUDEntity> m_chunkedEntities;
     public static MUDEntity GetEntity(string Key) { return m_Entities[Key]; }
     public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
 
@@ -28,6 +29,7 @@ public class EntityDictionary : MonoBehaviour
 
         Instance = this;
         m_Entities = new Dictionary<string, MUDEntity>();
+        m_chunkedEntities = new Dictionary<string, MUDEntity>();
 
     }
 

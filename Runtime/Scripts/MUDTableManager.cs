@@ -13,7 +13,7 @@ namespace mud.Client
 {
 
 
-    public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert, Manual }
+    public enum UpdateEvent { Insert, Update, Delete} //Optimistic, Revert, Manual  // possible other types?
     public abstract class MUDTableManager : MUDTable
     {
         //dictionary of all entities
@@ -43,8 +43,10 @@ namespace mud.Client
         {
             base.Awake();
 
-            componentType = componentPrefab.GetType();
-            componentString = componentType.ToString();
+            if (Tables == null)
+            {
+                Tables = new Dictionary<string, MUDTableManager>();
+            }
 
             if (componentPrefab == null)
             {
@@ -52,20 +54,20 @@ namespace mud.Client
                 return;
             }
 
-            if (Tables == null)
-            {
-                Tables = new Dictionary<string, MUDTableManager>();
-            }
+            //set our table type based on the prefab we have selected
+            componentType = componentPrefab.GetType();
+            componentString = componentType.ToString();
+            Components = new Dictionary<string, MUDComponent>();
 
             if (Tables.ContainsKey(ComponentType.ToString()))
             {
-                Debug.LogError("Fatal error, multiple tables of same type " + ComponentType);
+                Debug.LogError("Bad, multiple tables of same type " + ComponentType);
+                return;
             }
 
             Debug.Log("Adding " + componentString + " Manager");
             Tables.Add(ComponentType.ToString(), this);
 
-            Components = new Dictionary<string, MUDComponent>();
         }
 
         protected override void OnInsertRecord(RecordUpdate tableUpdate)
@@ -87,6 +89,21 @@ namespace mud.Client
 
 
         protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);
+
+        protected virtual void SpawnComponentByEntity(string entityKey) {
+            if (string.IsNullOrEmpty(entityKey)) {
+                Debug.LogError("Empty key", gameObject);
+                return;
+            }
+
+
+            //create the entity if it doesn't exist
+            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);    
+
+            
+
+        }
+
 
         protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType)
         {
