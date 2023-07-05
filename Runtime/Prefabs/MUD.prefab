@@ -49,6 +49,7 @@ MonoBehaviour:
   pk: 
   chainId: 31337
   contractAddress: 
+  writeLogs: 1
   disableCache: 1
 --- !u!1 &270803249191292787
 GameObject:
@@ -108,7 +109,7 @@ GameObject:
   - component: {fileID: 9131142393774808648}
   - component: {fileID: 2483542152087410652}
   m_Layer: 0
-  m_Name: ChunkManager
+  m_Name: AreaManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -141,7 +142,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4e0ca1918f678f46a25c89e546f7daa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chunkSize: {x: 0, y: 0}
+  width: {x: 0, y: 0}
+  height: {x: 0, y: 0}
   Entities: []
   sync: {fileID: 2483542152087410652}
 --- !u!114 &2483542152087410652

@@ -13,11 +13,11 @@ namespace mud.Client
 {
 
 
-    public enum UpdateEvent { Insert, Update, Delete} //Optimistic, Revert, Manual  // possible other types?
+    public enum UpdateEvent { Insert, Update, Delete } //Optimistic, Revert, Manual  // possible other types?
     public abstract class MUDTableManager : MUDTable
     {
         //dictionary of all entities
-        public static System.Action<bool,MUDTableManager> OnTableToggle;
+        public static System.Action<bool, MUDTableManager> OnTableToggle;
         public static Dictionary<string, MUDTableManager> Tables;
 
         public virtual System.Type ComponentType { get { return componentType; } }
@@ -31,6 +31,7 @@ namespace mud.Client
         [Header("Settings")]
         public MUDComponent componentPrefab;
         public bool deletedRecordDestroysEntity = false;
+        public bool logTable = false;
 
         [Header("Debug")]
         public List<MUDComponent> SpawnedComponents;
@@ -77,11 +78,12 @@ namespace mud.Client
             Debug.Log("Adding " + componentString + " Manager");
 
             Tables.Add(ComponentString, this);
-            OnTableToggle?.Invoke(true,this);
+            OnTableToggle?.Invoke(true, this);
 
         }
 
-        protected override void OnDestroy() {
+        protected override void OnDestroy()
+        {
             base.OnDestroy();
 
             Tables.Remove(ComponentString);
@@ -108,17 +110,33 @@ namespace mud.Client
 
         protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);
 
-        protected virtual void SpawnComponentByEntity(string entityKey) {
-            if (string.IsNullOrEmpty(entityKey)) {
+        // protected virtual IMudTable RecordUpdateToTable(RecordUpdate tableUpdate)
+        // {
+        //     ChunkTableUpdate update = tableUpdate as ChunkTableUpdate;
+
+        //     var currentValue = update.TypedValue.Item1;
+        //     if (currentValue == null)
+        //     {
+        //         Debug.LogError("No currentValue");
+        //         return null;
+        //     }
+
+        //     return currentValue;
+        // }
+
+        protected virtual void SpawnComponentByEntity(string entityKey)
+        {
+            if (string.IsNullOrEmpty(entityKey))
+            {
                 Debug.LogError("Empty key", gameObject);
                 return;
             }
 
 
             //create the entity if it doesn't exist
-            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);    
+            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
-            
+
 
         }
 
@@ -127,8 +145,6 @@ namespace mud.Client
 
             //process the table event to a key and the entity of that key
             string entityKey = tableUpdate.Key;
-
-            // Debug.Log("Ingest: " + gameObject.name + " " + eventType.ToString(),gameObject);
 
             if (string.IsNullOrEmpty(entityKey))
             {
@@ -139,17 +155,27 @@ namespace mud.Client
             MUDEntity entity = EntityDictionary.GetEntitySafe(entityKey);
             IMudTable mudTable = RecordUpdateToTable(tableUpdate);
 
+            //create the entity if it doesn't exist
+            entity = EntityDictionary.FindOrSpawnEntity(entityKey);
+
+            if (logTable)
+            {
+                Debug.Log("Ingest: " + gameObject.name + " " + tableUpdate.Type.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
+            }
+
             if (eventType == UpdateEvent.Insert)
             {
 
-                //create the entity if it doesn't exist
-                entity = EntityDictionary.FindOrSpawnEntity(entityKey);
-
                 //create the component
-                if (!Components.ContainsKey(entityKey))
+                if (Components.ContainsKey(entityKey))
+                {
+                   
+                }
+                else
                 {
                     MUDComponent c = entity.AddComponent(componentPrefab, this);
                 }
+
                 Components[entityKey].DoUpdate(mudTable, eventType);
 
 

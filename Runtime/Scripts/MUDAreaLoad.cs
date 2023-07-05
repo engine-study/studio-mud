@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace mud.Client {
 
-    public class MUDChunkManager : MonoBehaviour
+    public class MUDAreaLoad : MonoBehaviour
     {
         [Header("Chunk Loader")]
         public Vector2Int width;
