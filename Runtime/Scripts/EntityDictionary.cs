@@ -61,7 +61,7 @@ public class EntityDictionary : MonoBehaviour
             }
 
             //spawn the entity if it doesnt exist
-            newEntity = Instantiate(entityPrefab, Vector3.up * -1000f + Vector3.down * Instance.EntityList.Count * 10f, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
+            newEntity = Instantiate(entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
 
             newEntity.SetMudKey(newKey);

@@ -144,6 +144,8 @@ namespace mud.Client
             }
             else
             {
+
+                //  Vector3.up * -1000f + Vector3.down * Instance.EntityList.Count * 10f
                 //spawn the compoment
                 c = Instantiate(componentPrefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
