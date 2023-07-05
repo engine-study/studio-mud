@@ -37,10 +37,6 @@ namespace mud.Client
         {
             base.Start();
 
-            gameObject.SetActive(false);
-
-            InitEntity();
-
         }
 
         public override void Init()
@@ -56,18 +52,25 @@ namespace mud.Client
         }
 
         void DoInit() {
+
+            if(hasInit) {
+                Debug.LogError("Double init", this);
+                return;
+            }
+
             Init();
             gameObject.SetActive(true);
             hasInit = true;
             OnInit?.Invoke();
         }
 
-        protected async void InitEntity() {
+        protected async void InitEntityCheck(MUDComponent newComponent) {
 
-            while(components.Count < 1 && expected.Count < components.Count) {
-                await UniTask.Delay(100);
+            if(components.Count < 1 || expected.Count > components.Count) {
+                return;
             }
 
+            OnComponentAdded -= InitEntityCheck;
             DoInit();
             
         }
@@ -76,17 +79,19 @@ namespace mud.Client
         {
             base.Destroy();
 
-
             for (int i = components.Count - 1; i > -1; i--)
             {
                 RemoveComponent(components[i]);
             }
         }
 
-        public void SetMudKey(string newKey)
+        public void InitEntity(string newKey)
         {
-            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("Can we change mudKeys? Probably not.");}
+            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this);}
             mudKey = newKey;
+
+            gameObject.SetActive(false);
+            OnComponentAdded += InitEntityCheck;
         }
 
 
@@ -161,7 +166,7 @@ namespace mud.Client
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
-                expected.Add(c);
+                expected.Add(componentPrefab);
                 List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
                 expected = newExpected;
             

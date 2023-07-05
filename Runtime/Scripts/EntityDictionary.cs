@@ -64,7 +64,7 @@ public class EntityDictionary : MonoBehaviour
             newEntity = Instantiate(entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
 
-            newEntity.SetMudKey(newKey);
+            newEntity.InitEntity(newKey);
             ToggleEntity(true, newEntity);
 
             // Debug.Log("Spawned " + newEntity.name, Instance);
