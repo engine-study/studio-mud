@@ -18,6 +18,7 @@ namespace mud.Client
         protected CompositeDisposable _disposers = new();
         protected mud.Unity.NetworkManager net;
         public System.Action OnAdded, OnUpdated, OnDeleted;
+        bool hasInit;
 
         protected virtual void Awake()
         {
@@ -44,8 +45,15 @@ namespace mud.Client
 
         protected virtual async void InitTable(NetworkManager nm)
         {
+            if(hasInit) {
+                Debug.LogError("Oh no, double Init", this);
+                return;
+            }
+            
             Subscribe(nm);
             Debug.Log("Init: " + gameObject.name);
+
+            hasInit = true;
         }
 
         protected abstract void Subscribe(NetworkManager nm);

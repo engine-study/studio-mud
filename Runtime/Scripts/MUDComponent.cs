@@ -90,6 +90,7 @@ namespace mud.Client
 
         protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType)
         {
+            Debug.Log(gameObject.name + eventType.ToString(), gameObject);
 
             if (eventType == UpdateEvent.Insert)
             {

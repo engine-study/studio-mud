@@ -204,22 +204,5 @@ namespace mud.Client
             }
         }
 
-        protected virtual void UpdateComponent(MUDComponent update, UpdateEvent eventType)
-        {
-
-            if (eventType == UpdateEvent.Insert)
-            {
-
-            }
-            else if (eventType == UpdateEvent.Delete)
-            {
-
-            }
-            else if (eventType == UpdateEvent.Update)
-            {
-
-            }
-        }
-
     }
 }
