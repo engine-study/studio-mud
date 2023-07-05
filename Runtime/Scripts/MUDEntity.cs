@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -10,37 +12,36 @@ namespace mud.Client
     {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
+        public List<MUDComponent> ExpectedComponents {get {return expected;}}
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
+        public System.Action OnInit;
 
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
-        [SerializeField] protected bool isLocal;
+        [SerializeField] protected bool hasInit;
         [SerializeField] protected List<MUDComponent> components;
+        [SerializeField] protected List<MUDComponent> expected;
 
-
-        private mud.Unity.NetworkManager net;
 
         protected virtual void Awake()
         {
             base.Awake();
+
+            expected = new List<MUDComponent>();
             components = new List<MUDComponent>();
 
         }
-
-
 
         protected override void Start()
         {
             base.Start();
 
-            net = mud.Unity.NetworkManager.Instance;
+            gameObject.SetActive(false);
 
-            if (net.isNetworkInitialized) { InitOnNetwork(net); }
-            else { net.OnNetworkInitialized += InitOnNetwork; }
+            InitEntity();
 
         }
-
 
         public override void Init()
         {
@@ -54,16 +55,27 @@ namespace mud.Client
 
         }
 
-        protected virtual void InitOnNetwork(mud.Unity.NetworkManager nm)
-        {
+        void DoInit() {
             Init();
+            gameObject.SetActive(true);
+            hasInit = true;
+            OnInit?.Invoke();
+        }
+
+        protected async void InitEntity() {
+
+            while(components.Count < 1 && expected.Count < components.Count) {
+                await UniTask.Delay(100);
+            }
+
+            DoInit();
+            
         }
 
         protected override void Destroy()
         {
             base.Destroy();
 
-            net.OnNetworkInitialized -= InitOnNetwork;
 
             for (int i = components.Count - 1; i > -1; i--)
             {
@@ -76,9 +88,6 @@ namespace mud.Client
             if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("Can we change mudKeys? Probably not.");}
             mudKey = newKey;
         }
-
-        public void SetIsLocal(bool newValue) { isLocal = newValue; }
-
 
 
         public MUDComponent GetMUDComponent(MUDComponent component)
@@ -100,7 +109,7 @@ namespace mud.Client
                     return null;
                 }
 
-                await UniTask.Delay(100);
+                await UniTask.Delay(500);
                 component = GetMUDComponent(componentType);
 
             }
@@ -144,16 +153,18 @@ namespace mud.Client
             }
             else
             {
-
-                //  Vector3.up * -1000f + Vector3.down * Instance.EntityList.Count * 10f
                 //spawn the compoment
                 c = Instantiate(componentPrefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
-
                 //helpful to show in inspector that this is the compoment instance, not the prefab
                 c.gameObject.name += "(I)"; 
-                components.Add(c);
 
+                //add the component to both components list, but also add the "required" components
+                components.Add(c);
+                expected.Add(c);
+                List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
+                expected = newExpected;
+            
                 //init it
                 c.Init(this, fromTable);
                 OnComponentAdded?.Invoke(c);
