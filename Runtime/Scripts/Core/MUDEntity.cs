@@ -19,7 +19,6 @@ namespace mud.Client
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
-        [SerializeField] protected bool hasInit;
         [SerializeField] protected List<MUDComponent> components;
         [SerializeField] protected List<MUDComponent> expected;
 

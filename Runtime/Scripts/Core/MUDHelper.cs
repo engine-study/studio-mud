@@ -22,6 +22,8 @@ namespace mud.Client
 
     public class MUDHelper : MonoBehaviour
     {
+
+
         public static string TruncateHash(string hash)
         {
 
@@ -49,32 +51,48 @@ namespace mud.Client
 
         }
 
-        //Using the GitHub master branch of Nethereum (this is not available yet in nuget), you are able to do the following:
 
-        // Automatically guessing the types, as per web3js.
+        //random.sol implementation
+        //function randomCoord(uint minNumber, uint maxNumber, int32 x, int32 y) view returns (uint amount) {
+        //      amount = uint(keccak256(abi.encodePacked(x, y, block.timestamp, msg.sender, block.number))) % (maxNumber-minNumber);
+        //      amount = amount + minNumber;
+        //      return amount;
+        // } 
 
-        // var abiEncode = new ABIEncode();
-        // var result = abiEncode.GetSha3ABIEncodedPacked(234564535, "0xfff23243".HexToByteArray(), true, -10);
-        // Or using specific types:
+        public enum RandomSource {FromEntity, FromPosition}
 
-        // var result = abiEncode.GetSha3ABIEncodedPacked(
-        //                     new ABIValue("string", "Hello!%"), new ABIValue("int8", -23),
-        //                     new ABIValue("address", "0x85F43D8a49eeB85d32Cf465507DD71d507100C1d"));
+        public static float RandomNumber(float min, float max, MUDEntity entity, RandomSource randomType) {
+            if(randomType == RandomSource.FromEntity) {
+                return RandomFromKey(min, max, entity.Key);
+            } else if(randomType == RandomSource.FromPosition) {
+                return RandomFromPosition(min, max, entity.transform.position.x,entity.transform.position.y);
+            } else {
+                Debug.LogError("Bad");
+                return -1;
+            }
+        }
 
+        //warning, this DOESNT give same values as randomCoord
+        public static float RandomFromPosition(float min, float max, float x, float y)
+        {
+            float number = float.Parse(GetSha3ABIEncoded(x,y)) % (max-min);
+            number = number + min;
+            return number;
+        }
 
-        // var result = abiEncode.GetSha3ABIEncodedPacked(
-        //                 new ABIValue("string", "Hello!%"), new ABIValue("int8", -23),
-        //                 new ABIValue("address", "0x85F43D8a49eeB85d32Cf465507DD71d507100C1d"));
+        public static float RandomFromKey(float min, float max, string entity)
+        {
+            float number = float.Parse(entity, System.Globalization.NumberStyles.HexNumber) % (max-min);
+            number = number + min;
+            return number;
+        }
 
 
         public static string GetSha3ABIEncodedAddress(string address)
         {
-
             var abiEncode = new ABIEncode();
-            // byte[] bytes = abi
             var result = abiEncode.GetSha3ABIEncoded(new ABIValue("address", address));
             return result.ToHex(true);
-            // return System.Text.Encoding.UTF8.GetString(result, 0, result.Length);
         }
 
 
@@ -83,12 +101,11 @@ namespace mud.Client
             var abiEncode = new ABIEncode();
             var result = abiEncode.GetSha3ABIEncoded(ConvertValuesToABI(inputs).ToArray());
             return result.ToHex(true);
-
-            // return System.Text.Encoding.UTF8.GetString(result, 0, result.Length);
         }
 
 
         //we do this because nethereum does not recognize addresses as distinct from strings
+        // from https://github.com/Nethereum/Nethereum/blob/master/src/Nethereum.ABI/ABIEncode.cs
         public static List<ABIValue> ConvertValuesToABI(params object[] inputs)
         {
             var abiValues = new List<ABIValue>();
@@ -98,14 +115,14 @@ namespace mud.Client
                 var value = inputs[i];
                 string stringInput = inputs[i] is string ? inputs[i] as string : null;
 
+                //special cases for address
                 if (stringInput != null && stringInput[0] == '0' && stringInput[1] == 'x')
                 {
                     abiValues.Add(new ABIValue(new AddressType(), stringInput));
                 }
                 else
                 {
-                    // from https://github.com/Nethereum/Nethereum/blob/master/src/Nethereum.ABI/ABIEncode.cs
-
+                    //the rest is from Nethereum's ABIEncode implementation
                     if (value is System.Numerics.BigInteger bigIntValue)
                     {
                         if (bigIntValue >= 0)
@@ -117,7 +134,6 @@ namespace mud.Client
                             abiValues.Add(new ABIValue(new IntType("int256"), bigIntValue));
                         }
                     }
-
 
                     if (value.IsNumber())
                     {
@@ -147,13 +163,8 @@ namespace mud.Client
                         abiValues.Add(new ABIValue(new BytesType(), value));
                     }
                 }
-
             }
-
             return abiValues;
-
         }
-
-
     }
 }

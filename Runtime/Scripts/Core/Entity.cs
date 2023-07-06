@@ -5,7 +5,9 @@ using UnityEngine;
 public class Entity : MonoBehaviour
 {
     public bool HasInit{get{return hasInit;}}
-    bool hasInit = false; 
+
+    [Header("Entity")]
+    [SerializeField] protected bool hasInit = false; 
 
     protected virtual void Awake() {
         
