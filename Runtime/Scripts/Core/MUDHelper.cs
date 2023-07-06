@@ -72,6 +72,13 @@ namespace mud.Client
             }
         }
 
+       
+        public static float RandomFrom(int min, int max, int seed = 0, params object[] inputs) {
+            float number = GetSha3ABIEncodedNumber(inputs) + seed;
+            number = number % (max-min);
+            number = number + min;
+            return (float)number;
+        }
         //warning, this DOESNT give same values as randomCoord
         public static float RandomFromPosition(int min, int max, float x, float y, int seed = 0)
         {
@@ -83,15 +90,6 @@ namespace mud.Client
             return RandomFrom(min, max, seed, entity);
         }
 
-        public static float RandomFrom(int min, int max, int seed = 0, params object[] inputs) {
-            float number = GetSha3ABIEncodedNumber(inputs) + seed;
-            Debug.Log("Input: " + number.ToString());
-            number = number % (max-min);
-            number = number + min;
-            Debug.Log("Final: " + number.ToString());
-            return (float)number;
-        }
- 
         public static int GetSha3ABIEncodedNumber(params object[] inputs)
         {
             var abiEncode = new ABIEncode();
