@@ -61,11 +61,11 @@ namespace mud.Client
 
         public enum RandomSource {FromEntity, FromPosition}
 
-        public static float RandomNumber(float min, float max, MUDEntity entity, RandomSource randomType) {
+        public static float RandomNumber(int min, int max, MUDEntity entity, RandomSource randomType, int seed = 0) {
             if(randomType == RandomSource.FromEntity) {
-                return RandomFromKey(min, max, entity.Key);
+                return RandomFromKey(min, max, entity.Key, seed);
             } else if(randomType == RandomSource.FromPosition) {
-                return RandomFromPosition(min, max, entity.transform.position.x,entity.transform.position.y);
+                return RandomFromPosition(min, max, entity.transform.position.x,entity.transform.position.y, seed);
             } else {
                 Debug.LogError("Bad");
                 return -1;
@@ -73,20 +73,42 @@ namespace mud.Client
         }
 
         //warning, this DOESNT give same values as randomCoord
-        public static float RandomFromPosition(float min, float max, float x, float y)
+        public static float RandomFromPosition(int min, int max, float x, float y, int seed = 0)
         {
-            float number = float.Parse(GetSha3ABIEncoded(x,y)) % (max-min);
-            number = number + min;
-            return number;
+            return RandomFrom(min, max, seed, new object[]{x,y});
         }
 
-        public static float RandomFromKey(float min, float max, string entity)
+        public static float RandomFromKey(int min, int max, string entity, int seed = 0)
         {
-            Debug.Log(entity);
-            float number = float.Parse(GetSha3ABIEncodedEntity(entity)) % (max-min);
-            number = number + min;
-            return number;
+            return RandomFrom(min, max, seed, entity);
         }
+
+        public static float RandomFrom(int min, int max, int seed = 0, params object[] inputs) {
+            float number = GetSha3ABIEncodedNumber(inputs) + seed;
+            Debug.Log("Input: " + number.ToString());
+            number = number % (max-min);
+            number = number + min;
+            Debug.Log("Final: " + number.ToString());
+            return (float)number;
+        }
+ 
+        public static int GetSha3ABIEncodedNumber(params object[] inputs)
+        {
+            var abiEncode = new ABIEncode();
+            var result = abiEncode.GetSha3ABIEncoded(ConvertValuesToABI(inputs).ToArray());
+            return GetNumber(result);
+        }
+
+        static int GetNumber(byte [] bytes) {
+            // If the system architecture is little-endian (that is, little end first),
+            // reverse the byte array.
+            if (System.BitConverter.IsLittleEndian)
+                System.Array.Reverse(bytes);
+
+            int i = System.Convert.ToInt32(System.BitConverter.ToUInt16(bytes, 0));
+            return i;
+        }
+
 
         public static string GetSha3ABIEncodedEntity(string entity)
         {
@@ -102,8 +124,7 @@ namespace mud.Client
             var result = abiEncode.GetSha3ABIEncoded(new ABIValue("address", address));
             return result.ToHex(true);
         }
-
-
+   
         public static string GetSha3ABIEncoded(params object[] inputs)
         {
             var abiEncode = new ABIEncode();

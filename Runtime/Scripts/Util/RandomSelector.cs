@@ -11,6 +11,7 @@ namespace mud.Client
         [Header("Random")]
         public MUDHelper.RandomSource randomType;
         public GameObject[] objects;
+        public int seed = 0;
 
         [Header("Debug")]
         public int number = -1;
@@ -49,7 +50,7 @@ namespace mud.Client
         {
 
             //a position component on our entity is expected to have updated our position at this point, bad assumption? 
-            number = (int)MUDHelper.RandomNumber(0f, objects.Length, entity, randomType);
+            number = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType);
 
             for (int i = 0; i < objects.Length; i++)
             {
