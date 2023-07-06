@@ -82,9 +82,17 @@ namespace mud.Client
 
         public static float RandomFromKey(float min, float max, string entity)
         {
-            float number = float.Parse(entity, System.Globalization.NumberStyles.HexNumber) % (max-min);
+            Debug.Log(entity);
+            float number = float.Parse(GetSha3ABIEncodedEntity(entity)) % (max-min);
             number = number + min;
             return number;
+        }
+
+        public static string GetSha3ABIEncodedEntity(string entity)
+        {
+            var abiEncode = new ABIEncode();
+            var result = abiEncode.GetSha3ABIEncoded(new ABIValue(new StringType(), entity));
+            return result.ToHex(true);
         }
 
 
@@ -116,7 +124,7 @@ namespace mud.Client
                 string stringInput = inputs[i] is string ? inputs[i] as string : null;
 
                 //special cases for address
-                if (stringInput != null && stringInput[0] == '0' && stringInput[1] == 'x')
+                if (stringInput != null && stringInput.Length == 20 && stringInput[0] == '0' && stringInput[1] == 'x')
                 {
                     abiValues.Add(new ABIValue(new AddressType(), stringInput));
                 }
