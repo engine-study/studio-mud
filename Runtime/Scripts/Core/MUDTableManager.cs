@@ -166,15 +166,9 @@ namespace mud.Client
             if (eventType == UpdateEvent.Insert)
             {
 
-                //create the component
-                if (Components.ContainsKey(entityKey))
-                {
-                   
-                }
-                else
-                {
-                    MUDComponent c = entity.AddComponent(componentPrefab, this);
-                }
+                //create the component if we can't find it
+                if (Components.ContainsKey(entityKey)){}
+                else{MUDComponent c = entity.AddComponent(componentPrefab, this);}
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
 
