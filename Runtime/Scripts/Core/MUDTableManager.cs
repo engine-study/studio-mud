@@ -25,6 +25,8 @@ namespace mud.Client
 
 
         //dictionary of all the components this specific table has
+        public bool EntityHasComponent(string key) {return Components.ContainsKey(key);}
+        public MUDComponent EntityToComponent(string key) {return Components[key];}
         public Dictionary<string, MUDComponent> Components;
         public MUDComponent Prefab { get { return componentPrefab; } }
 
