@@ -74,7 +74,7 @@ namespace mud.Client
 
        
         public static float RandomFrom(int min, int max, int seed = 0, params object[] inputs) {
-            float number = GetSha3ABIEncodedNumber(inputs) + seed;
+            float number = GetSha3ABIEncodedNumber(seed,inputs);
             number = number % (max-min);
             number = number + min;
             return (float)number;
@@ -90,10 +90,12 @@ namespace mud.Client
             return RandomFrom(min, max, seed, entity);
         }
 
-        public static int GetSha3ABIEncodedNumber(params object[] inputs)
+        public static int GetSha3ABIEncodedNumber(int seed = 0, params object[] inputs)
         {
             var abiEncode = new ABIEncode();
-            var result = abiEncode.GetSha3ABIEncoded(ConvertValuesToABI(inputs).ToArray());
+            var abiValues = ConvertValuesToABI(inputs);
+            abiValues.Add(new ABIValue(new IntType("uint256"), seed));
+            var result = abiEncode.GetSha3ABIEncoded(abiValues.ToArray());
             return GetNumber(result);
         }
 

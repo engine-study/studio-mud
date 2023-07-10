@@ -10,11 +10,14 @@ namespace mud.Client
 
         [Header("Random")]
         public MUDHelper.RandomSource randomType;
-        public GameObject[] objects;
         public int seed = 0;
+        public bool rotateY = true;
 
         [Header("Debug")]
         public int number = -1;
+        public int rotateNumber = -1;
+        public GameObject[] objects;
+
         MUDEntity entity;
         void Start()
         {
@@ -30,6 +33,13 @@ namespace mud.Client
             if (!entity)
             {
                 Debug.LogError("Can't find entity", this);
+                return;
+            }
+
+            
+            if (objects.Length < 1f) 
+            {
+                Debug.LogError("No children", this);
                 return;
             }
 
@@ -50,11 +60,17 @@ namespace mud.Client
         {
 
             //a position component on our entity is expected to have updated our position at this point, bad assumption? 
-            number = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType);
-
+            number = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType, seed);
+            
             for (int i = 0; i < objects.Length; i++)
             {
                 objects[i].SetActive(i == number);
+            }
+
+            rotateNumber = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
+
+            if(rotateY) {
+                transform.Rotate(Vector3.up * rotateNumber);
             }
         }
     }
