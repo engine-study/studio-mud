@@ -13,7 +13,7 @@ namespace mud.Client
 {
 
 
-    public enum UpdateEvent { Insert, Update, Delete } //Optimistic, Revert, Manual  // possible other types?
+    public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert }  //Manual  // possible other types?
     public abstract class MUDTableManager : MUDTable
     {
         //dictionary of all entities
