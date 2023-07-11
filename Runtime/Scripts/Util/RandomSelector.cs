@@ -12,11 +12,11 @@ namespace mud.Client
         public MUDHelper.RandomSource randomType;
         public int seed = 0;
         public bool rotateY = true;
+        public GameObject[] objects;
 
         [Header("Debug")]
         public int number = -1;
         public int rotateNumber = -1;
-        public GameObject[] objects;
 
         MUDEntity entity;
         void Start()
