@@ -15,7 +15,8 @@ namespace mud.Client
         public bool Loaded { get { return loaded; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public System.Action OnLoaded, OnUpdated;
-        public string ComponentToTable{get{return this.GetType().ToString();}}
+        public System.Type ComponentToTableType{get{return tableManager.TableType();}}
+        public MUDTableManager TableManager {get{return tableManager;}}
 
         [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
@@ -23,7 +24,7 @@ namespace mud.Client
 
         [Header("Debug")]
         protected MUDEntity entity;
-        protected MUDTableManager table;
+        protected MUDTableManager tableManager;
         int componentsLoaded = 0;
         bool hasInit;
         bool loaded = false;
@@ -37,9 +38,9 @@ namespace mud.Client
         public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable)
         {
             entity = ourEntity;
-            table = ourTable;
+            tableManager = ourTable;
 
-            table.RegisterComponent(true, this);
+            tableManager.RegisterComponent(true, this);
 
             LoadComponents();
 
@@ -79,7 +80,7 @@ namespace mud.Client
 
         public virtual void Cleanup()
         {
-            table.RegisterComponent(false, this);
+            tableManager.RegisterComponent(false, this);
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType)

@@ -16,7 +16,7 @@ namespace mud.Client
     {
 
         protected CompositeDisposable _disposers = new();
-        protected mud.Unity.NetworkManager net;
+        protected mud.Unity.NetworkManager net; 
         public System.Action OnAdded, OnUpdated, OnDeleted;
         bool hasInit;
 

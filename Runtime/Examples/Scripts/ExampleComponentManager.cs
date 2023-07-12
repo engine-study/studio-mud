@@ -7,6 +7,10 @@ namespace mud.Client
     public class ExampleComponentManager : MUDTableManager
     {
 
+        public override System.Type TableType()
+        {
+            throw new System.NotImplementedException();
+        }
         protected override void Subscribe(mud.Unity.NetworkManager nm)
         {
 

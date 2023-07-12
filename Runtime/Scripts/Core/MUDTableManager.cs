@@ -20,8 +20,9 @@ namespace mud.Client
         public static System.Action<bool, MUDTableManager> OnTableToggle;
         public static Dictionary<string, MUDTableManager> Tables;
 
-        public virtual System.Type ComponentType { get { return componentType; } }
-        public virtual string ComponentString { get { return componentString; } }
+        public System.Type ComponentType { get { return componentType; } }
+        public string ComponentString { get { return componentString; } }
+        public abstract Type TableType();
 
 
         //dictionary of all the components this specific table has
@@ -29,13 +30,16 @@ namespace mud.Client
         public MUDComponent EntityToComponent(string key) {return Components[key];}
         public Dictionary<string, MUDComponent> Components;
         public MUDComponent Prefab { get { return componentPrefab; } }
-
+        
         [Header("Settings")]
         public MUDComponent componentPrefab;
+        public bool subscribeInsert=true, subscribeUpdate=true, subscribeDelete = true;
+
+        [Header("Behaviour")]
         public bool deletedRecordDestroysEntity = false;
-        public bool logTable = false;
 
         [Header("Debug")]
+        public bool logTable = false;
         public List<MUDComponent> SpawnedComponents;
 
         System.Type componentType;
@@ -43,6 +47,7 @@ namespace mud.Client
         string componentString;
         // public Dictionary<string, MUDComponent> Components;
 
+        
         protected override void Awake()
         {
             base.Awake();
@@ -68,9 +73,6 @@ namespace mud.Client
                 Debug.LogError("Bad, multiple tables of same type " + ComponentType);
                 return;
             }
-
-
-
         }
 
         protected override void Start()
@@ -109,6 +111,10 @@ namespace mud.Client
             IngestTableEvent(tableUpdate, UpdateEvent.Delete);
         }
 
+        public IMudTable GetTableValues(MUDComponent component) {
+            // return MUDTableManager.Tables[component.ComponentToTable].GetTableValue(component.Entity.Key);
+            return null;
+        }
 
         protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);
 
