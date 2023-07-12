@@ -17,9 +17,9 @@ namespace mud.Client
         public System.Action OnLoaded, OnUpdated;
         public System.Type ComponentToTableType{get{return tableManager.TableType();}}
         public MUDTableManager TableManager {get{return tableManager;}}
-        public IMudTable activeTable;
-        public IMudTable onchainTable;
-        public IMudTable optimisticTable;
+        protected IMudTable activeTable;
+        protected IMudTable onchainTable;
+        protected IMudTable optimisticTable;
 
         [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
@@ -88,38 +88,34 @@ namespace mud.Client
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType)
         {
-            UpdateComponent(table, eventType);
+            //update our internal table
+            IngestUpdate(table, eventType);
+
+            //use internal table to update component
+            UpdateComponent(activeTable, eventType);
             OnUpdated?.Invoke();
         }
 
-        public void UpdateComponentManual(mud.Client.IMudTable table, UpdateEvent eventType) {UpdateComponent(table, eventType);}
-        protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType)
-        {
-            if(eventType != UpdateEvent.Optimistic) {
+        protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
+
+            //set our onchain toable
+            if(eventType == UpdateEvent.Optimistic) {
+                optimisticTable = table;
+            } else if(eventType != UpdateEvent.Revert) {
                 onchainTable = table;
             }
             
             if(eventType == UpdateEvent.Revert) {
+                Debug.Assert(onchainTable != null,"Reverting before we have an onchain update");
                 optimisticTable = null;
-                table = onchainTable;
+                activeTable = onchainTable;
+            } else {
+                activeTable = table;
             }
-                
-            activeTable = table;
-
-            if (eventType == UpdateEvent.Insert)
-            {
-
-            }
-            else if (eventType == UpdateEvent.Delete)
-            {
-
-            }
-            else if (eventType == UpdateEvent.Update)
-            {
-
-            } 
-
+     
         }
+
+        protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType){}
 
 
 

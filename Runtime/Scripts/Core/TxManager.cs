@@ -59,12 +59,12 @@ namespace mud.Client
             optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
             optimistic.SetValues(tableParameters);
 
-            component.UpdateComponentManual(optimistic, UpdateEvent.Optimistic);
+            component.DoUpdate(optimistic, UpdateEvent.Optimistic);
         }
 
         public void Revert() {
-            // component.UpdateComponentManual(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
-            component.UpdateComponentManual(null, UpdateEvent.Revert);
+            // component.DoUpdate(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
+            component.DoUpdate(null, UpdateEvent.Revert);
         }
 
         public MUDComponent component;
