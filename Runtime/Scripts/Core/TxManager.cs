@@ -8,6 +8,7 @@ using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Contracts.CQS;
 using Nethereum.Contracts;
+using Cysharp.Threading.Tasks;
 
 namespace mud.Client
 {
@@ -15,14 +16,14 @@ namespace mud.Client
     public class TxManager : MonoBehaviour
     {
 
-        public static async void SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTaskVoid SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
         {
             try { await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters); }
             catch (System.Exception ex) { Debug.LogException(ex); }
         }
 
         //optimistically update something
-        public static async void Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTaskVoid Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
         {
             try
             {
