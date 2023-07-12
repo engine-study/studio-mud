@@ -15,20 +15,20 @@ namespace mud.Client
     public class TxManager : MonoBehaviour
     {
 
-        public static async void SendSimple<TFunction>(MUDComponent component, params object[] functionParameters) where TFunction : FunctionMessage, new()
+        public static async void SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
         {
-            try { await NetworkManager.Instance.worldSend.TxExecute<TFunction>(functionParameters); }
+            try { await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters); }
             catch (System.Exception ex) { Debug.LogException(ex); }
         }
 
         //optimistically update something
-        public static async void Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] functionParameters) where TFunction : FunctionMessage, new()
+        public static async void Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
         {
             try
             {
                 //send an optimistic table update and then the actual transaction
                 // foreach(TxUpdate u in updates) {}
-                await NetworkManager.Instance.worldSend.TxExecute<TFunction>(functionParameters);
+                await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
             }
             catch (System.Exception ex)
             {
