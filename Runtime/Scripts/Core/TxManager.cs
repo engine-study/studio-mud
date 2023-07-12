@@ -16,27 +16,25 @@ namespace mud.Client
     public class TxManager : MonoBehaviour
     {
 
-        public static async UniTaskVoid SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTask<bool> SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
         {
-            try { await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters); }
-            catch (System.Exception ex) { Debug.LogException(ex); }
+            return await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
         }
 
         //optimistically update something
-        public static async UniTaskVoid Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTask<bool> Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
         {
-            try
-            {
-                //send an optimistic table update and then the actual transaction
-                // foreach(TxUpdate u in updates) {}
-                await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
-            }
-            catch (System.Exception ex)
-            {
+            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+
+            if(txSuccess)  {
+                Debug.Log("Success");
+            } else {
                 //if our transaction fails, force the player back to their position on the table
-                Debug.LogException(ex);
+                Debug.Log("Reverting");
                 foreach(TxUpdate u in updates) { u.Revert();}
             }
+
+            return txSuccess;
         }
 
         public static TxUpdate MakeOptimistic(MUDComponent component, params object[] tableParameters) {
@@ -65,7 +63,8 @@ namespace mud.Client
         }
 
         public void Revert() {
-            component.UpdateComponentManual(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
+            // component.UpdateComponentManual(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
+            component.UpdateComponentManual(null, UpdateEvent.Revert);
         }
 
         public MUDComponent component;

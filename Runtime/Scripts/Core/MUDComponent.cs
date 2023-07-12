@@ -17,6 +17,9 @@ namespace mud.Client
         public System.Action OnLoaded, OnUpdated;
         public System.Type ComponentToTableType{get{return tableManager.TableType();}}
         public MUDTableManager TableManager {get{return tableManager;}}
+        public IMudTable activeTable;
+        public IMudTable onchainTable;
+        public IMudTable optimisticTable;
 
         [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
@@ -92,6 +95,16 @@ namespace mud.Client
         public void UpdateComponentManual(mud.Client.IMudTable table, UpdateEvent eventType) {UpdateComponent(table, eventType);}
         protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType)
         {
+            if(eventType != UpdateEvent.Optimistic) {
+                onchainTable = table;
+            }
+            
+            if(eventType == UpdateEvent.Revert) {
+                optimisticTable = null;
+                table = onchainTable;
+            }
+                
+            activeTable = table;
 
             if (eventType == UpdateEvent.Insert)
             {
@@ -104,7 +117,7 @@ namespace mud.Client
             else if (eventType == UpdateEvent.Update)
             {
 
-            }
+            } 
 
         }
 

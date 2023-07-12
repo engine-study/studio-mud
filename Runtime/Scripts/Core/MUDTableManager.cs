@@ -112,8 +112,8 @@ namespace mud.Client
         }
 
         public IMudTable GetTableValues(MUDComponent component) {
-            // return MUDTableManager.Tables[component.ComponentToTable].GetTableValue(component.Entity.Key);
-            return null;
+            IMudTable table = (IMudTable)System.Activator.CreateInstance(TableType());
+            return table.GetTableValue(component.Entity.Key);
         }
 
         protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);
