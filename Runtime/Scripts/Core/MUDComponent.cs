@@ -15,7 +15,7 @@ namespace mud.Client
         public bool Loaded { get { return loaded; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public System.Action OnLoaded, OnUpdated;
-
+        public string ComponentToTable{get{return this.GetType().ToString();}}
 
         [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
@@ -88,6 +88,7 @@ namespace mud.Client
             OnUpdated?.Invoke();
         }
 
+        public void UpdateComponentManual(mud.Client.IMudTable table, UpdateEvent eventType) {UpdateComponent(table, eventType);}
         protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType)
         {
 
