@@ -29,9 +29,9 @@ namespace mud.Client
         [Header("Debug")]
         protected MUDEntity entity;
         protected MUDTableManager tableManager;
-        int componentsLoaded = 0;
-        bool hasInit;
-        bool loaded = false;
+        protected int componentsLoaded = 0;
+        protected bool hasInit;
+        protected bool loaded = false;
 
 
         protected virtual void Awake()
@@ -50,12 +50,6 @@ namespace mud.Client
 
             hasInit = true;
         }
-
-        protected virtual void Subscribe(NetworkManager nm, GameObject go)
-        {
-
-        }
-
 
         async UniTaskVoid LoadComponents()
         {
