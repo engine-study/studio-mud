@@ -16,9 +16,12 @@ namespace mud.Client
     public class TxManager : MonoBehaviour
     {
 
+        public static System.Action<bool> OnTransaction;
         public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new()
         {
-            return await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            CleanupTransaction(txSuccess);
+            return txSuccess;
         }
 
         //optimistically update something
@@ -34,7 +37,12 @@ namespace mud.Client
                 foreach(TxUpdate u in updates) { u.Revert();}
             }
 
+            CleanupTransaction(txSuccess);
             return txSuccess;
+        }
+
+        private static void CleanupTransaction(bool txSuccess) {
+            OnTransaction?.Invoke(txSuccess);
         }
 
         public static TxUpdate MakeOptimistic(MUDComponent component, params object[] tableParameters) {
