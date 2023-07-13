@@ -2,11 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace mud.Client
-{
+namespace mud.Client {
 
-    public class RandomSelector : MonoBehaviour
-    {
+    public class RandomSelector : MonoBehaviour {
 
         [Header("Random GameObject")]
         public MUDHelper.RandomSource randomType;
@@ -21,25 +19,28 @@ namespace mud.Client
         public float rotationRound = 0f;
 
         [Header("Debug")]
-        public int number = -1;
-        public int rotateNumber = -1;
+        public int child = -1;
+        public int rotate = -1;
 
         MUDEntity entity;
-        void Start()
-        {
+        void Start() {
             entity = GetComponentInParent<MUDEntity>();
 
-            List<GameObject> tempList = new List<GameObject>();
+            if (!entity) {
+                Debug.LogError("Can't find entity", this);
+                return;
+            }
 
-            if(randomizeChildren) {
+            List<GameObject> tempList = new List<GameObject>();
+            if (randomizeChildren) {
 
                 //autopopulate if the object list is empty
-                if(objects.Length == 0) {
+                if (objects.Length == 0) {
 
-                    for(int i = 0; i < transform.childCount; i++) {
-                        
+                    for (int i = 0; i < transform.childCount; i++) {
+
                         //ignore children that also have randomselector
-                        if(transform.GetChild(i).gameObject.GetComponent<RandomSelector>())
+                        if (transform.GetChild(i).gameObject.GetComponent<RandomSelector>())
                             continue;
 
                         tempList.Add(transform.GetChild(i).gameObject);
@@ -48,22 +49,15 @@ namespace mud.Client
                     objects = tempList.ToArray();
 
                 }
+
+                if (objects.Length < 1f) {
+                    Debug.LogError("No children", this);
+                    return;
+                }
+
             }
 
-            if (!entity)
-            {
-                Debug.LogError("Can't find entity", this);
-                return;
-            }
-
-            
-            if (objects.Length < 1f) 
-            {
-                Debug.LogError("No children", this);
-                return;
-            }
-
-            if(entity.HasInit) {
+            if (entity.HasInit) {
                 Init();
             } else {
                 entity.OnInit += Init;
@@ -71,32 +65,31 @@ namespace mud.Client
 
         }
 
-        void OnDestroy()
-        {
+        void OnDestroy() {
             if (entity)
                 entity.OnInit -= Init;
         }
-        void Init()
-        {
+        void Init() {
 
-            //a position component on our entity is expected to have updated our position at this point, bad assumption? 
-            number = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType, seed);
-            
-            for (int i = 0; i < objects.Length; i++)
-            {
-                objects[i].SetActive(i == number);
+            if (randomizeChildren) {
+
+                //a position component on our entity is expected to have updated our position at this point, bad assumption? 
+                child = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType, seed);
+                for (int i = 0; i < objects.Length; i++) {
+                    objects[i].SetActive(i == child);
+                }
             }
 
 
-            if(rotateY) {
-                rotateNumber = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
+            if (rotateY) {
+                rotate = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
 
                 //round to a number (ie. rotationRound of 90 would give it one of four directions)
-                if(rotationRound != 0f) {
-                    rotateNumber = (int)(Mathf.Round(rotateNumber / rotationRound) * rotationRound);
+                if (rotationRound != 0f) {
+                    rotate = (int)(Mathf.Round(rotate / rotationRound) * rotationRound);
                 }
 
-                transform.Rotate(Vector3.up * rotateNumber);
+                transform.Rotate(Vector3.up * rotate);
             }
         }
     }
