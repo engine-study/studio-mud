@@ -16,13 +16,13 @@ namespace mud.Client
     public class TxManager : MonoBehaviour
     {
 
-        public static async UniTask<bool> SendSimple<TFunction>(MUDComponent component, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new()
         {
             return await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
         }
 
         //optimistically update something
-        public static async UniTask<bool> Send<TFunction>(MUDComponent component, List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
+        public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new()
         {
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
 
