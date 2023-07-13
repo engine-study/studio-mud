@@ -23,11 +23,22 @@ namespace mud.Client
         {
             entity = GetComponentInParent<MUDEntity>();
 
+            List<GameObject> tempList = new List<GameObject>();
+
+            //autopopulate if the object list is empty
             if(objects.Length == 0) {
-                objects = new GameObject[transform.childCount];
+
                 for(int i = 0; i < transform.childCount; i++) {
-                    objects[i] = transform.GetChild(i).gameObject;
+                    
+                    //ignore children that also have randomselector
+                    if(objects[i].GetComponent<RandomSelector>())
+                        continue;
+
+                    tempList.Add(transform.GetChild(i).gameObject);
                 }
+
+                objects = tempList.ToArray();
+
             }
 
             if (!entity)
