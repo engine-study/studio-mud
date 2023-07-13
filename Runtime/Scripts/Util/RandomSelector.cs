@@ -31,7 +31,7 @@ namespace mud.Client
                 for(int i = 0; i < transform.childCount; i++) {
                     
                     //ignore children that also have randomselector
-                    if(objects[i].GetComponent<RandomSelector>())
+                    if(transform.GetChild(i).gameObject.GetComponent<RandomSelector>())
                         continue;
 
                     tempList.Add(transform.GetChild(i).gameObject);
