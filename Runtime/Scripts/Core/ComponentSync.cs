@@ -47,7 +47,7 @@ namespace mud.Client
         void OnDestroy()
         {
             if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
-            if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
+            if (targetComponent) { targetComponent.OnUpdatedDetails -= DoUpdate; }
         }
 
         void DoSync() {
@@ -56,8 +56,8 @@ namespace mud.Client
             OnSync?.Invoke();
         }
 
-        void DoUpdate() {
-            UpdateSync();
+        void DoUpdate(UpdateEvent updateType) {
+            UpdateSync(updateType);
             OnUpdate?.Invoke();
         }
 
@@ -71,7 +71,7 @@ namespace mud.Client
             
             //if we want to keep syncing, listen for further updates
             if(syncType != ComponentSyncType.InitialSyncOnly) {
-                targetComponent.OnUpdated += DoUpdate;
+                targetComponent.OnUpdatedDetails += DoUpdate;
             }
 
         }
@@ -81,12 +81,12 @@ namespace mud.Client
         protected virtual void InitialSync() {
 
             //do our first "normal" updatesync update
-            UpdateSync();
+            UpdateSync(UpdateEvent.Insert);
 
         }
 
         //updated sync with new values midway through play
-        protected virtual void UpdateSync() {
+        protected virtual void UpdateSync(UpdateEvent updateType) {
             //.... override this update the values here
             //ex.             
 

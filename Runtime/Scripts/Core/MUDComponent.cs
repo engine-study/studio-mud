@@ -15,6 +15,7 @@ namespace mud.Client
         public bool Loaded { get { return loaded; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public System.Action OnLoaded, OnUpdated;
+        public System.Action<UpdateEvent> OnUpdatedDetails;
         public System.Type ComponentToTableType{get{return tableManager.TableType();}}
         public MUDTableManager TableManager {get{return tableManager;}}
         protected IMudTable activeTable;
@@ -94,6 +95,7 @@ namespace mud.Client
             //use internal table to update component
             UpdateComponent(activeTable, eventType);
             OnUpdated?.Invoke();
+            OnUpdatedDetails?.Invoke(eventType);
         }
 
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {

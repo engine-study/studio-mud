@@ -11,6 +11,7 @@ using Nethereum.ABI.FunctionEncoding;
 using Nethereum.ABI.Model;
 using Nethereum.ABI.Util;
 using Nethereum.Util;
+using Vector3 = UnityEngine.Vector3;
 // using Nethereum.JsonRpc.WebSocketStreamingClient;
 // using Nethereum.RPC.Eth.Blocks;
 // using Nethereum.Web3;
@@ -23,6 +24,67 @@ namespace mud.Client
     public class MUDHelper : MonoBehaviour
     {
 
+    public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {
+        Collider [] hits = new Collider[10]; 
+        int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
+        int selectedItem = -1;
+        float minDistance = 999f;
+        MUDEntity bestItem = null;
+        List<MUDEntity> entities = new List<MUDEntity>();
+
+        for (int i = 0; i < amount; i++)
+        {
+            MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
+
+            if (!checkItem)
+                continue;
+
+            entities.Add(checkItem);
+
+            float distance = Vector3.Distance(position, hits[i].ClosestPoint(position));
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                selectedItem = i;
+                bestItem = checkItem;
+            }
+        }
+
+        return bestItem;
+    }
+
+    public static MUDEntity [] GetEntitiesFromRadius(Vector3 position, float radius)
+    {
+        Collider [] hits = new Collider[10]; 
+        int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
+        int selectedItem = -1;
+        float minDistance = 999f;
+        MUDEntity bestItem = null;
+        List<MUDEntity> entities = new List<MUDEntity>();
+
+        for (int i = 0; i < amount; i++)
+        {
+            MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
+
+            if (!checkItem)
+                continue;
+
+            entities.Add(checkItem);
+
+            float distance = Vector3.Distance(position, checkItem.transform.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                selectedItem = i;
+                bestItem = checkItem;
+            }
+        }
+
+        // return bestItem;
+
+        return entities.ToArray();
+
+    }
 
         public static string TruncateHash(string hash)
         {

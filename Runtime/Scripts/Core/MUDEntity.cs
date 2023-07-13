@@ -119,7 +119,7 @@ namespace mud.Client
 
             return component;
         }
-        public async UniTask<MUDComponent> GetMUDComponentAsync<T>() {
+        public async UniTask<MUDComponent> GetMUDComponentAsync<T>() where T : MUDComponent {
             MUDComponent component = GetMUDComponent<T>();
 
             int timeout = 100;
@@ -140,9 +140,9 @@ namespace mud.Client
             return component;
         }
 
-        public MUDComponent GetMUDComponent<T>()
+        public T GetMUDComponent<T>() where T : MUDComponent
         {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i]; } }
+            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (T)Components[i]; } }
             return null;
         }
         public MUDComponent AddComponent(MUDComponent componentPrefab, MUDTableManager fromTable)
