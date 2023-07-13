@@ -9,13 +9,11 @@ using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
 
-namespace mud.Client
-{
+namespace mud.Client {
 
 
     public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert }  //Manual  // possible other types?
-    public abstract class MUDTableManager : MUDTable
-    {
+    public abstract class MUDTableManager : MUDTable {
         //dictionary of all entities
         public static System.Action<bool, MUDTableManager> OnTableToggle;
         public static Dictionary<string, MUDTableManager> Tables;
@@ -26,14 +24,14 @@ namespace mud.Client
 
 
         //dictionary of all the components this specific table has
-        public bool EntityHasComponent(string key) {return Components.ContainsKey(key);}
-        public MUDComponent EntityToComponent(string key) {return Components[key];}
+        public bool EntityHasComponent(string key) { return Components.ContainsKey(key); }
+        public MUDComponent EntityToComponent(string key) { return Components[key]; }
         public Dictionary<string, MUDComponent> Components;
         public MUDComponent Prefab { get { return componentPrefab; } }
-        
+
         [Header("Settings")]
         public MUDComponent componentPrefab;
-        public bool subscribeInsert=true, subscribeUpdate=true, subscribeDelete = true;
+        public bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
 
         [Header("Behaviour")]
         public bool deletedRecordDestroysEntity = false;
@@ -47,18 +45,15 @@ namespace mud.Client
         string componentString;
         // public Dictionary<string, MUDComponent> Components;
 
-        
-        protected override void Awake()
-        {
+
+        protected override void Awake() {
             base.Awake();
 
-            if (Tables == null)
-            {
+            if (Tables == null) {
                 Tables = new Dictionary<string, MUDTableManager>();
             }
 
-            if (componentPrefab == null)
-            {
+            if (componentPrefab == null) {
                 Debug.LogError("No MUDComponent prefab to spawn");
                 return;
             }
@@ -68,15 +63,13 @@ namespace mud.Client
             componentString = componentType.ToString();
             Components = new Dictionary<string, MUDComponent>();
 
-            if (Tables.ContainsKey(ComponentType.ToString()))
-            {
+            if (Tables.ContainsKey(ComponentType.ToString())) {
                 Debug.LogError("Bad, multiple tables of same type " + ComponentType);
                 return;
             }
         }
 
-        protected override void Start()
-        {
+        protected override void Start() {
             base.Start();
 
             Debug.Log("Adding " + componentString + " Manager");
@@ -86,27 +79,23 @@ namespace mud.Client
 
         }
 
-        protected override void OnDestroy()
-        {
+        protected override void OnDestroy() {
             base.OnDestroy();
 
             Tables.Remove(ComponentString);
             OnTableToggle?.Invoke(false, this);
         }
 
-        protected override void OnInsertRecord(RecordUpdate tableUpdate)
-        {
+        protected override void OnInsertRecord(RecordUpdate tableUpdate) {
             base.OnInsertRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Insert);
         }
-        protected override void OnUpdateRecord(RecordUpdate tableUpdate)
-        {
+        protected override void OnUpdateRecord(RecordUpdate tableUpdate) {
             base.OnUpdateRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Update);
         }
 
-        protected override void OnDeleteRecord(RecordUpdate tableUpdate)
-        {
+        protected override void OnDeleteRecord(RecordUpdate tableUpdate) {
             base.OnDeleteRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Delete);
         }
@@ -132,10 +121,8 @@ namespace mud.Client
         //     return currentValue;
         // }
 
-        protected virtual void SpawnComponentByEntity(string entityKey)
-        {
-            if (string.IsNullOrEmpty(entityKey))
-            {
+        protected virtual void SpawnComponentByEntity(string entityKey) {
+            if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("Empty key", gameObject);
                 return;
             }
@@ -148,14 +135,12 @@ namespace mud.Client
 
         }
 
-        protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType)
-        {
+        protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType) {
 
             //process the table event to a key and the entity of that key
             string entityKey = tableUpdate.Key;
 
-            if (string.IsNullOrEmpty(entityKey))
-            {
+            if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
                 return;
             }
@@ -166,37 +151,29 @@ namespace mud.Client
             //create the entity if it doesn't exist
             entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
-            if (logTable)
-            {
+            if (logTable) {
                 Debug.Log("Ingest: " + gameObject.name + " " + tableUpdate.Type.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
             }
 
-            if (eventType == UpdateEvent.Insert)
-            {
+            if (eventType == UpdateEvent.Insert) {
 
                 //create the component if we can't find it
-                if (Components.ContainsKey(entityKey)){}
-                else{MUDComponent c = entity.AddComponent(componentPrefab, this);}
+                if (Components.ContainsKey(entityKey)) { } else { MUDComponent c = entity.AddComponent(componentPrefab, this); }
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
 
 
-            }
-            else if (eventType == UpdateEvent.Update)
-            {
+            } else if (eventType == UpdateEvent.Update) {
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
 
 
-            }
-            else if (eventType == UpdateEvent.Delete)
-            {
+            } else if (eventType == UpdateEvent.Delete) {
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
                 entity.RemoveComponent(Components[entityKey]);
 
-                if (deletedRecordDestroysEntity)
-                {
+                if (deletedRecordDestroysEntity) {
                     EntityDictionary.DestroyEntity(entityKey);
                 }
             }
@@ -208,22 +185,16 @@ namespace mud.Client
 
         }
 
-        public void RegisterComponent(bool toggle, MUDComponent component)
-        {
-            if (toggle)
-            {
-                if (SpawnedComponents.Contains(component))
-                {
+        public void RegisterComponent(bool toggle, MUDComponent component) {
+            if (toggle) {
+                if (SpawnedComponents.Contains(component)) {
                     Debug.LogError("Component already added", component);
                 }
                 Components.Add(component.Entity.Key, component);
                 SpawnedComponents.Add(component);
-            }
-            else
-            {
+            } else {
 
-                if (!SpawnedComponents.Contains(component))
-                {
+                if (!SpawnedComponents.Contains(component)) {
                     Debug.LogError("Component was never added", component);
                 }
 
