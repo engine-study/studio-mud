@@ -8,11 +8,17 @@ namespace mud.Client
     public class RandomSelector : MonoBehaviour
     {
 
-        [Header("Random")]
+        [Header("Random GameObject")]
         public MUDHelper.RandomSource randomType;
         public int seed = 0;
-        public bool rotateY = true;
+
+        [Header("Random GameObject")]
+        public bool randomizeChildren = true;
         public GameObject[] objects;
+
+        [Header("Random Rotation")]
+        public bool rotateY = true;
+        public float rotationRound = 0f;
 
         [Header("Debug")]
         public int number = -1;
@@ -25,20 +31,23 @@ namespace mud.Client
 
             List<GameObject> tempList = new List<GameObject>();
 
-            //autopopulate if the object list is empty
-            if(objects.Length == 0) {
+            if(randomizeChildren) {
 
-                for(int i = 0; i < transform.childCount; i++) {
-                    
-                    //ignore children that also have randomselector
-                    if(transform.GetChild(i).gameObject.GetComponent<RandomSelector>())
-                        continue;
+                //autopopulate if the object list is empty
+                if(objects.Length == 0) {
 
-                    tempList.Add(transform.GetChild(i).gameObject);
+                    for(int i = 0; i < transform.childCount; i++) {
+                        
+                        //ignore children that also have randomselector
+                        if(transform.GetChild(i).gameObject.GetComponent<RandomSelector>())
+                            continue;
+
+                        tempList.Add(transform.GetChild(i).gameObject);
+                    }
+
+                    objects = tempList.ToArray();
+
                 }
-
-                objects = tempList.ToArray();
-
             }
 
             if (!entity)
@@ -78,9 +87,15 @@ namespace mud.Client
                 objects[i].SetActive(i == number);
             }
 
-            rotateNumber = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
 
             if(rotateY) {
+                rotateNumber = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
+
+                //round to a number (ie. rotationRound of 90 would give it one of four directions)
+                if(rotationRound != 0f) {
+                    rotateNumber = (int)(Mathf.Round(rotateNumber / rotationRound) * rotationRound);
+                }
+
                 transform.Rotate(Vector3.up * rotateNumber);
             }
         }
