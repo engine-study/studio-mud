@@ -5,43 +5,41 @@ using Cysharp.Threading.Tasks;
 using mud.Client;
 using NetworkManager = mud.Unity.NetworkManager;
 
-namespace mud.Client
-{
+namespace mud.Client {
 
 
-    public abstract class MUDComponent : MonoBehaviour
-    {
+    public abstract class MUDComponent : MonoBehaviour {
         public MUDEntity Entity { get { return entity; } }
         public bool Loaded { get { return loaded; } }
+        public bool HasInit { get { return hasInit; } }
+        public IMudTable ActiveTable { get { return activeTable; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public System.Action OnLoaded, OnUpdated;
         public System.Action<UpdateEvent> OnUpdatedDetails;
         public System.Action<MUDComponent, UpdateEvent> OnUpdatedFull;
-        public System.Type ComponentToTableType{get{return tableManager.TableType();}}
-        public MUDTableManager TableManager {get{return tableManager;}}
-        protected IMudTable activeTable;
-        protected IMudTable onchainTable;
-        protected IMudTable optimisticTable;
+        public System.Type ComponentToTableType { get { return tableManager.TableType(); } }
+        public MUDTableManager TableManager { get { return tableManager; } }
+
 
         [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
 
 
         [Header("Debug")]
-        protected MUDEntity entity;
-        protected MUDTableManager tableManager;
-        protected int componentsLoaded = 0;
-        protected bool hasInit;
-        protected bool loaded = false;
+        [SerializeField] private MUDEntity entity;
+        [SerializeField] private MUDTableManager tableManager;
+        [SerializeField] private int componentsLoaded = 0;
+        [SerializeField] private bool hasInit = false;
+        [SerializeField] private bool loaded = false;
+        private IMudTable activeTable;
+        private IMudTable onchainTable;
+        private IMudTable optimisticTable;
 
-
-        protected virtual void Awake()
-        {
+        protected virtual void Awake() {
 
         }
 
-        public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable)
-        {
+        public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable) {
             entity = ourEntity;
             tableManager = ourTable;
 
@@ -52,14 +50,12 @@ namespace mud.Client
             hasInit = true;
         }
 
-        async UniTaskVoid LoadComponents()
-        {
+        async UniTaskVoid LoadComponents() {
 
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake
             await UniTask.Delay(100);
 
-            for (int i = 0; i < requiredComponents.Count; i++)
-            {
+            for (int i = 0; i < requiredComponents.Count; i++) {
                 await entity.GetMUDComponentAsync(requiredComponents[i]);
                 componentsLoaded++;
             }
@@ -69,10 +65,8 @@ namespace mud.Client
 
         }
 
-        protected void OnDestroy()
-        {
-            if (hasInit)
-            {
+        protected void OnDestroy() {
+            if (hasInit) {
                 InitDestroy();
             }
         }
@@ -81,13 +75,11 @@ namespace mud.Client
 
         }
 
-        public virtual void Cleanup()
-        {
+        public virtual void Cleanup() {
             tableManager.RegisterComponent(false, this);
         }
 
-        public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType)
-        {
+        public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
             //update our internal table
             IngestUpdate(table, eventType);
 
@@ -101,23 +93,23 @@ namespace mud.Client
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
 
             //set our onchain toable
-            if(eventType == UpdateEvent.Optimistic) {
+            if (eventType == UpdateEvent.Optimistic) {
                 optimisticTable = table;
-            } else if(eventType != UpdateEvent.Revert) {
+            } else if (eventType != UpdateEvent.Revert) {
                 onchainTable = table;
             }
-            
-            if(eventType == UpdateEvent.Revert) {
-                Debug.Assert(onchainTable != null,"Reverting before we have an onchain update");
+
+            if (eventType == UpdateEvent.Revert) {
+                Debug.Assert(onchainTable != null, "Reverting before we have an onchain update");
                 optimisticTable = null;
                 activeTable = onchainTable;
             } else {
                 activeTable = table;
             }
-     
+
         }
 
-        protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType){}
+        protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType) { }
 
 
 
