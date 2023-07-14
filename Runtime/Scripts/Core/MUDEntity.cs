@@ -14,7 +14,7 @@ namespace mud.Client
         public List<MUDComponent> ExpectedComponents {get {return expected;}}
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public System.Action<MUDComponent, UpdateEvent> OnComponentUpdated;
-        public System.Action OnInit;
+        public System.Action OnInit, OnUpdated;
 
 
         [Header("MUD")]
@@ -181,6 +181,7 @@ namespace mud.Client
 
         void ComponentUpdate(MUDComponent c, UpdateEvent u) {
             OnComponentUpdated?.Invoke(c,u);
+            OnUpdated?.Invoke();
         }
 
         public void RemoveComponent(MUDComponent c)
