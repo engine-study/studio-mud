@@ -13,6 +13,7 @@ namespace mud.Client
         public List<MUDComponent> Components { get { return components; } }
         public List<MUDComponent> ExpectedComponents {get {return expected;}}
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
+        public System.Action<MUDComponent, UpdateEvent> OnComponentUpdated;
         public System.Action OnInit;
 
 
@@ -170,6 +171,8 @@ namespace mud.Client
             
                 //init it
                 c.Init(this, fromTable);
+
+                c.OnUpdatedFull += OnComponentUpdated;
                 OnComponentAdded?.Invoke(c);
             }
 
@@ -179,8 +182,15 @@ namespace mud.Client
         public void RemoveComponent(MUDComponent c)
         {
 
+            if(c == null) {
+                Debug.LogError("Removing a null component", this);
+            }
+            
+            c.OnUpdatedFull -= OnComponentUpdated;
+
             components.Remove(c);
             OnComponentRemoved?.Invoke(c);
+
 
             Destroy(c);
         }

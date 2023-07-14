@@ -18,9 +18,14 @@ namespace mud.Client {
         public bool rotateY = true;
         public float rotationRound = 0f;
 
+        [Header("Random Scale")]
+        public bool useScale = false;
+        public Vector2 range = Vector2.one;
+
         [Header("Debug")]
         public int child = -1;
         public int rotate = -1;
+        public float scale = -1;
 
         MUDEntity entity;
         void Start() {
@@ -90,6 +95,13 @@ namespace mud.Client {
                 }
 
                 transform.Rotate(Vector3.up * rotate);
+            }
+
+            if(useScale) {
+                scale = (int)MUDHelper.RandomNumber((int)(range.x * 100f), (int)(range.y * 100f), entity, randomType, seed + 2);
+
+                scale = scale * .01f;
+                transform.localScale *= scale;
             }
         }
     }
