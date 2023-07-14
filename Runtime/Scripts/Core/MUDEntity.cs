@@ -171,12 +171,16 @@ namespace mud.Client
             
                 //init it
                 c.Init(this, fromTable);
-
-                c.OnUpdatedFull += OnComponentUpdated;
+                c.OnUpdatedFull += ComponentUpdate;
+                
                 OnComponentAdded?.Invoke(c);
             }
 
             return c;
+        }
+
+        void ComponentUpdate(MUDComponent c, UpdateEvent u) {
+            OnComponentUpdated?.Invoke(c,u);
         }
 
         public void RemoveComponent(MUDComponent c)
@@ -186,7 +190,7 @@ namespace mud.Client
                 Debug.LogError("Removing a null component", this);
             }
             
-            c.OnUpdatedFull -= OnComponentUpdated;
+            c.OnUpdatedFull -= ComponentUpdate;
 
             components.Remove(c);
             OnComponentRemoved?.Invoke(c);

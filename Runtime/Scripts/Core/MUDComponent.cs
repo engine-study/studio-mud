@@ -69,12 +69,16 @@ namespace mud.Client
 
         }
 
-        public virtual void OnDestroy()
+        protected void OnDestroy()
         {
             if (hasInit)
             {
-
+                InitDestroy();
             }
+        }
+
+        protected virtual void InitDestroy() {
+
         }
 
         public virtual void Cleanup()
