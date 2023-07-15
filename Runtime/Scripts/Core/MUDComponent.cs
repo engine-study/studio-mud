@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,34 +10,36 @@ namespace mud.Client {
 
 
     public abstract class MUDComponent : MonoBehaviour {
+
         public MUDEntity Entity { get { return entity; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public IMudTable ActiveTable { get { return activeTable; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public System.Action OnLoaded, OnUpdated;
-        public System.Action<UpdateEvent> OnUpdatedDetails;
-        public System.Action<MUDComponent, UpdateEvent> OnUpdatedFull;
-        public System.Type ComponentToTableType { get { return tableManager.TableType(); } }
+        public Action OnLoaded, OnUpdated;
+        public Action<UpdateEvent> OnUpdatedDetails;
+        public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
         public MUDTableManager TableManager { get { return tableManager; } }
-
+        public Type TableType {get{return tableType.TableType();}}
+        public Type TableUpdateType {get{return tableType.TableUpdateType();}}
 
         [Header("Settings")]
+        [SerializeField] private IMudTable tableType;
         [SerializeField] List<MUDComponent> requiredComponents;
 
 
         [Header("Debug")]
         [SerializeField] private MUDEntity entity;
         [SerializeField] private MUDTableManager tableManager;
-        [SerializeField] private int componentsLoaded = 0;
+        [SerializeField] private IMudTable activeTable;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
-        private IMudTable activeTable;
         private IMudTable onchainTable;
         private IMudTable optimisticTable;
 
-        protected virtual void Awake() {
 
+        protected virtual void Awake() {
+            Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
         }
 
         public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable) {
@@ -57,7 +60,6 @@ namespace mud.Client {
 
             for (int i = 0; i < requiredComponents.Count; i++) {
                 await entity.GetMUDComponentAsync(requiredComponents[i]);
-                componentsLoaded++;
             }
 
             loaded = true;
@@ -85,6 +87,7 @@ namespace mud.Client {
 
             //use internal table to update component
             UpdateComponent(activeTable, eventType);
+
             OnUpdated?.Invoke();
             OnUpdatedDetails?.Invoke(eventType);
             OnUpdatedFull?.Invoke(this, eventType);

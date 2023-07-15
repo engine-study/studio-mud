@@ -61,7 +61,7 @@ namespace mud.Client
             component = c;
 
             //derive table from component
-            Type tableType = component.ComponentToTableType;
+            Type tableType = component.TableType;
 
             //create an optimistic table
             optimistic = (IMudTable)System.Activator.CreateInstance(tableType);

@@ -13,14 +13,13 @@ namespace mud.Client {
 
 
     public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert }  //Manual  // possible other types?
-    public abstract class MUDTableManager : MUDTable {
+    public class MUDTableManager : MUDTable {
         //dictionary of all entities
         public static System.Action<bool, MUDTableManager> OnTableToggle;
         public static Dictionary<string, MUDTableManager> Tables;
 
         public System.Type ComponentType { get { return componentType; } }
         public string ComponentString { get { return componentString; } }
-        public abstract Type TableType();
 
 
         //dictionary of all the components this specific table has
@@ -87,52 +86,60 @@ namespace mud.Client {
         }
 
         protected override void OnInsertRecord(RecordUpdate tableUpdate) {
-            base.OnInsertRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Insert);
         }
         protected override void OnUpdateRecord(RecordUpdate tableUpdate) {
-            base.OnUpdateRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Update);
         }
 
         protected override void OnDeleteRecord(RecordUpdate tableUpdate) {
-            base.OnDeleteRecord(tableUpdate);
             IngestTableEvent(tableUpdate, UpdateEvent.Delete);
         }
 
+        protected override void Subscribe(mud.Unity.NetworkManager nm) {
+
+            if (subscribeInsert) {
+                IMudTable insert = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                var InsertSub = ObservableExtensions.Subscribe(SubscribeTable(insert, nm, UpdateType.SetRecord).ObserveOnMainThread(), OnInsertRecord);
+                _disposers.Add(InsertSub);
+            }
+
+            if (subscribeUpdate) {
+                IMudTable update = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                var UpdateSub = ObservableExtensions.Subscribe(SubscribeTable(update, nm, UpdateType.SetField).ObserveOnMainThread(), OnUpdateRecord);
+                _disposers.Add(UpdateSub);
+            }
+
+            if (subscribeDelete) {
+                IMudTable delete = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                var DeleteSub = ObservableExtensions.Subscribe(SubscribeTable(delete, nm, UpdateType.DeleteRecord).ObserveOnMainThread(), OnDeleteRecord);
+                _disposers.Add(DeleteSub);
+            }
+        }
+
+        public static IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
+            return NetworkManager.Instance.ds.OnDataStoreUpdate
+            .Where(
+                update => update.TableId == tableType.TableId.ToString() && update.Type == updateType
+            )
+            .Select(
+                update => tableType.CreateTypedRecord(update)
+            );
+        }
+
         public IMudTable GetTableValues(MUDComponent component) {
-            IMudTable table = (IMudTable)System.Activator.CreateInstance(TableType());
+            IMudTable table = (IMudTable)System.Activator.CreateInstance(component.TableType);
             return table.GetTableValue(component.Entity.Key);
         }
 
-        protected abstract IMudTable RecordUpdateToTable(RecordUpdate tableUpdate);
-
-        // protected virtual IMudTable RecordUpdateToTable(RecordUpdate tableUpdate)
-        // {
-        //     ChunkTableUpdate update = tableUpdate as ChunkTableUpdate;
-
-        //     var currentValue = update.TypedValue.Item1;
-        //     if (currentValue == null)
-        //     {
-        //         Debug.LogError("No currentValue");
-        //         return null;
-        //     }
-
-        //     return currentValue;
-        // }
 
         protected virtual void SpawnComponentByEntity(string entityKey) {
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("Empty key", gameObject);
                 return;
             }
-
-
             //create the entity if it doesn't exist
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
-
-
-
         }
 
         protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType) {
@@ -146,7 +153,9 @@ namespace mud.Client {
             }
 
             MUDEntity entity = EntityDictionary.GetEntitySafe(entityKey);
-            IMudTable mudTable = RecordUpdateToTable(tableUpdate);
+
+            IMudTable mudTable = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+            mudTable = mudTable.RecordUpdateToTable(tableUpdate);
 
             //create the entity if it doesn't exist
             entity = EntityDictionary.FindOrSpawnEntity(entityKey);

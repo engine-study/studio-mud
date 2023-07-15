@@ -1,3 +1,5 @@
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,7 +19,8 @@ namespace mud.Client
 
         protected CompositeDisposable _disposers = new();
         protected mud.Unity.NetworkManager net; 
-        public System.Action OnAdded, OnUpdated, OnDeleted;
+        public Action OnInit;
+        public Action OnAdded, OnUpdated, OnDeleted;
         bool hasInit;
 
         protected virtual void Awake()
@@ -27,51 +30,39 @@ namespace mud.Client
         protected virtual void Start()
         {
             net = mud.Unity.NetworkManager.Instance;
-            net.OnNetworkInitialized += InitTable;
+            net.OnNetworkInitialized += DoInit;
         }
 
         protected virtual void OnDestroy()
         {
             _disposers?.Dispose();
-            net.OnNetworkInitialized -= InitTable;
+            net.OnNetworkInitialized -= DoInit;
         }
 
-        // var SpawnSubscription = table.OnRecordInsert().ObserveOnMainThread().Subscribe(OnUpdateTable);
-        // _disposers.Add(SpawnSubscription);
+        void DoInit(NetworkManager nm) {
 
-        // var UpdateSubscription  = ObservableExtensions.Subscribe(PositionTable.OnRecordUpdate().ObserveOnMainThread(),
-        //         OnChainPositionUpdate);
-        // _disposers.Add(UpdateSubscription);
+            InitTable();
 
-        protected virtual async void InitTable(NetworkManager nm)
+            hasInit = true;
+            OnInit?.Invoke();
+
+        }   
+
+        protected virtual async void InitTable()
         {
             if(hasInit) {
                 Debug.LogError("Oh no, double Init", this);
                 return;
             }
-            
-            Subscribe(nm);
-            Debug.Log("Init: " + gameObject.name);
 
-            hasInit = true;
+            Subscribe(net);            
+            Debug.Log("Init: " + gameObject.name);
         }
 
         protected abstract void Subscribe(NetworkManager nm);
-
-        protected virtual void OnInsertRecord(RecordUpdate tableUpdate)
-        {
-
-        }
-
-        protected virtual void OnDeleteRecord(RecordUpdate tableUpdate)
-        {
-
-        }
-
-        protected virtual void OnUpdateRecord(RecordUpdate tableUpdate)
-        {
-
-        }
+        protected abstract void OnInsertRecord(RecordUpdate tableUpdate);
+        protected abstract void OnDeleteRecord(RecordUpdate tableUpdate);
+        protected abstract void OnUpdateRecord(RecordUpdate tableUpdate);
 
 
 
