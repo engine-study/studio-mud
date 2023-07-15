@@ -13,8 +13,7 @@ using Cysharp.Threading.Tasks;
 namespace mud.Client
 {
 
-    public class TxManager : MonoBehaviour
-    {
+    public class TxManager : MonoBehaviour {
 
         public static System.Action<bool> OnTransaction;
         public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new()

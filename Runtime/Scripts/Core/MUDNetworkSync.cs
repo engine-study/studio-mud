@@ -32,13 +32,6 @@ namespace mud.Client
             net.OnNetworkInitialized -= DoInit;
         }
 
-        // var SpawnSubscription = table.OnRecordInsert().ObserveOnMainThread().Subscribe(OnUpdateTable);
-        // _disposers.Add(SpawnSubscription);
-
-        // var UpdateSubscription  = ObservableExtensions.Subscribe(PositionTable.OnRecordUpdate().ObserveOnMainThread(),
-        //         OnChainPositionUpdate);
-        // _disposers.Add(UpdateSubscription);
-
         void DoInit(mud.Unity.NetworkManager nm) {
             Init(nm);
             OnNetworkInit?.Invoke();

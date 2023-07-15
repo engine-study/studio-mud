@@ -20,11 +20,11 @@ namespace mud.Client {
         public Action<UpdateEvent> OnUpdatedDetails;
         public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
         public MUDTableManager TableManager { get { return tableManager; } }
-        public Type TableType {get{return tableType.TableType();}}
-        public Type TableUpdateType {get{return tableType.TableUpdateType();}}
+        public Type TableType {get{return tableType.Table.TableType();}}
+        public Type TableUpdateType {get{return tableType.Table.TableUpdateType();}}
 
         [Header("Settings")]
-        [SerializeField] private IMudTable tableType;
+        [SerializeField] private MUDTableObject tableType;
         [SerializeField] List<MUDComponent> requiredComponents;
 
 
