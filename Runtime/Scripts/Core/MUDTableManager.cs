@@ -57,9 +57,15 @@ namespace mud.Client {
                 return;
             }
 
+            if (componentPrefab.TableType == null) {
+                Debug.LogError("No table type on " + componentPrefab.gameObject, componentPrefab);
+                return;
+            }
+
             //set our table type based on the prefab we have selected
             componentType = componentPrefab.GetType();
-            componentString = componentType.ToString();
+            componentString = componentPrefab.GetType().ToString();
+
             Components = new Dictionary<string, MUDComponent>();
 
             if (Tables.ContainsKey(ComponentType.ToString())) {

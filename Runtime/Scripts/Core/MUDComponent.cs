@@ -20,8 +20,10 @@ namespace mud.Client {
         public Action<UpdateEvent> OnUpdatedDetails;
         public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
         public MUDTableManager TableManager { get { return tableManager; } }
-        public Type TableType {get{return Type.GetType(tableType.TableType);}}
-        public Type TableUpdateType {get{return Type.GetType(tableType.UpdateType);}}
+        // public Type TableType {get{return tableType.Table;}}
+        // public Type TableUpdateType {get{return tableType.TableUpdate;}}        
+        public Type TableType {get{if(internalRef == null) DoGrossAssemblyLoading(); return internalRef.TableType();}}
+        public Type TableTypeUpdate {get{if(internalRef == null) DoGrossAssemblyLoading(); return internalRef.TableUpdateType();}}
 
         [Header("Settings")]
         [SerializeField] private MUDTableObject tableType;
@@ -36,7 +38,7 @@ namespace mud.Client {
         [SerializeField] private bool loaded = false;
         private IMudTable onchainTable;
         private IMudTable optimisticTable;
-
+        private IMudTable internalRef;
 
         protected virtual void Awake() {
 
@@ -117,7 +119,14 @@ namespace mud.Client {
 
         protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType) { }
 
-
+        void DoGrossAssemblyLoading() {
+            //find the mud namespace
+            string namespaceName = tableType.TableName.Substring(0, tableType.TableName.IndexOf("."));
+            // Debug.Log("Namespace: " + namespaceName);
+            System.Reflection.Assembly a = System.Reflection.Assembly.Load(namespaceName);
+            Type t = a.GetType(tableType.TableName);
+            internalRef = (IMudTable)System.Activator.CreateInstance(t);
+        }
 
     }
 }
