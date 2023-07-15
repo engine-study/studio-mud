@@ -20,8 +20,8 @@ namespace mud.Client {
         public Action<UpdateEvent> OnUpdatedDetails;
         public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
         public MUDTableManager TableManager { get { return tableManager; } }
-        public Type TableType {get{return tableType.Table.TableType();}}
-        public Type TableUpdateType {get{return tableType.Table.TableUpdateType();}}
+        public Type TableType {get{return Type.GetType(tableType.TableType);}}
+        public Type TableUpdateType {get{return Type.GetType(tableType.UpdateType);}}
 
         [Header("Settings")]
         [SerializeField] private MUDTableObject tableType;
@@ -39,10 +39,13 @@ namespace mud.Client {
 
 
         protected virtual void Awake() {
-            Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
+
         }
 
         public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable) {
+
+            Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
+
             entity = ourEntity;
             tableManager = ourTable;
 
