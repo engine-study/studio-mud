@@ -101,7 +101,7 @@ namespace mud.Client {
 
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
 
-            //set our onchain toable
+            //set our onchain table
             if (eventType == UpdateEvent.Optimistic) {
                 optimisticTable = table;
             } else if (eventType != UpdateEvent.Revert) {
@@ -109,9 +109,11 @@ namespace mud.Client {
             }
 
             if (eventType == UpdateEvent.Revert) {
-                Debug.Assert(onchainTable != null, "Reverting before we have an onchain update");
+                Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + " onchain update", this);
                 optimisticTable = null;
                 activeTable = onchainTable;
+            } else if(eventType == UpdateEvent.Delete) {
+                //don't do anything on the event of a deletion, the table will be null, leave the activeTable to the last value 
             } else {
                 activeTable = table;
             }

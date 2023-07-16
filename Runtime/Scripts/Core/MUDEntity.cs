@@ -5,13 +5,11 @@ using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace mud.Client
-{
-    public class MUDEntity : Entity
-    {
+namespace mud.Client {
+    public class MUDEntity : Entity {
         public string Key { get { return mudKey; } }
         public List<MUDComponent> Components { get { return components; } }
-        public List<MUDComponent> ExpectedComponents {get {return expected;}}
+        public List<MUDComponent> ExpectedComponents { get { return expected; } }
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public System.Action<MUDComponent, UpdateEvent> OnComponentUpdated;
         public System.Action OnInit, OnUpdated;
@@ -23,8 +21,7 @@ namespace mud.Client
         [SerializeField] protected List<MUDComponent> expected;
 
 
-        protected virtual void Awake()
-        {
+        protected virtual void Awake() {
             base.Awake();
 
             expected = new List<MUDComponent>();
@@ -32,18 +29,15 @@ namespace mud.Client
 
         }
 
-        protected override void Start()
-        {
+        protected override void Start() {
             base.Start();
 
         }
 
-        public override void Init()
-        {
+        public override void Init() {
             base.Init();
 
-            if (string.IsNullOrEmpty(mudKey))
-            {
+            if (string.IsNullOrEmpty(mudKey)) {
                 Debug.LogError("NO entity key");
                 return;
             }
@@ -52,7 +46,7 @@ namespace mud.Client
 
         void DoInit() {
 
-            if(hasInit) {
+            if (hasInit) {
                 Debug.LogError("Double init", this);
                 return;
             }
@@ -65,28 +59,25 @@ namespace mud.Client
 
         protected async void InitEntityCheck(MUDComponent newComponent) {
 
-            if(components.Count < 1 || expected.Count > components.Count) {
+            if (components.Count < 1 || expected.Count > components.Count) {
                 return;
             }
 
             OnComponentAdded -= InitEntityCheck;
             DoInit();
-            
+
         }
 
-        protected override void Destroy()
-        {
+        protected override void Destroy() {
             base.Destroy();
 
-            for (int i = components.Count - 1; i > -1; i--)
-            {
+            for (int i = components.Count - 1; i > -1; i--) {
                 RemoveComponent(components[i]);
             }
         }
 
-        public void InitEntity(string newKey)
-        {
-            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this);}
+        public void InitEntity(string newKey) {
+            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
             mudKey = newKey;
 
             gameObject.SetActive(false);
@@ -94,42 +85,20 @@ namespace mud.Client
         }
 
 
-        public MUDComponent GetMUDComponent(MUDComponent component)
-        {
+        public MUDComponent GetMUDComponent(MUDComponent component) {
             for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i]; } }
             return null;
         }
 
-        public async UniTask<MUDComponent> GetMUDComponentAsync(MUDComponent componentType) {
-            MUDComponent component = GetMUDComponent(componentType);
-
-            int timeout = 100;
-            while (component == null)
-            {
-
-                timeout--;
-                if (timeout < 0)
-                {
-                    return null;
-                }
-
-                await UniTask.Delay(500);
-                component = GetMUDComponent(componentType);
-
-            }
-
-            return component;
-        }
-        public async UniTask<MUDComponent> GetMUDComponentAsync<T>() where T : MUDComponent {
+        public async UniTask<T> GetMUDComponentAsync<T>(T componentType = null) where T : MUDComponent {
             MUDComponent component = GetMUDComponent<T>();
 
             int timeout = 100;
-            while (component == null)
-            {
+            while (component == null) {
 
                 timeout--;
-                if (timeout < 0)
-                {
+                if (timeout < 0) {
+                    Debug.LogError("Timeout: could not find " + typeof(T).ToString(), this);
                     return null;
                 }
 
@@ -138,41 +107,36 @@ namespace mud.Client
 
             }
 
-            return component;
+            return component as T;
         }
 
-        public T GetMUDComponent<T>() where T : MUDComponent
-        {
+        public T GetMUDComponent<T>() where T : MUDComponent {
             for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (T)Components[i]; } }
             return null;
         }
-        public MUDComponent AddComponent(MUDComponent componentPrefab, TableManager fromTable)
-        {
+        public MUDComponent AddComponent(MUDComponent componentPrefab, TableManager fromTable) {
             // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
             MUDComponent c = GetMUDComponent(componentPrefab);
 
-            if (c)
-            {
+            if (c) {
                 Debug.LogError(componentPrefab.gameObject.name + " already exists.", gameObject);
-            }
-            else
-            {
+            } else {
                 //spawn the compoment
                 c = Instantiate(componentPrefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
                 //helpful to show in inspector that this is the compoment instance, not the prefab
-                c.gameObject.name += "(I)"; 
+                c.gameObject.name += "(I)";
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
                 expected.Add(componentPrefab);
                 List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
                 expected = newExpected;
-            
+
                 //init it
                 c.Init(this, fromTable);
                 c.OnUpdatedFull += ComponentUpdate;
-                
+
                 OnComponentAdded?.Invoke(c);
             }
 
@@ -180,17 +144,16 @@ namespace mud.Client
         }
 
         void ComponentUpdate(MUDComponent c, UpdateEvent u) {
-            OnComponentUpdated?.Invoke(c,u);
+            OnComponentUpdated?.Invoke(c, u);
             OnUpdated?.Invoke();
         }
 
-        public void RemoveComponent(MUDComponent c)
-        {
+        public void RemoveComponent(MUDComponent c) {
 
-            if(c == null) {
+            if (c == null) {
                 Debug.LogError("Removing a null component", this);
             }
-            
+
             c.OnUpdatedFull -= ComponentUpdate;
 
             components.Remove(c);

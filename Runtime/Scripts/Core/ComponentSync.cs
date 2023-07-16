@@ -2,11 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace mud.Client
-{
+namespace mud.Client {
 
-    public abstract class ComponentSync : MonoBehaviour
-    {
+    public abstract class ComponentSync : MonoBehaviour {
         public enum ComponentSyncType { Instant, Lerp, InitialSyncOnly }
 
         public System.Action OnSync, OnUpdate;
@@ -19,7 +17,6 @@ namespace mud.Client
         protected MUDComponent ourComponent;
         protected MUDComponent targetComponent;
 
-        System.Type componentType;
         string componentString;
 
 
@@ -33,13 +30,10 @@ namespace mud.Client
 
             ourComponent = GetComponent<MUDComponent>();
 
-            componentType = TargetComponentType();
-            componentString = componentType.ToString();
-
+            componentString = TargetComponentType().ToString();
             componentPrefab = ComponentDictionary.StringToComponentPrefab(componentString);
 
-            if (!ourComponent.RequiredComponents.Contains(componentPrefab))
-            {
+            if (!ourComponent.RequiredComponents.Contains(componentPrefab)) {
                 // Debug.Log("Adding our required component.", gameObject);
                 ourComponent.RequiredComponents.Add(componentPrefab);
             }
@@ -47,8 +41,7 @@ namespace mud.Client
             ourComponent.OnLoaded += DoSync;
         }
 
-        void OnDestroy()
-        {
+        void OnDestroy() {
             if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
             if (targetComponent) { targetComponent.OnUpdatedDetails -= DoUpdate; }
         }
@@ -72,9 +65,9 @@ namespace mud.Client
 
             //if we want to keep lerping towards the value we get, enable this component
             enabled = syncType == ComponentSyncType.Lerp;
-            
+
             //if we want to keep syncing, listen for further updates
-            if(syncType != ComponentSyncType.InitialSyncOnly) {
+            if (syncType != ComponentSyncType.InitialSyncOnly) {
                 targetComponent.OnUpdatedDetails += DoUpdate;
             }
 
@@ -96,8 +89,7 @@ namespace mud.Client
 
         }
 
-        protected virtual void Update()
-        {
+        protected virtual void Update() {
             UpdateLerp();
         }
 
