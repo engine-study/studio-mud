@@ -29,8 +29,15 @@ namespace mud.Client
         }
         protected virtual void Start()
         {
+
             net = mud.Unity.NetworkManager.Instance;
-            net.OnNetworkInitialized += DoInit;
+
+            if(NetworkManager.NetworkInitialized) {
+                DoInit(net);
+            } else {
+                net.OnNetworkInitialized += DoInit;
+            }
+
         }
 
         protected virtual void OnDestroy()

@@ -48,6 +48,8 @@ namespace mud.Client {
         protected override void Awake() {
             base.Awake();
 
+            SpawnedComponents = new List<MUDComponent>();
+
             if (Tables == null) {
                 Tables = new Dictionary<string, TableManager>();
             }
