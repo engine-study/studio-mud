@@ -80,7 +80,7 @@ public class EntityDictionary : MonoBehaviour
     public static void SpawnAllComponentsOntoEntity(MUDEntity entity)
     {
         //search all tables to see if they contain this entity
-        foreach (MUDTableManager value in MUDTableManager.Tables.Values)
+        foreach (TableManager value in TableManager.Tables.Values)
         {
             
         }

@@ -13,10 +13,10 @@ namespace mud.Client {
 
 
     public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert }  //Manual  // possible other types?
-    public class MUDTableManager : MUDTable {
+    public class TableManager : MUDTable {
         //dictionary of all entities
-        public static System.Action<bool, MUDTableManager> OnTableToggle;
-        public static Dictionary<string, MUDTableManager> Tables;
+        public static System.Action<bool, TableManager> OnTableToggle;
+        public static Dictionary<string, TableManager> Tables;
 
         public System.Type ComponentType { get { return componentType; } }
         public string ComponentString { get { return componentString; } }
@@ -49,7 +49,7 @@ namespace mud.Client {
             base.Awake();
 
             if (Tables == null) {
-                Tables = new Dictionary<string, MUDTableManager>();
+                Tables = new Dictionary<string, TableManager>();
             }
 
             if (componentPrefab == null) {

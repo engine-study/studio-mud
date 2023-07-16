@@ -42,7 +42,7 @@ namespace mud.Client
                 //NO, lets try to use the prefab the table assigned to its "componentPrefab" slot
                 // prefab = (Resources.Load("Components/" + componentName) as GameObject).GetComponent<MUDComponent>();
 
-                prefab = MUDTableManager.Tables[componentName].Prefab;
+                prefab = TableManager.Tables[componentName].Prefab;
 
                 if (prefab)
                 {

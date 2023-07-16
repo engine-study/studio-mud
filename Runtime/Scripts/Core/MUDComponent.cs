@@ -19,11 +19,11 @@ namespace mud.Client {
         public Action OnLoaded, OnUpdated;
         public Action<UpdateEvent> OnUpdatedDetails;
         public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
-        public MUDTableManager TableManager { get { return tableManager; } }
+        public TableManager TableManager { get { return tableManager; } }
         // public Type TableType {get{return tableType.Table;}}
         // public Type TableUpdateType {get{return tableType.TableUpdate;}}        
-        public Type TableType {get{if(internalRef == null) DoGrossAssemblyLoading(); return internalRef.TableType();}}
-        public Type TableTypeUpdate {get{if(internalRef == null) DoGrossAssemblyLoading(); return internalRef.TableUpdateType();}}
+        public Type TableType {get{if(internalRef == null) LoadAssembly(); return internalRef.TableType();}}
+        public Type TableTypeUpdate {get{if(internalRef == null) LoadAssembly(); return internalRef.TableUpdateType();}}
 
         [Header("Settings")]
         [SerializeField] private MUDTableObject tableType;
@@ -32,7 +32,7 @@ namespace mud.Client {
 
         [Header("Debug")]
         [SerializeField] private MUDEntity entity;
-        [SerializeField] private MUDTableManager tableManager;
+        [SerializeField] private TableManager tableManager;
         [SerializeField] private IMudTable activeTable;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
@@ -40,11 +40,12 @@ namespace mud.Client {
         private IMudTable optimisticTable;
         private IMudTable internalRef;
 
-        protected virtual void Awake() {
+        protected virtual void Awake() {}
+        protected virtual void Start() {}
+        protected virtual void OnEnable() {}
+        protected virtual void OnDisable() {}
 
-        }
-
-        public virtual void Init(MUDEntity ourEntity, MUDTableManager ourTable) {
+        public virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
 
             Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
 
@@ -117,9 +118,9 @@ namespace mud.Client {
 
         }
 
-        protected virtual void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType) { }
+        protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType);
 
-        void DoGrossAssemblyLoading() {
+        void LoadAssembly() {
             //find the mud namespace
             string namespaceName = tableType.TableName.Substring(0, tableType.TableName.IndexOf("."));
             // Debug.Log("Namespace: " + namespaceName);

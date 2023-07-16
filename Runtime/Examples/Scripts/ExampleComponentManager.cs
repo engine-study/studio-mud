@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace mud.Client
 {
-    public class ExampleComponentManager : MUDTableManager
+    public class ExampleComponentManager : TableManager
     {
 
     
