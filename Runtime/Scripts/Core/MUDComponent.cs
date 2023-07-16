@@ -73,7 +73,7 @@ namespace mud.Client {
 
         }
 
-        protected void OnDestroy() {
+        protected virtual void OnDestroy() {
             if (hasInit) {
                 InitDestroy();
             }
@@ -123,7 +123,6 @@ namespace mud.Client {
         void LoadAssembly() {
             //find the mud namespace
             Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
-
             string namespaceName = tableType.TableName.Substring(0, tableType.TableName.IndexOf("."));
             // Debug.Log("Namespace: " + namespaceName);
             System.Reflection.Assembly a = System.Reflection.Assembly.Load(namespaceName);

@@ -135,7 +135,29 @@ namespace mud.Client {
             );
         }
 
-        public IMudTable GetTableValues(MUDComponent component) {
+        public static T FindComponent<T>(string entity) where T : MUDComponent{
+
+            //try to find the tablemanager
+            TableManager tm = null;
+            Tables.TryGetValue(typeof(T).Name, out tm);
+
+            if(tm == null) {
+                Debug.LogError("Could not find " + typeof(T).Name + " table");
+                return null;
+            }
+
+            MUDComponent component = null;
+            tm.Components.TryGetValue(entity, out component);
+
+            if(component == null) {
+                return null;
+            }
+
+            return component as T;
+        }   
+
+
+        public IMudTable GetTableValue(MUDComponent component) {
             IMudTable table = (IMudTable)System.Activator.CreateInstance(component.TableType);
             return table.GetTableValue(component.Entity.Key);
         }

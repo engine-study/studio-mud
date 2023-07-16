@@ -41,7 +41,7 @@ namespace mud.Client {
 
         void LoadEntity(bool toggle, int x, int y) {
 
-            string key = MUDHelper.GetSha3ABIEncoded( new object[2]{x,y});
+            string key = MUDHelper.Keccak256(new object[2]{x,y});
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(key);
             EntityDictionary.SpawnAllComponentsOntoEntity(entity);
 

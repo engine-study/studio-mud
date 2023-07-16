@@ -17,97 +17,82 @@ using Vector3 = UnityEngine.Vector3;
 // using Nethereum.Web3;
 // using Nethereum.Web3.Accounts;
 
-namespace mud.Client
-{
+namespace mud.Client {
 
 
-    public class MUDHelper : MonoBehaviour
-    {
+    public class MUDHelper : MonoBehaviour {
 
-    public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {
-        Collider [] hits = new Collider[10]; 
-        int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
-        int selectedItem = -1;
-        float minDistance = 999f;
-        MUDEntity bestItem = null;
-        List<MUDEntity> entities = new List<MUDEntity>();
+        public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {
+            Collider[] hits = new Collider[10];
+            int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
+            int selectedItem = -1;
+            float minDistance = 999f;
+            MUDEntity bestItem = null;
+            List<MUDEntity> entities = new List<MUDEntity>();
 
-        for (int i = 0; i < amount; i++)
-        {
-            MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
+            for (int i = 0; i < amount; i++) {
+                MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
 
-            if (!checkItem)
-                continue;
+                if (!checkItem)
+                    continue;
 
-            entities.Add(checkItem);
+                entities.Add(checkItem);
 
-            float distance = Vector3.Distance(position, hits[i].ClosestPoint(position));
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                selectedItem = i;
-                bestItem = checkItem;
+                float distance = Vector3.Distance(position, hits[i].ClosestPoint(position));
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    selectedItem = i;
+                    bestItem = checkItem;
+                }
             }
+
+            return bestItem;
         }
 
-        return bestItem;
-    }
+        public static MUDEntity[] GetEntitiesFromRadius(Vector3 position, float radius) {
+            Collider[] hits = new Collider[10];
+            int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
+            int selectedItem = -1;
+            float minDistance = 999f;
+            MUDEntity bestItem = null;
+            List<MUDEntity> entities = new List<MUDEntity>();
 
-    public static MUDEntity [] GetEntitiesFromRadius(Vector3 position, float radius)
-    {
-        Collider [] hits = new Collider[10]; 
-        int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
-        int selectedItem = -1;
-        float minDistance = 999f;
-        MUDEntity bestItem = null;
-        List<MUDEntity> entities = new List<MUDEntity>();
+            for (int i = 0; i < amount; i++) {
+                MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
 
-        for (int i = 0; i < amount; i++)
-        {
-            MUDEntity checkItem = hits[i].GetComponentInParent<MUDEntity>();
+                if (!checkItem)
+                    continue;
 
-            if (!checkItem)
-                continue;
+                entities.Add(checkItem);
 
-            entities.Add(checkItem);
-
-            float distance = Vector3.Distance(position, checkItem.transform.position);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                selectedItem = i;
-                bestItem = checkItem;
+                float distance = Vector3.Distance(position, checkItem.transform.position);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    selectedItem = i;
+                    bestItem = checkItem;
+                }
             }
+
+            // return bestItem;
+
+            return entities.ToArray();
+
         }
 
-        // return bestItem;
+        public static string TruncateHash(string hash) {
 
-        return entities.ToArray();
-
-    }
-
-        public static string TruncateHash(string hash)
-        {
-
-            if (string.IsNullOrEmpty(hash))
-            {
+            if (string.IsNullOrEmpty(hash)) {
                 //Debug.Log("Empty hash");
                 return null;
             }
 
-            if (hash.Length > 9)
-            {
-                if (hash[hash.Length - 1] == ']')
-                {
+            if (hash.Length > 9) {
+                if (hash[hash.Length - 1] == ']') {
                     return hash.Substring(0, 5) + "..." + hash.Substring(hash.IndexOf('[') - 4);
-                }
-                else
-                {
+                } else {
                     return hash.Substring(0, 5) + "..." + hash.Substring(hash.Length - 4);
                 }
-            }
-            else
-            {
+            } else {
                 return hash;
             }
 
@@ -121,47 +106,68 @@ namespace mud.Client
         //      return amount;
         // } 
 
-        public enum RandomSource {FromEntity, FromPosition}
+        public enum RandomSource { FromEntity, FromPosition }
 
         public static float RandomNumber(int min, int max, MUDEntity entity, RandomSource randomType, int seed = 0) {
-            if(randomType == RandomSource.FromEntity) {
+            if (randomType == RandomSource.FromEntity) {
                 return RandomFromKey(min, max, entity.Key, seed);
-            } else if(randomType == RandomSource.FromPosition) {
-                return RandomFromPosition(min, max, entity.transform.position.x,entity.transform.position.y, seed);
+            } else if (randomType == RandomSource.FromPosition) {
+                return RandomFromPosition(min, max, entity.transform.position.x, entity.transform.position.y, seed);
             } else {
                 Debug.LogError("Bad");
                 return -1;
             }
         }
 
-       
+
         public static float RandomFrom(int min, int max, int seed = 0, params object[] inputs) {
-            float number = GetSha3ABIEncodedNumber(seed,inputs);
-            number = number % (max-min);
+            float number = Keccak256AsNumber(seed, inputs);
+            number = number % (max - min);
             number = number + min;
             return (float)number;
         }
         //warning, this DOESNT give same values as randomCoord
-        public static float RandomFromPosition(int min, int max, float x, float y, int seed = 0)
-        {
-            return RandomFrom(min, max, seed, new object[]{x,y});
+        public static float RandomFromPosition(int min, int max, float x, float y, int seed = 0) {
+            return RandomFrom(min, max, seed, new object[] { x, y });
         }
 
-        public static float RandomFromKey(int min, int max, string entity, int seed = 0)
-        {
+        public static float RandomFromKey(int min, int max, string entity, int seed = 0) {
             return RandomFrom(min, max, seed, entity);
         }
 
-        public static int GetSha3ABIEncodedNumber(int seed = 0, params object[] inputs)
-        {
-            var abiEncode = new ABIEncode();
+
+        public static string Keccak256Address(string address, params object[] inputs) {
             var abiValues = ConvertValuesToABI(inputs);
-            abiValues.Add(new ABIValue(new IntType("uint256"), seed));
-            var result = abiEncode.GetSha3ABIEncoded(abiValues.ToArray());
+            abiValues.Insert(0, new ABIValue("address", address));
+            return Keccak256(abiValues);
+        }
+
+        public static string Keccak256Entity(string entity, params object[] inputs) {
+            var abiValues = ConvertValuesToABI(inputs);
+            abiValues.Insert(0, new ABIValue(new StringType(), entity));
+            return Keccak256(abiValues);
+        }
+
+        public static string Keccak256(params object[] inputs) {
+            return Keccak256(ConvertValuesToABI(inputs));
+        }
+
+        private static string Keccak256(List<ABIValue> values) {
+            var abiEncode = new ABIEncode();
+            var result = abiEncode.GetSha3ABIEncoded(values.ToArray());
+            return result.ToHex(true);
+        }
+
+
+        public static int Keccak256AsNumber(int seed = 0, params object[] inputs) {
+            var abiEncode = new ABIEncode();
+            var values = ConvertValuesToABI(inputs);
+            values.Insert(0, new ABIValue(new IntType("uint256"), seed));
+            var result = abiEncode.GetSha3ABIEncoded(values.ToArray());
             return GetNumber(result);
         }
 
-        static int GetNumber(byte [] bytes) {
+        static int GetNumber(byte[] bytes) {
             // If the system architecture is little-endian (that is, little end first),
             // reverse the byte array.
             if (System.BitConverter.IsLittleEndian)
@@ -172,85 +178,46 @@ namespace mud.Client
         }
 
 
-        public static string GetSha3ABIEncodedEntity(string entity)
-        {
-            var abiEncode = new ABIEncode();
-            var result = abiEncode.GetSha3ABIEncoded(new ABIValue(new StringType(), entity));
-            return result.ToHex(true);
-        }
-
-
-        public static string GetSha3ABIEncodedAddress(string address)
-        {
-            var abiEncode = new ABIEncode();
-            var result = abiEncode.GetSha3ABIEncoded(new ABIValue("address", address));
-            return result.ToHex(true);
-        }
-   
-        public static string GetSha3ABIEncoded(params object[] inputs)
-        {
-            var abiEncode = new ABIEncode();
-            var result = abiEncode.GetSha3ABIEncoded(ConvertValuesToABI(inputs).ToArray());
-            return result.ToHex(true);
-        }
-
-
         //we do this because nethereum does not recognize addresses as distinct from strings
         // from https://github.com/Nethereum/Nethereum/blob/master/src/Nethereum.ABI/ABIEncode.cs
-        public static List<ABIValue> ConvertValuesToABI(params object[] inputs)
-        {
+        public static List<ABIValue> ConvertValuesToABI(params object[] inputs) {
             var abiValues = new List<ABIValue>();
 
-            for (int i = 0; i < inputs.Length; i++)
-            {
+            for (int i = 0; i < inputs.Length; i++) {
                 var value = inputs[i];
                 string stringInput = inputs[i] is string ? inputs[i] as string : null;
 
                 //special cases for address
-                if (stringInput != null && stringInput.Length == 20 && stringInput[0] == '0' && stringInput[1] == 'x')
-                {
+                if (stringInput != null && stringInput.Length == 20 && stringInput[0] == '0' && stringInput[1] == 'x') {
                     abiValues.Add(new ABIValue(new AddressType(), stringInput));
-                }
-                else
-                {
+                } else {
                     //the rest is from Nethereum's ABIEncode implementation
-                    if (value is System.Numerics.BigInteger bigIntValue)
-                    {
-                        if (bigIntValue >= 0)
-                        {
+                    if (value is System.Numerics.BigInteger bigIntValue) {
+                        if (bigIntValue >= 0) {
                             abiValues.Add(new ABIValue(new IntType("uint256"), bigIntValue));
-                        }
-                        else
-                        {
+                        } else {
                             abiValues.Add(new ABIValue(new IntType("int256"), bigIntValue));
                         }
                     }
 
-                    if (value.IsNumber())
-                    {
+                    if (value.IsNumber()) {
                         var bigInt = System.Numerics.BigInteger.Parse(value.ToString());
-                        if (bigInt >= 0)
-                        {
+                        if (bigInt >= 0) {
                             abiValues.Add(new ABIValue(new IntType("uint256"), value));
-                        }
-                        else
-                        {
+                        } else {
                             abiValues.Add(new ABIValue(new IntType("int256"), value));
                         }
                     }
 
-                    if (value is string)
-                    {
+                    if (value is string) {
                         abiValues.Add(new ABIValue(new StringType(), value));
                     }
 
-                    if (value is bool)
-                    {
+                    if (value is bool) {
                         abiValues.Add(new ABIValue(new BoolType(), value));
                     }
 
-                    if (value is byte[])
-                    {
+                    if (value is byte[]) {
                         abiValues.Add(new ABIValue(new BytesType(), value));
                     }
                 }

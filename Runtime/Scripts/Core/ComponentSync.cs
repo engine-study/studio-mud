@@ -28,6 +28,9 @@ namespace mud.Client
 
         protected virtual void Start() {
 
+            //do not let the update loop fire
+            enabled = false;
+
             ourComponent = GetComponent<MUDComponent>();
 
             componentType = TargetComponentType();
@@ -51,6 +54,7 @@ namespace mud.Client
         }
 
         void DoSync() {
+            enabled = true;
             InitComponents();
             InitialSync();
             OnSync?.Invoke();
