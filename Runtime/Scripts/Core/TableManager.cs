@@ -51,6 +51,10 @@ namespace mud.Client {
             if (Tables == null) {
                 Tables = new Dictionary<string, TableManager>();
             }
+        }
+
+        protected override void Start() {
+            base.Start();
 
             if (componentPrefab == null) {
                 Debug.LogError("No MUDComponent prefab to spawn");
@@ -72,10 +76,6 @@ namespace mud.Client {
                 Debug.LogError("Bad, multiple tables of same type " + ComponentType);
                 return;
             }
-        }
-
-        protected override void Start() {
-            base.Start();
 
             Debug.Log("Adding " + componentString + " Manager");
 

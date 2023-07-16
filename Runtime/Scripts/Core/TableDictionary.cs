@@ -9,10 +9,8 @@ namespace mud.Client
 
     public class TableDictionary : MonoBehaviour
     {
-        public static IMudTable GetTableValue<T>(MUDComponent component) where T : IMudTable{
-            // return TableManager.Tables[component.ComponentToTable].GetTableValue(component.Entity.Key);
-            return null;
-        }
+     
+
     }
 }
 
