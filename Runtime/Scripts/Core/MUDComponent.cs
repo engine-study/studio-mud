@@ -45,6 +45,7 @@ namespace mud.Client {
         [SerializeField] private bool loaded = false;
         private IMudTable onchainTable;
         private IMudTable overrideTable;
+        private IMudTable optimisticTable;
         private IMudTable internalRef;
 
         protected virtual void Awake() { }
@@ -121,40 +122,38 @@ namespace mud.Client {
 
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
 
-            //set our onchain table
-            if (eventType == UpdateEvent.Optimistic || eventType == UpdateEvent.Override) {
-                overrideTable = table;
-            } else if (eventType != UpdateEvent.Revert) {
-                onchainTable = table;
-            }
-
-            //fall back to our onchain table when reverting
-            if (eventType == UpdateEvent.Revert) {
-                Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + " onchain update", this);
-                overrideTable = null;
-                activeTable = onchainTable;
-            } else if (eventType == UpdateEvent.Delete) {
-                //don't do anything on the event of a deletion, the table will be null, leave the activeTable to the last value 
-            } else {
-                activeTable = table;
-            }
-
-            //update the network state
-            if (eventType < UpdateEvent.Optimistic) {
+            if (eventType <= UpdateEvent.Delete) {
+                //ONCHAIN update
                 networkUpdateState = eventType;
-            }
+                onchainTable = table;
 
-            if (updateState == UpdateEvent.Override || eventType == UpdateEvent.Override) {
-                //if we are in an OVERRIDE state, IGNORE the update
+                if (eventType == UpdateEvent.Delete) {
+                    //don't update activeTable in the event of a deletion, leave it to last onchain value
+                } else {
+                    activeTable = onchainTable;
+                }
+            } else if (eventType == UpdateEvent.Optimistic) {
+                //OPTIMISTIC update
+                optimisticTable = table;
+                activeTable = optimisticTable;
+            } else if (eventType == UpdateEvent.Override) {
+                //OVERRIde update
+                overrideTable = table;
                 activeTable = overrideTable;
-                updateState = UpdateEvent.Override;
-            } else {
-                //otherwise, set our updatestate to the newest update
-                updateState = eventType;
+            } else if (eventType == UpdateEvent.Revert) {
+                //REVERT update (undo optimistic update)
+                optimisticTable = null;
+                Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + ", but no onchain update", this);
+                activeTable = onchainTable;
             }
 
+            //if we are GOING INTO or ALREADY IN an override state, ignore the update
+            if (updateState == UpdateEvent.Override || eventType == UpdateEvent.Override) {
+                activeTable = overrideTable;
+                // updateState = UpdateEvent.Override;
+            } 
 
-
+            updateState = eventType;
 
         }
 

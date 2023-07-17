@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace mud.Client {
 
 
-    public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert, Override }  //Manual  // possible other types?
+    public enum UpdateEvent { None, Insert, Update, Delete, Optimistic, Revert, Override }  //Manual  // possible other types?
     public class TableManager : MUDTable {
         //dictionary of all entities
         public static System.Action<bool, TableManager> OnTableToggle;
@@ -154,7 +154,7 @@ namespace mud.Client {
 
             return component as T;
         }
-        
+
         public static TableManager FindTable<T>() where T : MUDComponent {
             return Tables[typeof(T).Name];
         }
@@ -198,17 +198,13 @@ namespace mud.Client {
             }
 
             if (eventType == UpdateEvent.Insert) {
-
                 //create the component if we can't find it
                 if (Components.ContainsKey(entityKey)) { } else { MUDComponent c = entity.AddComponent(componentPrefab, this); }
-
                 Components[entityKey].DoUpdate(mudTable, eventType);
-
 
             } else if (eventType == UpdateEvent.Update) {
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
-
 
             } else if (eventType == UpdateEvent.Delete) {
 
@@ -219,7 +215,6 @@ namespace mud.Client {
                     EntityDictionary.DestroyEntity(entityKey);
                 }
             }
-
 
             // if(entity != null && SpawnIfNoEntityFound && eventType == TableEvent.Delete) {
             //     DestroyEntity(entityKey);
