@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace mud.Client {
 
 
-    public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert }  //Manual  // possible other types?
+    public enum UpdateEvent { Insert, Update, Delete, Optimistic, Revert, Override }  //Manual  // possible other types?
     public class TableManager : MUDTable {
         //dictionary of all entities
         public static System.Action<bool, TableManager> OnTableToggle;
@@ -135,13 +135,12 @@ namespace mud.Client {
             );
         }
 
-        public static T FindComponent<T>(string entity) where T : MUDComponent{
+        public static T FindComponent<T>(string entity) where T : MUDComponent {
 
             //try to find the tablemanager
-            TableManager tm = null;
-            Tables.TryGetValue(typeof(T).Name, out tm);
+            TableManager tm = FindTable<T>();
 
-            if(tm == null) {
+            if (tm == null) {
                 Debug.LogError("Could not find " + typeof(T).Name + " table");
                 return null;
             }
@@ -149,17 +148,21 @@ namespace mud.Client {
             MUDComponent component = null;
             tm.Components.TryGetValue(entity, out component);
 
-            if(component == null) {
+            if (component == null) {
                 return null;
             }
 
             return component as T;
-        }   
+        }
+        
+        public static TableManager FindTable<T>() where T : MUDComponent {
+            return Tables[typeof(T).Name];
+        }
 
-
-        public IMudTable GetTableValue(MUDComponent component) {
-            IMudTable table = (IMudTable)System.Activator.CreateInstance(component.TableType);
-            return table.GetTableValue(component.Entity.Key);
+        public T GetTableValue<T>(MUDComponent component) where T : IMudTable, new() {
+            T table = new T();
+            // IMudTable table = (IMudTable)System.Activator.CreateInstance(component.TableType);
+            return table.GetTableValue(component.Entity.Key) as T;
         }
 
 

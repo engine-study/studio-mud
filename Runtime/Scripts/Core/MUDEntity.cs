@@ -104,19 +104,17 @@ namespace mud.Client {
         }
 
         //TODO find a better solution than a loop to find the component
-        public T GetMUDComponent<T>(T component = null) where T : MUDComponent {
-            //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
-            //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
-            if(component == null) {
-                // Debug.Log("Typeof: " + typeof(T).ToString());
-                for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i] as T; }}
-            } else {
-                // Debug.Log("GetType: " + component.GetType().ToString());
-                for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i] as T; } }
-            }
-            
+        //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
+        //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
+        public T GetMUDComponent<T>() where T : MUDComponent {
+            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i] as T; }}
             return null;
-
+        }
+        
+        //TODO find a better solution than a loop to find the component
+        public T GetMUDComponent<T>(T component) where T : MUDComponent {
+            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i] as T; } }
+            return null;
         }
 
         public T AddComponent<T>(T prefab, TableManager fromTable) where T : MUDComponent {
