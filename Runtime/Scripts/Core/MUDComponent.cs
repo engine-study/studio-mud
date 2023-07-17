@@ -27,7 +27,7 @@ namespace mud.Client {
 
         [Header("Settings")]
         [SerializeField] private MUDTableObject tableType;
-        [SerializeField] List<MUDComponent> requiredComponents;
+        [SerializeField] private List<MUDComponent> requiredComponents;
 
 
         [Header("Debug")]
@@ -45,6 +45,8 @@ namespace mud.Client {
         protected virtual void OnEnable() {}
         protected virtual void OnDisable() {}
 
+        public MUDComponent() {}
+
         public virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
 
             Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
@@ -61,11 +63,14 @@ namespace mud.Client {
 
         async UniTaskVoid LoadComponents() {
 
-            //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake
-            await UniTask.Delay(100);
-
+            //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
+            //chop it up so that not everything loads at the same frame
+            await UniTask.Delay(UnityEngine.Random.Range(100,200));
+        
             for (int i = 0; i < requiredComponents.Count; i++) {
-                await entity.GetMUDComponentAsync(requiredComponents[i]);
+                Debug.Log("Loading " + i + " " + requiredComponents[i].GetType(), this);
+                MUDComponent c = await entity.GetMUDComponentAsync(requiredComponents[i]);
+                if(c == null) Debug.LogError("Could not load " + requiredComponents[i].GetType(), this);
             }
 
             loaded = true;

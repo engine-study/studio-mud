@@ -29,8 +29,10 @@ namespace mud.Client {
             enabled = false;
 
             ourComponent = GetComponent<MUDComponent>();
-
             componentString = TargetComponentType().ToString();
+
+            if(string.IsNullOrEmpty(componentString)) { Debug.LogError("Could not find component type", this);}
+
             componentPrefab = ComponentDictionary.StringToComponentPrefab(componentString);
 
             if (!ourComponent.RequiredComponents.Contains(componentPrefab)) {

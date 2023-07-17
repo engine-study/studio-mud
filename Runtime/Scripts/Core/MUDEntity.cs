@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,51 +86,55 @@ namespace mud.Client {
         }
 
 
-        public MUDComponent GetMUDComponent(MUDComponent component) {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i]; } }
-            return null;
-        }
+        public async UniTask<T> GetMUDComponentAsync<T>(T component = null) where T : MUDComponent {
 
-        public async UniTask<T> GetMUDComponentAsync<T>(T componentType = null) where T : MUDComponent {
-            MUDComponent component = GetMUDComponent<T>();
+            T getComponent = GetMUDComponent<T>(component);
 
-            int timeout = 100;
-            while (component == null) {
+            int timeout = 10;
+            while (getComponent == null) {
 
                 timeout--;
-                if (timeout < 0) {
-                    Debug.LogError("Timeout: could not find " + typeof(T).ToString(), this);
-                    return null;
-                }
+                if (timeout < 0) { return null; }
 
-                await UniTask.Delay(100);
-                component = GetMUDComponent<T>();
-
+                await UniTask.Delay(500);
+                getComponent = GetMUDComponent<T>(component);
             }
 
-            return component as T;
+            return getComponent;
         }
 
-        public T GetMUDComponent<T>() where T : MUDComponent {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return (T)Components[i]; } }
+        //TODO find a better solution than a loop to find the component
+        public T GetMUDComponent<T>(T component = null) where T : MUDComponent {
+            //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
+            //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
+            if(component == null) {
+                // Debug.Log("Typeof: " + typeof(T).ToString());
+                for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i] as T; }}
+            } else {
+                // Debug.Log("GetType: " + component.GetType().ToString());
+                for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i] as T; } }
+            }
+            
             return null;
+
         }
-        public MUDComponent AddComponent(MUDComponent componentPrefab, TableManager fromTable) {
+
+        public T AddComponent<T>(T prefab, TableManager fromTable) where T : MUDComponent {
             // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
-            MUDComponent c = GetMUDComponent(componentPrefab);
+            T c = GetMUDComponent(prefab);
 
             if (c) {
-                Debug.LogError(componentPrefab.gameObject.name + " already exists.", gameObject);
+                Debug.LogError(prefab.gameObject.name + " already exists.", gameObject);
             } else {
                 //spawn the compoment
-                c = Instantiate(componentPrefab, transform.position, Quaternion.identity, transform);
+                c = Instantiate(prefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
                 //helpful to show in inspector that this is the compoment instance, not the prefab
                 c.gameObject.name += "(I)";
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
-                expected.Add(componentPrefab);
+                expected.Add(prefab);
                 List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
                 expected = newExpected;
 
@@ -143,10 +148,6 @@ namespace mud.Client {
             return c;
         }
 
-        void ComponentUpdate(MUDComponent c, UpdateEvent u) {
-            OnComponentUpdated?.Invoke(c, u);
-            OnUpdated?.Invoke();
-        }
 
         public void RemoveComponent(MUDComponent c) {
 
@@ -159,10 +160,14 @@ namespace mud.Client {
             components.Remove(c);
             OnComponentRemoved?.Invoke(c);
 
-
             Destroy(c);
         }
 
+
+        void ComponentUpdate(MUDComponent c, UpdateEvent u) {
+            OnComponentUpdated?.Invoke(c, u);
+            OnUpdated?.Invoke();
+        }
 
 
     }
