@@ -193,7 +193,15 @@ namespace mud.Client {
         public UpdateType UpdateType {get{return updateType;}}
         public UpdateSource UpdateSource {get{return source;}}
 
-        private UpdateType updateType;
-        private UpdateSource source;
+        [SerializeField] private UpdateType updateType;
+        [SerializeField] private UpdateSource source;
+
+        public void SetType(UpdateType newUpdateType) {
+            updateType = newUpdateType;
+        }
+
+        public void SetSource(UpdateSource newSource) {
+            source = newSource;
+        }
     }
 }

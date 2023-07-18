@@ -54,7 +54,7 @@ namespace mud.Client {
     }
 
     [System.Serializable]
-    public struct TxUpdate {
+    public class TxUpdate {
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
             component = c;
 
@@ -71,12 +71,13 @@ namespace mud.Client {
 
         public void Revert() {
             // component.DoUpdate(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
+            info.SetSource(UpdateSource.Revert);
             component.DoUpdate(null, info);
         }
 
-        public UpdateInfo info;
-        public MUDComponent component;
-        public IMudTable optimistic;
+        [SerializeField] private UpdateInfo info;
+        [SerializeField] private MUDComponent component;
+        [SerializeField] private IMudTable optimistic;
 
 
     }
