@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 namespace mud.Client {
 
 
-    public enum UpdateEvent { None, Insert, Update, Delete, Optimistic, Revert, Override }  //Manual  // possible other types?
     public class TableManager : MUDTable {
         //dictionary of all entities
         public static System.Action<bool, TableManager> OnTableToggle;
@@ -94,14 +93,14 @@ namespace mud.Client {
         }
 
         protected override void OnInsertRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, UpdateEvent.Insert);
+            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));
         }
         protected override void OnUpdateRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, UpdateEvent.Update);
+            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));
         }
 
         protected override void OnDeleteRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, UpdateEvent.Delete);
+            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));
         }
 
         protected override void Subscribe(mud.Unity.NetworkManager nm) {
@@ -175,7 +174,7 @@ namespace mud.Client {
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
         }
 
-        protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateEvent eventType) {
+        protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateInfo newInfo) {
 
             //process the table event to a key and the entity of that key
             string entityKey = tableUpdate.Key;
@@ -197,18 +196,18 @@ namespace mud.Client {
                 Debug.Log("Ingest: " + gameObject.name + " " + tableUpdate.Type.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
             }
 
-            if (eventType == UpdateEvent.Insert) {
+            if (newInfo.UpdateType == UpdateType.SetRecord) {
                 //create the component if we can't find it
                 if (Components.ContainsKey(entityKey)) { } else { MUDComponent c = entity.AddComponent(componentPrefab, this); }
-                Components[entityKey].DoUpdate(mudTable, eventType);
+                Components[entityKey].DoUpdate(mudTable, newInfo);
 
-            } else if (eventType == UpdateEvent.Update) {
+            } else if (newInfo.UpdateType == UpdateType.SetField) {
 
-                Components[entityKey].DoUpdate(mudTable, eventType);
+                Components[entityKey].DoUpdate(mudTable, newInfo);
 
-            } else if (eventType == UpdateEvent.Delete) {
+            } else if (newInfo.UpdateType == UpdateType.DeleteRecord) {
 
-                Components[entityKey].DoUpdate(mudTable, eventType);
+                Components[entityKey].DoUpdate(mudTable, newInfo);
                 // entity.RemoveComponent(Components[entityKey]);
 
                 if (deletedRecordDestroysEntity) {

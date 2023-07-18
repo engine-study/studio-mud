@@ -28,9 +28,9 @@ namespace mud.Client {
         }
 
         
-        public static TxUpdate MakeOptimistic(MUDComponent component, params object[] tableParameters) {
+        public static TxUpdate MakeOptimistic(MUDComponent component, UpdateType eventType, params object[] tableParameters) {
             //update the component
-            TxUpdate update = new TxUpdate(component, tableParameters);
+            TxUpdate update = new TxUpdate(component, eventType, tableParameters);
             return update;
         }
 
@@ -55,24 +55,26 @@ namespace mud.Client {
 
     [System.Serializable]
     public struct TxUpdate {
-        public TxUpdate(MUDComponent c, params object[] tableParameters) {
+        public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
             component = c;
 
             //derive table from component
             Type tableType = component.TableType;
+            info = new UpdateInfo(newType, UpdateSource.Optimistic);
 
             //create an optimistic table
             optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
             optimistic.SetValues(tableParameters);
 
-            component.DoUpdate(optimistic, UpdateEvent.Optimistic);
+            component.DoUpdate(optimistic, info);
         }
 
         public void Revert() {
             // component.DoUpdate(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
-            component.DoUpdate(null, UpdateEvent.Revert);
+            component.DoUpdate(null, info);
         }
 
+        public UpdateInfo info;
         public MUDComponent component;
         public IMudTable optimistic;
 

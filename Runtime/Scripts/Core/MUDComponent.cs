@@ -8,19 +8,19 @@ using NetworkManager = mud.Unity.NetworkManager;
 
 namespace mud.Client {
 
-
+    public enum UpdateSource {None, Onchain, Optimistic, Revert, Override}
     public abstract class MUDComponent : MonoBehaviour {
 
         public MUDEntity Entity { get { return entity; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public IMudTable ActiveTable { get { return activeTable; } }
-        public UpdateEvent State { get { return updateState; } }
-        public UpdateEvent NetworkState { get { return networkUpdateState; } }
+        public UpdateInfo UpdateInfo {get{return updateInfo;}}
+        public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
+        public UpdateType UpdateType { get { return updateInfo.UpdateType; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public Action OnLoaded, OnPostInit, OnUpdated;
-        public Action<UpdateEvent> OnUpdatedDetails;
-        public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
+        public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager TableManager { get { return tableManager; } }
         // public Type TableType {get{return tableType.Table;}}
         // public Type TableUpdateType {get{return tableType.TableUpdate;}}        
@@ -36,8 +36,7 @@ namespace mud.Client {
 
 
         [Header("Debug")]
-        [SerializeField] private UpdateEvent updateState;
-        [SerializeField] private UpdateEvent networkUpdateState;
+        [SerializeField] private UpdateInfo updateInfo;
         [SerializeField] private MUDEntity entity;
         [SerializeField] private TableManager tableManager;
         [SerializeField] private IMudTable activeTable;
@@ -48,7 +47,9 @@ namespace mud.Client {
         private IMudTable optimisticTable;
         private IMudTable internalRef;
 
-        protected virtual void Awake() { }
+        protected virtual void Awake() { 
+            updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
+        }
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
@@ -109,41 +110,40 @@ namespace mud.Client {
             tableManager.RegisterComponent(false, this);
         }
 
-        public void DoUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
+        public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
             //update our internal table
-            IngestUpdate(table, eventType);
+            IngestUpdate(table, newInfo);
 
             //use internal table to update component
-            UpdateComponent(activeTable, eventType);
+            UpdateComponent(activeTable, newInfo);
 
             FinishUpdate();
 
             OnUpdated?.Invoke();
-            OnUpdatedDetails?.Invoke(eventType);
-            OnUpdatedFull?.Invoke(this, eventType);
+            OnUpdatedInfo?.Invoke(this, newInfo);
         }
 
-        protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateEvent eventType) {
+        protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
 
-            if (eventType <= UpdateEvent.Delete) {
+            if (newInfo.UpdateSource == UpdateSource.Onchain) {
                 //ONCHAIN update
-                networkUpdateState = eventType;
-                onchainTable = table;
 
-                if (eventType == UpdateEvent.Delete) {
+                if (newInfo.UpdateType == UpdateType.DeleteRecord) {
                     //don't update activeTable in the event of a deletion, leave it to last onchain value
+                    //in the case of a REVERT, then we can fall back to the last onchain value
                 } else {
+                    onchainTable = table;
                     activeTable = onchainTable;
                 }
-            } else if (eventType == UpdateEvent.Optimistic) {
+            } else if (newInfo.UpdateSource == UpdateSource.Optimistic) {
                 //OPTIMISTIC update
                 optimisticTable = table;
                 activeTable = optimisticTable;
-            } else if (eventType == UpdateEvent.Override) {
+            } else if (newInfo.UpdateSource == UpdateSource.Override) {
                 //OVERRIde update
                 overrideTable = table;
                 activeTable = overrideTable;
-            } else if (eventType == UpdateEvent.Revert) {
+            } else if (newInfo.UpdateSource == UpdateSource.Revert) {
                 //REVERT update (undo optimistic update)
                 optimisticTable = null;
                 Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + ", but no onchain update", this);
@@ -151,23 +151,23 @@ namespace mud.Client {
             }
 
             //if we are GOING INTO or ALREADY IN an override state, ignore the update
-            if (updateState == UpdateEvent.Override || eventType == UpdateEvent.Override) {
+            if (UpdateInfo.UpdateSource == UpdateSource.Override || newInfo.UpdateSource == UpdateSource.Override) {
                 activeTable = overrideTable;
-                // updateState = UpdateEvent.Override;
             }
 
-            updateState = eventType;
+            updateInfo = newInfo;
 
         }
 
-        protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType);
+        protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateInfo newInfo);
 
         void FinishUpdate() {
-            if (NetworkState == UpdateEvent.Delete) {
-                gameObject.SetActive(false);
-            } else if (gameObject.activeSelf == false) {
-                gameObject.SetActive(true);
-            }
+
+            // if (NetworkState == UpdateType.DeleteRecord) {
+            //     gameObject.SetActive(false);
+            // } else if (gameObject.activeSelf == false) {
+            //     gameObject.SetActive(true);
+            // }
 
         }
 
@@ -181,5 +181,19 @@ namespace mud.Client {
             internalRef = (IMudTable)System.Activator.CreateInstance(t);
         }
 
+    }
+
+    [System.Serializable]
+    public class UpdateInfo {
+        public UpdateInfo(UpdateType newUpdateType, UpdateSource newSource) {
+            updateType = newUpdateType;
+            source = newSource;
+        }
+
+        public UpdateType UpdateType {get{return updateType;}}
+        public UpdateSource UpdateSource {get{return source;}}
+
+        private UpdateType updateType;
+        private UpdateSource source;
     }
 }

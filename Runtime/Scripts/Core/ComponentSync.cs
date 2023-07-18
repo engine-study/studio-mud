@@ -7,15 +7,17 @@ namespace mud.Client {
     public abstract class ComponentSync : MonoBehaviour {
         public enum ComponentSyncType { Instant, Lerp, InitialSyncOnly }
 
+        public MUDComponent SyncComponent {get{return targetComponent;}}
         public System.Action OnSync, OnUpdate;
 
         [Header("Settings")]
         [SerializeField] protected ComponentSyncType syncType;
 
         [Header("Debug")]
+        [SerializeField] bool synced;
+        [SerializeField] MUDComponent targetComponent;
         protected MUDComponent componentPrefab;
         protected MUDComponent ourComponent;
-        protected MUDComponent targetComponent;
 
         string componentString;
 
@@ -46,18 +48,19 @@ namespace mud.Client {
 
         void OnDestroy() {
             if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
-            if (targetComponent) { targetComponent.OnUpdatedDetails -= DoUpdate; }
+            if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
         }
 
         void DoSync() {
             enabled = true;
             InitComponents();
+            synced = true;
             InitialSync();
             OnSync?.Invoke();
         }
 
-        void DoUpdate(UpdateEvent updateType) {
-            UpdateSync(updateType);
+        void DoUpdate() {
+            UpdateSync();
             OnUpdate?.Invoke();
         }
 
@@ -71,7 +74,7 @@ namespace mud.Client {
 
             //if we want to keep syncing, listen for further updates
             if (syncType != ComponentSyncType.InitialSyncOnly) {
-                targetComponent.OnUpdatedDetails += DoUpdate;
+                targetComponent.OnUpdated += DoUpdate;
             }
 
         }
@@ -81,12 +84,12 @@ namespace mud.Client {
         protected virtual void InitialSync() {
 
             //do our first "normal" updatesync update
-            UpdateSync(UpdateEvent.Insert);
+            UpdateSync();
 
         }
 
         //updated sync with new values midway through play
-        protected virtual void UpdateSync(UpdateEvent updateType) {
+        protected virtual void UpdateSync() {
             //.... override this update the values here
             //ex.             
 
