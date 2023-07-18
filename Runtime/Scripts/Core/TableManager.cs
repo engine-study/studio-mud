@@ -209,7 +209,7 @@ namespace mud.Client {
             } else if (eventType == UpdateEvent.Delete) {
 
                 Components[entityKey].DoUpdate(mudTable, eventType);
-                entity.RemoveComponent(Components[entityKey]);
+                // entity.RemoveComponent(Components[entityKey]);
 
                 if (deletedRecordDestroysEntity) {
                     EntityDictionary.DestroyEntity(entityKey);

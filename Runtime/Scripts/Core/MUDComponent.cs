@@ -18,7 +18,7 @@ namespace mud.Client {
         public UpdateEvent State { get { return updateState; } }
         public UpdateEvent NetworkState { get { return networkUpdateState; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnLoaded, OnUpdated;
+        public Action OnLoaded, OnPostInit, OnUpdated;
         public Action<UpdateEvent> OnUpdatedDetails;
         public Action<MUDComponent, UpdateEvent> OnUpdatedFull;
         public TableManager TableManager { get { return tableManager; } }
@@ -74,6 +74,7 @@ namespace mud.Client {
             loaded = true;
             OnLoaded?.Invoke();
             PostInit();
+            OnPostInit?.Invoke();
         }
 
         protected virtual void PostInit() {
@@ -115,6 +116,8 @@ namespace mud.Client {
             //use internal table to update component
             UpdateComponent(activeTable, eventType);
 
+            FinishUpdate();
+
             OnUpdated?.Invoke();
             OnUpdatedDetails?.Invoke(eventType);
             OnUpdatedFull?.Invoke(this, eventType);
@@ -151,13 +154,22 @@ namespace mud.Client {
             if (updateState == UpdateEvent.Override || eventType == UpdateEvent.Override) {
                 activeTable = overrideTable;
                 // updateState = UpdateEvent.Override;
-            } 
+            }
 
             updateState = eventType;
 
         }
 
         protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateEvent eventType);
+
+        void FinishUpdate() {
+            if (NetworkState == UpdateEvent.Delete) {
+                gameObject.SetActive(false);
+            } else if (gameObject.activeSelf == false) {
+                gameObject.SetActive(true);
+            }
+
+        }
 
         void LoadAssembly() {
             //find the mud namespace

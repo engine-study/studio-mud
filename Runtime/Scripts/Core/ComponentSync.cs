@@ -26,6 +26,7 @@ namespace mud.Client {
         protected virtual void Start() {
 
             //do not let the update loop fire
+
             enabled = false;
 
             ourComponent = GetComponent<MUDComponent>();
