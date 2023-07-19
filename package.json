@@ -13,6 +13,13 @@
         "name" : "Neilson Koerner-Safrata",
         "email" : "neilson@scrnprnt.ca",
         "url" : "http://engine.study/"
-    }
+    },
+    "samples": [
+        {
+            "displayName": "Example Scene",
+            "description": "A simple MUD scene.",
+            "path": "Samples~/Example"
+        }
+    ]
     
 }
