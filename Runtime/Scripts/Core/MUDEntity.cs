@@ -122,7 +122,7 @@ namespace mud.Client {
             T c = GetMUDComponent(prefab);
 
             if (c) {
-                Debug.LogError(prefab.gameObject.name + " already exists.", gameObject);
+                // Debug.LogError(prefab.gameObject.name + " already exists.", gameObject);
             } else {
                 //spawn the compoment
                 c = Instantiate(prefab, transform.position, Quaternion.identity, transform);
