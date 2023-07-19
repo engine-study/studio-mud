@@ -28,11 +28,27 @@ namespace mud.Client {
         }
 
         
-        public static TxUpdate MakeOptimistic(MUDComponent component, UpdateType eventType, params object[] tableParameters) {
-            //update the component
-            TxUpdate update = new TxUpdate(component, eventType, tableParameters);
+        public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent {
+            //make the component
+
+            //create the entity if it doesn't exist
+            MUDComponent c = TableManager.FindOrMakeComponent<T>(entityKey);
+            TxUpdate update = new TxUpdate(c, UpdateType.SetRecord, tableParameters);
             return update;
         }
+
+        public static TxUpdate MakeOptimistic(MUDComponent component, params object[] tableParameters) {
+            //update the component
+            TxUpdate update = new TxUpdate(component, UpdateType.SetField, tableParameters);
+            return update;
+        }
+        
+        public static TxUpdate MakeOptimisticDelete(MUDComponent component, params object[] tableParameters) {
+            //update the component
+            TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord, tableParameters);
+            return update;
+        }
+
 
         //send transaction but revert our optimistic updates if it goes wrong
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {

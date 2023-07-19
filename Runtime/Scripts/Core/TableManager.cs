@@ -138,25 +138,27 @@ namespace mud.Client {
 
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
-
-            if (tm == null) {
-                Debug.LogError("Could not find " + typeof(T).Name + " table");
-                return null;
-            }
-
             MUDComponent component = null;
             tm.Components.TryGetValue(entity, out component);
-
-            if (component == null) {
-                return null;
-            }
-
             return component as T;
         }
 
-        public static TableManager FindTable<T>() where T : MUDComponent {
-            return Tables[typeof(T).Name];
+        public static T FindOrMakeComponent<T>(string entityKey) where T : MUDComponent {
+
+            //try to find the tablemanager
+            TableManager tm = FindTable<T>();
+            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
+            MUDComponent component = entity.AddComponent<T>(ComponentDictionary.FindPrefab<T>(), tm);
+            return component as T;
         }
+
+
+        public static TableManager FindTable<T>() where T : MUDComponent {
+            TableManager tm = Tables[typeof(T).Name];
+            if (tm == null) { Debug.LogError("Could not find " + typeof(T).Name + " table"); }
+            return tm;
+        }
+
 
         public T GetTableValue<T>(MUDComponent component) where T : IMudTable, new() {
             T table = new T();
@@ -164,18 +166,7 @@ namespace mud.Client {
             return table.GetTableValue(component.Entity.Key) as T;
         }
 
-
-        protected virtual void SpawnComponentByEntity(string entityKey) {
-            if (string.IsNullOrEmpty(entityKey)) {
-                Debug.LogError("Empty key", gameObject);
-                return;
-            }
-            //create the entity if it doesn't exist
-            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
-        }
-
         protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateInfo newInfo) {
-
             //process the table event to a key and the entity of that key
             string entityKey = tableUpdate.Key;
 
@@ -184,16 +175,24 @@ namespace mud.Client {
                 return;
             }
 
-            MUDEntity entity = EntityDictionary.GetEntitySafe(entityKey);
-
             IMudTable mudTable = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
             mudTable = mudTable.RecordUpdateToTable(tableUpdate);
 
+            IngestTableEvent(entityKey, mudTable, newInfo);
+        }
+
+        protected virtual void IngestTableEvent(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
+
+            if (string.IsNullOrEmpty(entityKey)) {
+                Debug.LogError("No key found in " + gameObject.name, gameObject);
+                return;
+            }
+
             //create the entity if it doesn't exist
-            entity = EntityDictionary.FindOrSpawnEntity(entityKey);
+            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
             if (logTable) {
-                Debug.Log("Ingest: " + gameObject.name + " " + tableUpdate.Type.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
+                Debug.Log("Ingest: " + gameObject.name + " " + newInfo.UpdateType.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
             }
 
             if (newInfo.UpdateType == UpdateType.SetRecord) {

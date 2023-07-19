@@ -19,9 +19,12 @@ namespace mud.Client {
 
 
         // public MUDComponent TypeToPrefab<T>
+        public static T FindPrefab<T>() where T : MUDComponent {
+            return StringToComponentPrefab(typeof(T).ToString())  as T;
+        }
 
-        public static T GetComponentPrefab<T>() where T : MUDComponent {
-            return null;
+        public static T FindPrefab<T>(T component) where T : MUDComponent {
+            return StringToComponentPrefab(component.GetType().ToString())  as T;
         }
 
 
