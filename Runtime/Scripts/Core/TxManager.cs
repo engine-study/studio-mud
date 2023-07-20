@@ -22,11 +22,31 @@ namespace mud.Client {
             return txSuccess;
         }
 
-        //enables us to send transactions by inferring functionTyp through the parameter
-        public static async UniTask<bool> Send<TFunction>(TFunction functionType, params object[] parameters) where TFunction : FunctionMessage, new() {
-            return await Send<TFunction>(parameters);
+        //send transaction but revert our optimistic updates if it goes wrong
+        public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
+            return await Send<TFunction>(new List<TxUpdate>{update}, parameters);
         }
 
+        public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
+            
+            bool txSuccess = await Send<TFunction>(parameters);
+
+            if (txSuccess) {
+                Debug.Log("Success");
+            } else {
+                //if our transaction fails, force the player back to their position on the table
+                Debug.Log("Reverting");
+                foreach (TxUpdate u in updates) { u.Revert(); }
+            }
+
+            return txSuccess;
+        }
+
+
+        //enables us to send transactions by inferring functionTyp through the parameter
+        // public static async UniTask<bool> Send<TFunction>(TFunction functionType, params object[] parameters) where TFunction : FunctionMessage, new() {
+        //     return await Send<TFunction>(parameters);
+        // }
         
         public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent {
             //make the component
@@ -47,23 +67,6 @@ namespace mud.Client {
             //update the component
             TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord, tableParameters);
             return update;
-        }
-
-
-        //send transaction but revert our optimistic updates if it goes wrong
-        public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
-            
-            bool txSuccess = await Send<TFunction>(parameters);
-
-            if (txSuccess) {
-                Debug.Log("Success");
-            } else {
-                //if our transaction fails, force the player back to their position on the table
-                Debug.Log("Reverting");
-                foreach (TxUpdate u in updates) { u.Revert(); }
-            }
-
-            return txSuccess;
         }
 
 
