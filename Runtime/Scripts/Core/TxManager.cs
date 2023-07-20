@@ -32,10 +32,10 @@ namespace mud.Client {
             bool txSuccess = await Send<TFunction>(parameters);
 
             if (txSuccess) {
-                Debug.Log("Success");
+                Debug.Log("Success: " + typeof(TFunction).ToString());
             } else {
                 //if our transaction fails, force the player back to their position on the table
-                Debug.Log("Reverting");
+                Debug.Log("Reverting: " + typeof(TFunction).ToString());
                 foreach (TxUpdate u in updates) { u.Revert(); }
             }
 
