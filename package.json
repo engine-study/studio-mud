@@ -1,25 +1,22 @@
 {
-    "name":"study.engine.studio-mud",
-    "version":"1.0.0-pre",
-
-    "displayName": "Studio MUD",
-    "description": "Support for Lattice MUD framework.",
-    "unity": "2022.2",
-    "dependencies": {
-        "com.emergenceland.unimud": "https://github.com/emergenceland/unimud.git?path=Packages/UniMUD"
-    },
-    "author": 
+  "name": "study.engine.studio-mud",
+  "version": "0.1",
+  "displayName": "Studio MUD",
+  "description": "Support for Lattice MUD framework.",
+  "unity": "2022.2",
+  "dependencies": {
+    "com.emergenceland.unimud": "https://github.com/emergenceland/unimud.git?path=Packages/UniMUD"
+  },
+  "author": {
+    "name": "Neilson Koerner-Safrata",
+    "email": "neilson@scrnprnt.ca",
+    "url": "http://engine.study/"
+  },
+  "samples": [
     {
-        "name" : "Neilson Koerner-Safrata",
-        "email" : "neilson@scrnprnt.ca",
-        "url" : "http://engine.study/"
-    },
-    "samples": [
-        {
-            "displayName": "Example Scene",
-            "description": "A simple MUD scene.",
-            "path": "Samples~/Example"
-        }
-    ]
-    
+      "displayName": "Example Scene",
+      "description": "A simple MUD scene.",
+      "path": "Samples~/Example"
+    }
+  ]
 }
