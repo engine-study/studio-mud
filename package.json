@@ -1,6 +1,6 @@
 {
   "name": "study.engine.studio-mud",
-  "version": "0.1",
+  "version": "0.1.0",
   "displayName": "Studio MUD",
   "description": "Support for Lattice MUD framework.",
   "unity": "2022.2",
