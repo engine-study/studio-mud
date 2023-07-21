@@ -4,9 +4,6 @@
   "displayName": "Studio MUD",
   "description": "Support for Lattice MUD framework.",
   "unity": "2022.2",
-  "dependencies": {
-    "com.emergenceland.unimud": "https://github.com/emergenceland/unimud.git?path=Packages/UniMUD"
-  },
   "author": {
     "name": "Neilson Koerner-Safrata",
     "email": "neilson@scrnprnt.ca",
