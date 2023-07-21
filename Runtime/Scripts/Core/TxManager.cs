@@ -16,19 +16,14 @@ namespace mud.Client {
 
         public static System.Action<bool> OnTransaction;
 
-        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
-            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
-            OnTransaction?.Invoke(txSuccess);
-            return txSuccess;
-        }
-
         //send transaction but revert our optimistic updates if it goes wrong
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
-            return await Send<TFunction>(new List<TxUpdate>{update}, parameters);
+            Debug.Log("Update Single");
+            return await Send<TFunction>(new List<TxUpdate> { update }, parameters);
         }
 
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
-            
+            Debug.Log("Update List");
             bool txSuccess = await Send<TFunction>(parameters);
 
             if (txSuccess) {
@@ -42,12 +37,18 @@ namespace mud.Client {
             return txSuccess;
         }
 
+        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+            Debug.Log("Parameters");
+            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            OnTransaction?.Invoke(txSuccess);
+            return txSuccess;
+        }
 
         //enables us to send transactions by inferring functionTyp through the parameter
         // public static async UniTask<bool> Send<TFunction>(TFunction functionType, params object[] parameters) where TFunction : FunctionMessage, new() {
         //     return await Send<TFunction>(parameters);
         // }
-        
+
         public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent {
             //make the component
 
@@ -62,7 +63,7 @@ namespace mud.Client {
             TxUpdate update = new TxUpdate(component, UpdateType.SetField, tableParameters);
             return update;
         }
-        
+
         public static TxUpdate MakeOptimisticDelete(MUDComponent component, params object[] tableParameters) {
             //update the component
             TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord, tableParameters);

@@ -53,7 +53,6 @@ namespace mud.Client {
             }
 
             Init();
-            gameObject.SetActive(true);
             hasInit = true;
             OnInit?.Invoke();
         }
@@ -80,8 +79,6 @@ namespace mud.Client {
         public void InitEntity(string newKey) {
             if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
             mudKey = newKey;
-
-            gameObject.SetActive(false);
             OnComponentAdded += InitEntityCheck;
         }
 
