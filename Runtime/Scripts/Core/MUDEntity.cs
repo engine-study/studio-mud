@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 namespace mud.Client {
     public class MUDEntity : Entity {
         public string Key { get { return mudKey; } }
+        public string Name {get{return entityName;}}
         public List<MUDComponent> Components { get { return components; } }
         public List<MUDComponent> ExpectedComponents { get { return expected; } }
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
@@ -18,11 +19,12 @@ namespace mud.Client {
 
         [Header("MUD")]
         [SerializeField] protected string mudKey;
+        [SerializeField] protected string entityName;
         [SerializeField] protected List<MUDComponent> components;
         [SerializeField] protected List<MUDComponent> expected;
+        public void SetName(string newName) {entityName = newName;}
 
-
-        protected virtual void Awake() {
+        protected override void Awake() {
             base.Awake();
 
             expected = new List<MUDComponent>();
