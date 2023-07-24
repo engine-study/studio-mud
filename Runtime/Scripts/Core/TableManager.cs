@@ -14,10 +14,11 @@ namespace mud.Client {
 
     public class TableManager : MUDTable {
         //dictionary of all entities
-        public static System.Action<bool, TableManager> OnTableToggle;
+        public static Action<bool, TableManager> OnTableToggle;
         public static Dictionary<string, TableManager> Tables;
-
-        public System.Type ComponentType { get { return componentType; } }
+        public Action<bool, MUDComponent> OnComponentToggle;
+        
+        public Type ComponentType { get { return componentType; } }
         public string ComponentString { get { return componentString; } }
 
 
@@ -38,7 +39,7 @@ namespace mud.Client {
         public bool logTable = false;
         public List<MUDComponent> SpawnedComponents;
 
-        System.Type componentType;
+        Type componentType;
 
         string componentString;
         // public Dictionary<string, MUDComponent> Components;
@@ -106,19 +107,19 @@ namespace mud.Client {
         protected override void Subscribe(mud.Unity.NetworkManager nm) {
 
             if (subscribeInsert) {
-                IMudTable insert = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                IMudTable insert = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
                 var InsertSub = ObservableExtensions.Subscribe(SubscribeTable(insert, nm, UpdateType.SetRecord).ObserveOnMainThread(), OnInsertRecord);
                 _disposers.Add(InsertSub);
             }
 
             if (subscribeUpdate) {
-                IMudTable update = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                IMudTable update = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
                 var UpdateSub = ObservableExtensions.Subscribe(SubscribeTable(update, nm, UpdateType.SetField).ObserveOnMainThread(), OnUpdateRecord);
                 _disposers.Add(UpdateSub);
             }
 
             if (subscribeDelete) {
-                IMudTable delete = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+                IMudTable delete = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
                 var DeleteSub = ObservableExtensions.Subscribe(SubscribeTable(delete, nm, UpdateType.DeleteRecord).ObserveOnMainThread(), OnDeleteRecord);
                 _disposers.Add(DeleteSub);
             }
@@ -162,7 +163,7 @@ namespace mud.Client {
 
         public T GetTableValue<T>(MUDComponent component) where T : IMudTable, new() {
             T table = new T();
-            // IMudTable table = (IMudTable)System.Activator.CreateInstance(component.TableType);
+            // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
             return table.GetTableValue(component.Entity.Key) as T;
         }
 
@@ -175,7 +176,7 @@ namespace mud.Client {
                 return;
             }
 
-            IMudTable mudTable = (IMudTable)System.Activator.CreateInstance(componentPrefab.TableType);
+            IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
             mudTable = mudTable.RecordUpdateToTable(tableUpdate);
 
             IngestTableEvent(entityKey, mudTable, newInfo);
@@ -197,7 +198,12 @@ namespace mud.Client {
 
             if (newInfo.UpdateType == UpdateType.SetRecord) {
                 //create the component if we can't find it
-                if (Components.ContainsKey(entityKey)) { } else { MUDComponent c = entity.AddComponent(componentPrefab, this); }
+                if (Components.ContainsKey(entityKey)) { 
+
+                } else { 
+                    MUDComponent c = entity.AddComponent(componentPrefab, this); 
+                    OnComponentToggle?.Invoke(true, c);
+                }
                 Components[entityKey].DoUpdate(mudTable, newInfo);
 
             } else if (newInfo.UpdateType == UpdateType.SetField) {
