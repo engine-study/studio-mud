@@ -15,6 +15,7 @@ namespace mud.Client {
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public IMudTable ActiveTable { get { return activeTable; } }
+        public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
         public UpdateType UpdateType { get { return updateInfo.UpdateType; } }
@@ -36,9 +37,9 @@ namespace mud.Client {
 
 
         [Header("Debug")]
-        [SerializeField] private UpdateInfo updateInfo;
         [SerializeField] private MUDEntity entity;
         [SerializeField] private TableManager tableManager;
+        [SerializeField] private UpdateInfo updateInfo, networkInfo;
         [SerializeField] private IMudTable activeTable;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
@@ -49,6 +50,7 @@ namespace mud.Client {
 
         protected virtual void Awake() { 
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
+            networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
         }
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
@@ -58,6 +60,7 @@ namespace mud.Client {
 
         public virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
 
+            Debug.Assert(hasInit == false, "Double init", this);
             Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
 
             entity = ourEntity;
@@ -96,6 +99,10 @@ namespace mud.Client {
 
         }
 
+        public virtual void Destroy() {
+            GameObject.Destroy(gameObject);
+        }
+
         protected virtual void OnDestroy() {
             if (hasInit) {
                 InitDestroy();
@@ -103,14 +110,15 @@ namespace mud.Client {
         }
 
         protected virtual void InitDestroy() {
-
-        }
-
-        public virtual void Cleanup() {
             tableManager.RegisterComponent(false, this);
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+
+            if(table == null) {
+                table = onchainTable;
+            }
+            
             //update our internal table
             IngestUpdate(table, newInfo);
 
@@ -135,6 +143,9 @@ namespace mud.Client {
                     onchainTable = table;
                     activeTable = onchainTable;
                 }
+
+                networkInfo = newInfo;
+
             } else if (newInfo.UpdateSource == UpdateSource.Optimistic) {
                 //OPTIMISTIC update
                 optimisticTable = table;
@@ -195,13 +206,5 @@ namespace mud.Client {
 
         [SerializeField] private UpdateType updateType;
         [SerializeField] private UpdateSource source;
-
-        public void SetType(UpdateType newUpdateType) {
-            updateType = newUpdateType;
-        }
-
-        public void SetSource(UpdateSource newSource) {
-            source = newSource;
-        }
     }
 }

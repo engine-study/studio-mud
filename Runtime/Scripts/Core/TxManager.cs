@@ -18,12 +18,10 @@ namespace mud.Client {
 
         //send transaction but revert our optimistic updates if it goes wrong
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
-            Debug.Log("Update Single");
             return await Send<TFunction>(new List<TxUpdate> { update }, parameters);
         }
 
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
-            Debug.Log("Update List");
             bool txSuccess = await Send<TFunction>(parameters);
 
             if (txSuccess) {
@@ -38,7 +36,6 @@ namespace mud.Client {
         }
 
         public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
-            Debug.Log("Parameters");
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
             OnTransaction?.Invoke(txSuccess);
             return txSuccess;
@@ -90,9 +87,18 @@ namespace mud.Client {
         }
 
         public void Revert() {
-            // component.DoUpdate(component.TableManager.GetTableValues(component), UpdateEvent.Revert);
-            info.SetSource(UpdateSource.Revert);
-            component.DoUpdate(null, info);
+
+            info = new UpdateInfo(info.UpdateType, UpdateSource.Optimistic);
+            component.DoUpdate(component.Onch, info);
+            
+            if (info.UpdateType == UpdateType.SetRecord) {
+                component.Destroy();
+            } else if (info.UpdateType == UpdateType.SetField) {
+                
+            } else {
+                
+            }
+
         }
 
         [SerializeField] private UpdateInfo info;

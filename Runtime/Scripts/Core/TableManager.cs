@@ -93,16 +93,9 @@ namespace mud.Client {
             OnTableToggle?.Invoke(false, this);
         }
 
-        protected override void OnInsertRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));
-        }
-        protected override void OnUpdateRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));
-        }
-
-        protected override void OnDeleteRecord(RecordUpdate tableUpdate) {
-            IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));
-        }
+        protected override void OnInsertRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
+        protected override void OnUpdateRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));}
+        protected override void OnDeleteRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
 
         protected override void Subscribe(mud.Unity.NetworkManager nm) {
 
