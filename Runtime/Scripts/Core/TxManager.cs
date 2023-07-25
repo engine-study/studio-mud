@@ -89,7 +89,7 @@ namespace mud.Client {
         public void Revert() {
 
             info = new UpdateInfo(info.UpdateType, UpdateSource.Optimistic);
-            component.DoUpdate(component.Onch, info);
+            component.DoUpdate(component.OnchainTable, info);
             
             if (info.UpdateType == UpdateType.SetRecord) {
                 component.Destroy();

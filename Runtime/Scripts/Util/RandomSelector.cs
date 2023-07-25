@@ -11,10 +11,11 @@ namespace mud.Client {
         public int seed = 0;
 
         [Header("Random GameObject")]
-        public bool randomizeChildren = true;
+        public bool randomizeChildren = false;
         public GameObject[] objects;
 
         [Header("Random Rotation")]
+        public bool useRotation = false;
         public bool rotateY = true;
         public float rotationRound = 0f;
 
@@ -22,10 +23,16 @@ namespace mud.Client {
         public bool useScale = false;
         public Vector2 range = Vector2.one;
 
+        [Header("Random Position")]
+        public bool usePos = false;
+        public Vector3 minPos, maxPos;
+
+
         [Header("Debug")]
         public int child = -1;
         public int rotate = -1;
-        public float scale = -1;
+        public float scale = -1f;
+        public float position = -1f;
 
         MUDEntity entity;
         void Start() {
@@ -36,8 +43,8 @@ namespace mud.Client {
                 return;
             }
 
-            List<GameObject> tempList = new List<GameObject>();
             if (randomizeChildren) {
+                List<GameObject> tempList = new List<GameObject>();
 
                 //autopopulate if the object list is empty
                 if (objects.Length == 0) {
@@ -86,7 +93,8 @@ namespace mud.Client {
             }
 
 
-            if (rotateY) {
+            if (useRotation) {
+
                 rotate = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
 
                 //round to a number (ie. rotationRound of 90 would give it one of four directions)
@@ -94,14 +102,25 @@ namespace mud.Client {
                     rotate = (int)(Mathf.Round(rotate / rotationRound) * rotationRound);
                 }
 
-                transform.Rotate(Vector3.up * rotate);
+                if (rotateY) {
+                    transform.Rotate(Vector3.up * rotate);
+                } else {
+                    transform.Rotate(new Vector3(rotate * 1f, rotate * 2f, rotate * 3f));
+                }
+
             }
 
-            if(useScale) {
+            if (useScale) {
                 scale = (int)MUDHelper.RandomNumber((int)(range.x * 100f), (int)(range.y * 100f), entity, randomType, seed + 2);
 
                 scale = scale * .01f;
                 transform.localScale *= scale;
+            }
+
+            if (usePos) {
+                position = (int)MUDHelper.RandomNumber(0, 100, entity, randomType, seed + 3);
+                position = position * .01f;
+                transform.localPosition = Vector3.Lerp(minPos, maxPos, position);
             }
         }
     }

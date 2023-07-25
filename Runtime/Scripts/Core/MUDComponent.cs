@@ -15,6 +15,7 @@ namespace mud.Client {
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public IMudTable ActiveTable { get { return activeTable; } }
+        public IMudTable OnchainTable { get { return onchainTable; } }
         public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
