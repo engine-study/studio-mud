@@ -89,14 +89,13 @@ namespace mud.Client {
         public void Revert() {
 
             info = new UpdateInfo(info.UpdateType, UpdateSource.Optimistic);
-            component.DoUpdate(component.OnchainTable, info);
             
             if (info.UpdateType == UpdateType.SetRecord) {
                 component.Destroy();
             } else if (info.UpdateType == UpdateType.SetField) {
-                
+                component.DoUpdate(component.OnchainTable, info);
             } else {
-                
+                component.DoUpdate(component.OnchainTable, info);
             }
 
         }
