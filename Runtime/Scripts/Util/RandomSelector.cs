@@ -6,39 +6,41 @@ namespace mud.Client {
 
     public class RandomSelector : MonoBehaviour {
 
+        public GameObject ActiveChild {get{return activeChild;}}
         [Header("Random GameObject")]
         public MUDHelper.RandomSource randomType;
         public int seed = 0;
 
         [Header("Random GameObject")]
-        public bool randomizeChildren = false;
-        public GameObject[] objects;
+        [SerializeField] private bool randomizeChildren = false;
+        [SerializeField] private GameObject[] objects;
+        [SerializeField] private GameObject activeChild;
 
         [Header("Random Rotation")]
-        public bool useRotation = false;
-        public bool rotateY = true;
-        public float rotationRound = 0f;
+        [SerializeField] private bool useRotation = false;
+        [SerializeField] private bool rotateY = true;
+        [SerializeField] private float rotationRound = 0f;
 
         [Header("Random Scale")]
-        public bool useScale = false;
-        public Vector2 range = Vector2.one;
+        [SerializeField] private bool useScale = false;
+        [SerializeField] private Vector2 range = Vector2.one;
 
         [Header("Random Position")]
-        public bool usePos = false;
-        public Vector3 minPos, maxPos;
+        [SerializeField] private bool usePos = false;
+        [SerializeField] private Vector3 minPos, maxPos;
 
 
         [Header("Debug")]
-        public int child = -1;
-        public int rotate = -1;
-        public float scale = -1f;
-        public float position = -1f;
+        [SerializeField] private int child = -1;
+        [SerializeField] private int rotate = -1;
+        [SerializeField] private float scale = -1f;
+        [SerializeField] private float position = -1f;
 
-        MUDEntity entity;
-        void Start() {
-            entity = GetComponentInParent<MUDEntity>();
+        MUDComponent component;
+        void Awake() {
+            component = GetComponentInParent<MUDComponent>();
 
-            if (!entity) {
+            if (!component) {
                 Debug.LogError("Can't find entity", this);
                 return;
             }
@@ -69,33 +71,35 @@ namespace mud.Client {
 
             }
 
-            if (entity.HasInit) {
+            if (component.HasInit) {
                 Init();
             } else {
-                entity.OnInit += Init;
+                component.OnLoaded += Init;
             }
 
         }
 
         void OnDestroy() {
-            if (entity)
-                entity.OnInit -= Init;
+            if (component)
+                component.OnInit -= Init;
         }
         void Init() {
 
             if (randomizeChildren) {
 
                 //a position component on our entity is expected to have updated our position at this point, bad assumption? 
-                child = (int)MUDHelper.RandomNumber(0, objects.Length, entity, randomType, seed);
+                child = (int)MUDHelper.RandomNumber(0, objects.Length, component.Entity, randomType, seed);
                 for (int i = 0; i < objects.Length; i++) {
                     objects[i].SetActive(i == child);
                 }
+
+                activeChild = objects[child];
             }
 
 
             if (useRotation) {
 
-                rotate = (int)MUDHelper.RandomNumber(0, 360, entity, randomType, seed + 1);
+                rotate = (int)MUDHelper.RandomNumber(0, 360, component.Entity, randomType, seed + 1);
 
                 //round to a number (ie. rotationRound of 90 would give it one of four directions)
                 if (rotationRound != 0f) {
@@ -111,14 +115,14 @@ namespace mud.Client {
             }
 
             if (useScale) {
-                scale = (int)MUDHelper.RandomNumber((int)(range.x * 100f), (int)(range.y * 100f), entity, randomType, seed + 2);
+                scale = (int)MUDHelper.RandomNumber((int)(range.x * 100f), (int)(range.y * 100f), component.Entity, randomType, seed + 2);
 
                 scale = scale * .01f;
                 transform.localScale *= scale;
             }
 
             if (usePos) {
-                position = (int)MUDHelper.RandomNumber(0, 100, entity, randomType, seed + 3);
+                position = (int)MUDHelper.RandomNumber(0, 100, component.Entity, randomType, seed + 3);
                 position = position * .01f;
                 transform.localPosition = Vector3.Lerp(minPos, maxPos, position);
             }

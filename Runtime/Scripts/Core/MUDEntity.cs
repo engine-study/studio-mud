@@ -136,7 +136,7 @@ namespace mud.Client {
                 expected = newExpected;
 
                 //init it
-                c.Init(this, fromTable);
+                c.DoInit(this, fromTable);
                 c.OnUpdatedInfo += ComponentUpdate;
 
                 OnComponentAdded?.Invoke(c);

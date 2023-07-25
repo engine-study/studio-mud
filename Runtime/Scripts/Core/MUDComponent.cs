@@ -21,7 +21,7 @@ namespace mud.Client {
         public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
         public UpdateType UpdateType { get { return updateInfo.UpdateType; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnLoaded, OnPostInit, OnUpdated;
+        public Action OnInit, OnLoaded, OnPostInit, OnUpdated;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager TableManager { get { return tableManager; } }
         // public Type TableType {get{return tableType.Table;}}
@@ -59,7 +59,14 @@ namespace mud.Client {
 
         public MUDComponent() { }
 
-        public virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
+        public void DoInit(MUDEntity ourEntity, TableManager ourTable) {
+            Init(ourEntity, ourTable);
+            hasInit = true;
+            OnInit?.Invoke();
+            DoLoad();
+        }
+
+        protected virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
 
             Debug.Assert(hasInit == false, "Double init", this);
             Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
@@ -68,18 +75,17 @@ namespace mud.Client {
             tableManager = ourTable;
 
             tableManager.RegisterComponent(true, this);
-            hasInit = true;
-
-            DoLoad();
 
         }
 
         async UniTask DoLoad() {
+
             await LoadComponents();
             loaded = true;
             OnLoaded?.Invoke();
             PostInit();
             OnPostInit?.Invoke();
+
         }
 
         protected virtual void PostInit() {
