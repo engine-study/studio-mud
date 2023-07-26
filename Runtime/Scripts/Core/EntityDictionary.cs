@@ -2,28 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using mud.Client;
-public class EntityDictionary : MonoBehaviour
-{
+public class EntityDictionary : MonoBehaviour {
     public static System.Action OnEntitySpawned;
     public static System.Action OnEntityDestroyed;
     public static EntityDictionary Instance;
 
-    private static GameObject entityPrefab;
     private static Dictionary<string, MUDEntity> m_Entities;
     private static Dictionary<string, MUDEntity> m_chunkedEntities;
     public static MUDEntity GetEntity(string Key) { return m_Entities[Key]; }
     public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
 
-    [Header("Settings")]
-    [SerializeField] Transform entityParent;
+    [Header("Options")]
+    [SerializeField] private GameObject entityPrefab;
+    [SerializeField] private Transform entityParent;
 
     [Header("Debug")]
-    public List<MUDEntity> EntityList;
+    [SerializeField] private List<MUDEntity> spawnedEntities;
 
-    void Awake()
-    {
-        if (Instance != null)
-        {
+    void Awake() {
+        if (Instance != null) {
             Debug.LogError("Mutiple instances.", Instance);
         }
 
@@ -33,15 +30,13 @@ public class EntityDictionary : MonoBehaviour
 
     }
 
-    void OnDestroy()
-    {
+    void OnDestroy() {
         Instance = null;
     }
 
-    public static MUDEntity FindOrSpawnEntity(string newKey)
-    {
-        if (Instance == null)
-        {
+    public static MUDEntity FindOrSpawnEntity(string newKey) {
+
+        if (Instance == null) {
             Debug.LogError("No EntityDictionary Instance found");
             return null;
         }
@@ -49,19 +44,20 @@ public class EntityDictionary : MonoBehaviour
         //get the entity if it exists or spawn it
         MUDEntity newEntity = GetEntitySafe(newKey);
 
-        if (newEntity != null)
-        {
+        if (newEntity != null) {
             // Debug.Log("Found " + newEntity.name, Instance);
-        }
-        else
-        {
-            if (entityPrefab == null)
-            {
-                entityPrefab = (Resources.Load("Entity") as GameObject);
+        } else {
+            if (Instance.entityPrefab == null) {
+                Instance.entityPrefab = (Resources.Load("Entity") as GameObject);
+            }
+
+            if (Instance.entityParent == null) {
+                Instance.entityParent = new GameObject().transform;
+                Instance.entityParent.name = "Entities";
             }
 
             //spawn the entity if it doesnt exist
-            newEntity = Instantiate(entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
+            newEntity = Instantiate(Instance.entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
             newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
 
             newEntity.InitEntity(newKey);
@@ -77,17 +73,14 @@ public class EntityDictionary : MonoBehaviour
         return newEntity;
     }
 
-    public static void SpawnAllComponentsOntoEntity(MUDEntity entity)
-    {
+    public static void SpawnAllComponentsOntoEntity(MUDEntity entity) {
         //search all tables to see if they contain this entity
-        foreach (TableManager value in TableManager.Tables.Values)
-        {
-            
+        foreach (TableManager value in TableManager.Tables.Values) {
+
         }
     }
 
-    public static void DestroyEntity(string newKey)
-    {
+    public static void DestroyEntity(string newKey) {
 
         OnEntityDestroyed?.Invoke();
 
@@ -101,16 +94,12 @@ public class EntityDictionary : MonoBehaviour
 
     }
 
-    public static void ToggleEntity(bool toggle, MUDEntity entity)
-    {
-        if (toggle)
-        {
-            Instance.EntityList.Add(entity);
+    public static void ToggleEntity(bool toggle, MUDEntity entity) {
+        if (toggle) {
+            Instance.spawnedEntities.Add(entity);
             m_Entities.Add(entity.Key, entity);
-        }
-        else
-        {
-            Instance.EntityList.Remove(entity);
+        } else {
+            Instance.spawnedEntities.Remove(entity);
             m_Entities.Remove(entity.Key);
         }
     }
