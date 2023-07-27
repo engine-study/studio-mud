@@ -101,7 +101,7 @@ namespace mud.Client {
             for (int i = 0; i < requiredComponents.Count; i++) {
                 // Debug.Log("Loading " + i + " " + requiredComponents[i].GetType(), this);
                 MUDComponent c = await entity.GetMUDComponentAsync(requiredComponents[i]);
-                if (c == null) Debug.LogError("Could not load " + requiredComponents[i].GetType(), this);
+                if (c == null) Debug.LogError("Required component missing " + requiredComponents[i].GetType(), this);
             }
 
         }
