@@ -14,6 +14,7 @@ namespace mud.Client {
 
     public class TxManager : MonoBehaviour {
 
+        public static System.Action<bool> OnUpdate;
         public static System.Action<bool> OnTransaction;
 
         //send transaction but revert our optimistic updates if it goes wrong
@@ -72,6 +73,14 @@ namespace mud.Client {
 
     [System.Serializable]
     public class TxUpdate {
+        public static Action<TxUpdate> OnUpdate;
+
+        public UpdateInfo Info {get{return info;}}
+        [SerializeField] private UpdateInfo info;
+        [SerializeField] private MUDComponent component;
+        [SerializeField] private IMudTable optimistic;
+
+
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
             component = c;
 
@@ -84,11 +93,13 @@ namespace mud.Client {
             optimistic.SetValues(tableParameters);
 
             component.DoUpdate(optimistic, info);
+
+            OnUpdate?.Invoke(this);
         }
 
         public void Revert() {
 
-            info = new UpdateInfo(info.UpdateType, UpdateSource.Optimistic);
+            info = new UpdateInfo(info.UpdateType, UpdateSource.Revert);
             
             if (info.UpdateType == UpdateType.SetRecord) {
                 component.Destroy();
@@ -98,11 +109,11 @@ namespace mud.Client {
                 component.DoUpdate(component.OnchainTable, info);
             }
 
+            OnUpdate?.Invoke(this);
+
         }
 
-        [SerializeField] private UpdateInfo info;
-        [SerializeField] private MUDComponent component;
-        [SerializeField] private IMudTable optimistic;
+
 
 
     }
