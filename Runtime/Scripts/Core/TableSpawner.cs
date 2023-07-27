@@ -2,12 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using mud.Client;
+using Cysharp.Threading.Tasks;
 
 public class TableSpawner : MonoBehaviour {
 
-    public MUDComponent[] spawnTables;
+    public static bool Loaded = false; 
+    public static System.Action OnComplete;
+    [SerializeField] private MUDComponent[] spawnTables;
 
-    void Start() {
+    async void Start() {
+        await LoadTables();
+    }
+
+    void OnDestroy() {
+        Loaded = false; 
+    }
+
+    async UniTask LoadTables() {
+
         for (int i = 0; i < spawnTables.Length; i++) {
 
             TableManager newTable = (new GameObject()).AddComponent<TableManager>();
@@ -16,6 +28,13 @@ public class TableSpawner : MonoBehaviour {
 
             newTable.componentPrefab = spawnTables[i];
             newTable.gameObject.name = spawnTables[i].TableType.ToString();
+
+            await UniTask.Delay(50);
         }
+
+        Loaded = true; 
+        OnComplete?.Invoke();
+
+
     }
 }

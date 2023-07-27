@@ -24,17 +24,19 @@ namespace mud.Client {
         public Action OnInit, OnLoaded, OnPostInit, OnUpdated;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager TableManager { get { return tableManager; } }
-        // public Type TableType {get{return tableType.Table;}}
-        // public Type TableUpdateType {get{return tableType.TableUpdate;}}        
+
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
         //unless we were to manually add the DefaultNamespace to the UniMud package by name
-        public Type TableType { get { if (internalRef == null) LoadAssembly(); return internalRef.TableType(); } }
-        public Type TableTypeUpdate { get { if (internalRef == null) LoadAssembly(); return internalRef.TableUpdateType(); } }
+        public IMudTable TableReference { get { return GetTable(); }}
+        public Type TableType { get { return GetTable().TableType(); }}
+        public Type TableTypeUpdate { get { return GetTable().TableUpdateType(); }}
+        // public Type TableType { get { if (internalRef == null) LoadAssembly(); return internalRef.TableType(); } }
+        // public Type TableTypeUpdate { get { if (internalRef == null) LoadAssembly(); return internalRef.TableUpdateType(); } }
 
         [Header("Settings")]
-        [SerializeField] private MUDTableObject tableType;
         [SerializeField] private List<MUDComponent> requiredComponents;
+        [NonSerialized] private MUDTableObject tableType;
 
 
         [Header("Debug")]
@@ -69,7 +71,7 @@ namespace mud.Client {
         protected virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
 
             Debug.Assert(hasInit == false, "Double init", this);
-            Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
+            // Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
 
             entity = ourEntity;
             tableManager = ourTable;
@@ -177,6 +179,7 @@ namespace mud.Client {
 
         }
 
+        protected abstract IMudTable GetTable();
         protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateInfo newInfo);
 
         void FinishUpdate() {

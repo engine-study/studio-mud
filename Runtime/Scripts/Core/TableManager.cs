@@ -15,8 +15,8 @@ namespace mud.Client {
     public class TableManager : MUDTable {
         //dictionary of all entities
         public static Action<bool, TableManager> OnTableToggle;
-        public static Dictionary<string, TableManager> Tables;
         public Action<bool, MUDComponent> OnComponentToggle;
+        public static Dictionary<string, TableManager> Tables;
         
         public Type ComponentType { get { return componentType; } }
         public string ComponentString { get { return componentString; } }
@@ -153,11 +153,10 @@ namespace mud.Client {
             return tm;
         }
 
-
-        public T GetTableValue<T>(MUDComponent component) where T : IMudTable, new() {
+        public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
             T table = new T();
             // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return table.GetTableValue(component.Entity.Key) as T;
+            return table.GetTableValue(entityKey) as T;
         }
 
         protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateInfo newInfo) {
