@@ -17,6 +17,7 @@ namespace mud.Client
     public abstract class MUDTable : MonoBehaviour
     {
 
+        public bool HasInit {get{return hasInit;}}
         protected CompositeDisposable _disposers = new();
         protected mud.Unity.NetworkManager net; 
         public Action OnInit;
