@@ -59,7 +59,7 @@ namespace mud.Client {
             base.Start();
 
             if (componentPrefab == null) {
-                Debug.LogError("No MUDComponent prefab to spawn");
+                Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);
                 return;
             }
 
