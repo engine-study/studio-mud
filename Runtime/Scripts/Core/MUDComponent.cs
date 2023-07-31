@@ -203,18 +203,4 @@ namespace mud.Client {
         }
 
     }
-
-    [System.Serializable]
-    public class UpdateInfo {
-        public UpdateInfo(UpdateType newUpdateType, UpdateSource newSource) {
-            updateType = newUpdateType;
-            source = newSource;
-        }
-
-        public UpdateType UpdateType {get{return updateType;}}
-        public UpdateSource UpdateSource {get{return source;}}
-
-        [SerializeField] private UpdateType updateType;
-        [SerializeField] private UpdateSource source;
-    }
 }

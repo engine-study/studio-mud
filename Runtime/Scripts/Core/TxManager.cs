@@ -49,7 +49,6 @@ namespace mud.Client {
 
         public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent {
             //make the component
-
             //create the entity if it doesn't exist
             MUDComponent c = TableManager.FindOrMakeComponent<T>(entityKey);
             TxUpdate update = new TxUpdate(c, UpdateType.SetRecord, tableParameters);
@@ -69,6 +68,20 @@ namespace mud.Client {
         }
 
 
+    }
+
+    [System.Serializable]
+    public class UpdateInfo {
+        public UpdateInfo(UpdateType newUpdateType, UpdateSource newSource) {
+            updateType = newUpdateType;
+            source = newSource;
+        }
+
+        public UpdateType UpdateType {get{return updateType;}}
+        public UpdateSource UpdateSource {get{return source;}}
+
+        [SerializeField] private UpdateType updateType;
+        [SerializeField] private UpdateSource source;
     }
 
     [System.Serializable]
