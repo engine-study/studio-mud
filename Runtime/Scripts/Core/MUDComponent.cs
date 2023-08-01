@@ -52,6 +52,7 @@ namespace mud.Client {
         private IMudTable internalRef;
 
         protected virtual void Awake() { 
+            hasInit = false;
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
             networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
         }
