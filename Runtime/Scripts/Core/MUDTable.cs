@@ -68,11 +68,6 @@ namespace mud.Client
         }
 
         protected abstract void Subscribe(NetworkManager nm);
-        protected abstract void OnInsertRecord(RecordUpdate tableUpdate);
-        protected abstract void OnDeleteRecord(RecordUpdate tableUpdate);
-        protected abstract void OnUpdateRecord(RecordUpdate tableUpdate);
-
-
 
     }
 }

@@ -22,7 +22,7 @@ namespace mud.Client {
         [SerializeField] protected string entityName;
         [SerializeField] protected List<MUDComponent> components;
         [SerializeField] protected List<MUDComponent> expected;
-        public void SetName(string newName) {entityName = newName;}
+        public void SetName(string newName) {entityName = newName; gameObject.name = entityName;}
 
         protected override void Awake() {
             base.Awake();

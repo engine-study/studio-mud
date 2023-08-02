@@ -93,10 +93,6 @@ namespace mud.Client {
             OnTableToggle?.Invoke(false, this);
         }
 
-        protected override void OnInsertRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
-        protected override void OnUpdateRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));}
-        protected override void OnDeleteRecord(RecordUpdate tableUpdate) {IngestTableEvent(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
-
         protected override void Subscribe(mud.Unity.NetworkManager nm) {
 
             if (subscribeInsert) {
@@ -117,6 +113,10 @@ namespace mud.Client {
                 _disposers.Add(DeleteSub);
             }
         }
+
+        void OnInsertRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
+        void OnUpdateRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));}
+        void OnDeleteRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
 
         public static IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
             return NetworkManager.Instance.ds.OnDataStoreUpdate
@@ -159,7 +159,7 @@ namespace mud.Client {
             return table.GetTableValue(entityKey) as T;
         }
 
-        protected virtual void IngestTableEvent(RecordUpdate tableUpdate, UpdateInfo newInfo) {
+        protected virtual void IngestRecord(RecordUpdate tableUpdate, UpdateInfo newInfo) {
             //process the table event to a key and the entity of that key
             string entityKey = tableUpdate.Key;
 
@@ -171,10 +171,10 @@ namespace mud.Client {
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
             mudTable = mudTable.RecordUpdateToTable(tableUpdate);
 
-            IngestTableEvent(entityKey, mudTable, newInfo);
+            IngestTable(entityKey, mudTable, newInfo);
         }
 
-        protected virtual void IngestTableEvent(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
+        protected virtual void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -184,37 +184,25 @@ namespace mud.Client {
             //create the entity if it doesn't exist
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
-            if (logTable) {
-                Debug.Log("Ingest: " + gameObject.name + " " + newInfo.UpdateType.ToString() + " " + MUDHelper.TruncateHash(entityKey), entity);
+            //find the component
+            MUDComponent component = null;
+            Components.TryGetValue(entityKey, out component);
+
+            //add a component if we can't find one
+            if(component == null) {
+                component = entity.AddComponent(componentPrefab, this); 
+                OnComponentToggle?.Invoke(true, component);
             }
 
-            if (newInfo.UpdateType == UpdateType.SetRecord) {
-                //create the component if we can't find it
-                if (Components.ContainsKey(entityKey)) { 
+            if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.UpdateSource.ToString(), component);}
 
-                } else { 
-                    MUDComponent c = entity.AddComponent(componentPrefab, this); 
-                    OnComponentToggle?.Invoke(true, c);
-                }
-                Components[entityKey].DoUpdate(mudTable, newInfo);
-
-            } else if (newInfo.UpdateType == UpdateType.SetField) {
-
-                Components[entityKey].DoUpdate(mudTable, newInfo);
-
-            } else if (newInfo.UpdateType == UpdateType.DeleteRecord) {
-
-                Components[entityKey].DoUpdate(mudTable, newInfo);
-                // entity.RemoveComponent(Components[entityKey]);
-
-                if (deletedRecordDestroysEntity) {
-                    EntityDictionary.DestroyEntity(entityKey);
-                }
+            //send the UDPATE!
+            Components[entityKey].DoUpdate(mudTable, newInfo);
+            
+            //delete cleanup
+            if (newInfo.UpdateType == UpdateType.DeleteRecord && deletedRecordDestroysEntity) {
+                EntityDictionary.DestroyEntity(entityKey);
             }
-
-            // if(entity != null && SpawnIfNoEntityFound && eventType == TableEvent.Delete) {
-            //     DestroyEntity(entityKey);
-            // }
 
         }
 
