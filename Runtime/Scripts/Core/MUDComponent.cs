@@ -166,15 +166,16 @@ namespace mud.Client {
                 activeTable = overrideTable;
             } else if (newInfo.UpdateSource == UpdateSource.Revert) {
                 //REVERT update (undo optimistic update)
-                optimisticTable = null;
                 Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + ", but no onchain update", this);
+
+                optimisticTable = null;
                 activeTable = onchainTable;
             }
 
-            //if we are GOING INTO or ALREADY IN an override state, ignore the update
-            if (UpdateInfo.UpdateSource == UpdateSource.Override || newInfo.UpdateSource == UpdateSource.Override) {
-                activeTable = overrideTable;
-            }
+            // if we are GOING INTO or ALREADY IN an override state, ignore the update
+            // if (UpdateInfo.UpdateSource == UpdateSource.Override || newInfo.UpdateSource == UpdateSource.Override) {
+            //     activeTable = overrideTable;
+            // }
 
             updateInfo = newInfo;
 
