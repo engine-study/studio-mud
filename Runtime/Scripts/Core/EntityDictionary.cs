@@ -97,10 +97,10 @@ public class EntityDictionary : MonoBehaviour {
     public static void ToggleEntity(bool toggle, MUDEntity entity) {
         if (toggle) {
             Instance.spawnedEntities.Add(entity);
-            m_Entities.Add(entity.Key, entity);
+            m_Entities.Add(entity.Key.ToLower(), entity);
         } else {
             Instance.spawnedEntities.Remove(entity);
-            m_Entities.Remove(entity.Key);
+            m_Entities.Remove(entity.Key.ToLower());
         }
     }
 
