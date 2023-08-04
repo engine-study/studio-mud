@@ -10,6 +10,8 @@ public class TableSpawner : MonoBehaviour {
     public static System.Action OnComplete;
     [SerializeField] private MUDComponent[] spawnTables;
 
+    [SerializeField] bool debugAllTables;
+
     async void Start() {
         await LoadTables();
     }
@@ -28,6 +30,8 @@ public class TableSpawner : MonoBehaviour {
 
             newTable.componentPrefab = spawnTables[i];
             newTable.gameObject.name = spawnTables[i].TableType.ToString();
+
+            newTable.logTable = debugAllTables;
 
             await UniTask.Delay(50);
         }

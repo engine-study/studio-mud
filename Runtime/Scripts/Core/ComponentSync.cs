@@ -46,7 +46,7 @@ namespace mud.Client {
             ourComponent.OnLoaded += DoSync;
         }
 
-        void OnDestroy() {
+        protected virtual void OnDestroy() {
             if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
             if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
         }

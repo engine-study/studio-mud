@@ -92,8 +92,8 @@ namespace mud.Client {
         [SerializeField] private UpdateInfo info;
         [SerializeField] private MUDComponent component;
         [SerializeField] private IMudTable optimistic;
-
-
+        //TODO add TX status
+        
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
             component = c;
 
