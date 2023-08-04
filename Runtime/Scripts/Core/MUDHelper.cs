@@ -22,6 +22,10 @@ namespace mud.Client {
 
     public class MUDHelper : MonoBehaviour {
 
+        public static string AddressToKey(string address) {
+            return "0x" + address.Replace("0x", "").PadLeft(64, '0').ToLower();
+        }
+        
         public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {
             Collider[] hits = new Collider[10];
             int amount = Physics.OverlapSphereNonAlloc(position, radius, hits, LayerMask.NameToLayer("Nothing"), QueryTriggerInteraction.Ignore);
