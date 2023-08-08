@@ -22,7 +22,7 @@ namespace mud.Client {
 
     public class MUDHelper : MonoBehaviour {
 
-        public static string AddressToKey(string address) {
+        public static string EntityKeyToBytes32(string address) {
             return "0x" + address.Replace("0x", "").PadLeft(64, '0').ToLower();
         }
         
