@@ -156,7 +156,7 @@ namespace mud.Client {
         public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
             T table = new T();
             // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return table.GetTableValue(entityKey) as T;
+            return IMudTable.GetValueFromTable<T>(entityKey);
         }
 
         protected virtual void IngestRecord(RecordUpdate tableUpdate, UpdateInfo newInfo) {
