@@ -87,9 +87,9 @@ namespace mud.Client {
             return update;
         }
 
-        public static TxUpdate MakeOptimisticDelete(MUDComponent component, params object[] tableParameters) {
+        public static TxUpdate MakeOptimisticDelete(MUDComponent component) {
             //update the component
-            TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord, tableParameters);
+            TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord);
             return update;
         }
 
@@ -127,11 +127,22 @@ namespace mud.Client {
             Type tableType = component.TableType;
             info = new UpdateInfo(newType, UpdateSource.Optimistic);
 
-            //create an optimistic table
-            optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
-            optimistic.SetValues(tableParameters);
+            if(newType == UpdateType.SetRecord || newType == UpdateType.SetField) {
 
-            component.DoUpdate(optimistic, info);
+                //create an optimistic table
+                optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
+                optimistic.SetValues(tableParameters);
+
+                component.DoUpdate(optimistic, info);
+
+            } else if(newType == UpdateType.DeleteRecord) {
+                
+                //delete table
+                component.DoUpdate(component.OnchainTable, info);
+                
+            } else {
+                Debug.LogError("?");
+            }
 
             OnUpdate?.Invoke(this);
         }
