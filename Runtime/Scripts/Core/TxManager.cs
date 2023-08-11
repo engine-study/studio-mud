@@ -49,12 +49,6 @@ namespace mud.Client {
             return txSuccess;
         }
         
-        public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
-            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
-            OnTransaction?.Invoke(txSuccess);
-            return txSuccess;
-        }
-
         public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
             int txIndex = transactionCount;
@@ -68,6 +62,11 @@ namespace mud.Client {
             return txSuccess;
         }
 
+        public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            OnTransaction?.Invoke(txSuccess);
+            return txSuccess;
+        }
 
         //enables us to send transactions by inferring functionTyp through the parameter
         // public static async UniTask<bool> Send<TFunction>(TFunction functionType, params object[] parameters) where TFunction : FunctionMessage, new() {
