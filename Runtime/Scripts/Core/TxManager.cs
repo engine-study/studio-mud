@@ -16,8 +16,21 @@ namespace mud.Client {
 
         public static System.Action<bool> OnUpdate;
         public static System.Action<bool> OnTransaction;
-
+        public static bool InProgress;
         //send transaction but revert our optimistic updates if it goes wrong
+        private static List<int> transactions = new List<int>();
+        private static int transactionCount = 0;
+        private static int transactionCompleted = 0;
+
+
+        void Awake() {
+            transactions = new List<int>();
+        }
+        void OnDestroy() {
+            transactions = null;
+            transactionCount = 0;
+            transactionCompleted = 0;
+        }
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
             return await Send<TFunction>(new List<TxUpdate> { update }, parameters);
         }
@@ -35,12 +48,26 @@ namespace mud.Client {
 
             return txSuccess;
         }
-
-        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+        
+        public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
             OnTransaction?.Invoke(txSuccess);
             return txSuccess;
         }
+
+        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+
+            int txIndex = transactionCount;
+            transactionCount++;
+
+            while (transactionCompleted != txIndex) { await UniTask.Delay(200); }
+
+            bool txSuccess = await SendDirect<TFunction>(parameters);
+            transactionCompleted++;
+
+            return txSuccess;
+        }
+
 
         //enables us to send transactions by inferring functionTyp through the parameter
         // public static async UniTask<bool> Send<TFunction>(TFunction functionType, params object[] parameters) where TFunction : FunctionMessage, new() {

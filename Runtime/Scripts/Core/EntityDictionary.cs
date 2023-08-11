@@ -9,8 +9,8 @@ public class EntityDictionary : MonoBehaviour {
 
     private static Dictionary<string, MUDEntity> m_Entities;
     private static Dictionary<string, MUDEntity> m_chunkedEntities;
-    public static MUDEntity GetEntity(string Key) { return m_Entities[Key]; }
-    public static MUDEntity GetEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
+    public static MUDEntity FindEntity(string Key) { return m_Entities[Key]; }
+    public static MUDEntity FindEntitySafe(string Key) { MUDEntity e; m_Entities.TryGetValue(Key, out e); return e; }
 
     [Header("Options")]
     [SerializeField] private GameObject entityPrefab;
@@ -42,7 +42,7 @@ public class EntityDictionary : MonoBehaviour {
         }
 
         //get the entity if it exists or spawn it
-        MUDEntity newEntity = GetEntitySafe(newKey);
+        MUDEntity newEntity = FindEntitySafe(newKey);
 
         if (newEntity != null) {
             // Debug.Log("Found " + newEntity.name, Instance);
