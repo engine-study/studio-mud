@@ -14,6 +14,7 @@ namespace mud.Client {
 
     public class TxManager : MonoBehaviour {
 
+        public static TxManager Instance;
         public static System.Action<bool> OnUpdate;
         public static System.Action<bool> OnTransaction;
         public static bool InProgress;
@@ -22,11 +23,14 @@ namespace mud.Client {
         private static int transactionCount = 0;
         private static int transactionCompleted = 0;
 
+        public bool Verbose = true;
 
         void Awake() {
+            Instance = this;
             transactions = new List<int>();
         }
         void OnDestroy() {
+            Instance = null;
             transactions = null;
             transactionCount = 0;
             transactionCompleted = 0;
@@ -38,11 +42,7 @@ namespace mud.Client {
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
             bool txSuccess = await Send<TFunction>(parameters);
 
-            if (txSuccess) {
-                Debug.Log("[Tx CONFIRM] " + typeof(TFunction).Name);
-            } else {
-                //if our transaction fails, force the player back to their position on the table
-                Debug.Log("[Tx REVERT] " + typeof(TFunction).Name);
+            if(!txSuccess) {
                 foreach (TxUpdate u in updates) { u.Revert(); }
             }
 
@@ -55,10 +55,12 @@ namespace mud.Client {
             transactionCount++;
 
             while (transactionCompleted != txIndex) { await UniTask.Delay(200); }
+            if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
 
             bool txSuccess = await SendDirect<TFunction>(parameters);
-            transactionCompleted++;
 
+            if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
+            transactionCompleted++;
             return txSuccess;
         }
 
