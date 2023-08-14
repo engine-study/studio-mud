@@ -24,6 +24,11 @@ namespace mud.Client
         }
 
         public static void DeleteTable(TableManager table) {
+
+            if(Instance == null) {
+                return;
+            }
+            
             TableDict.Remove(table.ComponentName);
             Tables.Remove(table);
             OnTableToggle?.Invoke(false, table);

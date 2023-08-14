@@ -96,9 +96,9 @@ namespace mud.Client {
 
             if(requiredComponents.Count > 0) {
 
-                ScanComponents();
+                ScanComponents(null);
                 if(!loaded) {
-                    Entity.OnComponent += ScanComponents;
+                    Entity.OnComponentAdded += ScanComponents;
                 }
             } else {
                 FinishLoad();
@@ -120,7 +120,7 @@ namespace mud.Client {
 
         }
 
-        void ScanComponents() {
+        void ScanComponents(MUDComponent newComponent) {
 
             int components = 0;
             foreach(MUDComponent c in Entity.Components) {
@@ -130,7 +130,7 @@ namespace mud.Client {
             }
 
             if(components == requiredComponents.Count) {
-                Entity.OnComponent -= ScanComponents;
+                Entity.OnComponentAdded -= ScanComponents;
                 FinishLoad();
             }
         }
@@ -147,7 +147,7 @@ namespace mud.Client {
 
         protected virtual void InitDestroy() {
             tableManager.RegisterComponent(false, this);
-            Entity.OnComponent -= ScanComponents;
+            Entity.OnComponentAdded -= ScanComponents;
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
