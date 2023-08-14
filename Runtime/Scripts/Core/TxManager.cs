@@ -75,10 +75,10 @@ namespace mud.Client {
         //     return await Send<TFunction>(parameters);
         // }
 
-        public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent {
+        public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent, new() {
             //make the component
             //create the entity if it doesn't exist
-            MUDComponent c = TableManager.FindOrMakeComponent<T>(entityKey);
+            MUDComponent c = MUDWorld.FindOrMakeComponent<T>(entityKey);
             TxUpdate update = new TxUpdate(c, UpdateType.SetRecord, tableParameters);
             return update;
         }

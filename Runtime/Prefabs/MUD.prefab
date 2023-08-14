@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 685b188851752c345ac0837562a46a0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tables: []
 --- !u!1 &270803249191292787
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,8 +89,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 279eab845fdd45d4bb877ea2c9e142d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  entityPrefab: {fileID: 0}
   entityParent: {fileID: 0}
-  EntityList: []
+  spawnedEntities: []
 --- !u!1 &5434828356542120334
 GameObject:
   m_ObjectHideFlags: 0
@@ -195,6 +197,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 372c4ce9248adbd42935486ab296f4bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Verbose: 1
 --- !u!1 &5817104349256014668
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,10 +272,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2094119452106387549}
-  - {fileID: 1965001346719452247}
   - {fileID: 1719053654389764560}
   - {fileID: 2173018970966705068}
   - {fileID: 100069912734561001}
+  - {fileID: 1965001346719452247}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -292,6 +295,11 @@ MonoBehaviour:
   local: {fileID: 11400000, guid: 8f9de2d4a845cd9409aa4027b0fdc8b4, type: 2}
   testnet: {fileID: 11400000, guid: 81361fd2f55627647aa60811fe3080ac, type: 2}
   mainnet: {fileID: 11400000, guid: 526c97e7537d6274cb7a496684db0980, type: 2}
-  contractAddress: 
-  writeLogs: 1
+  worldAddress: 
+  faucetUrl: 
+  pk: 
+  uniqueWallets: 1
   disableCache: 1
+  verbose: 0
+  address: 
+  addressKey: 

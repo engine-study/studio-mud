@@ -29,7 +29,7 @@ public class TableSpawner : MonoBehaviour {
             newTable.transform.parent = transform;
 
             newTable.componentPrefab = spawnTables[i];
-            newTable.gameObject.name = spawnTables[i].TableType.Name;
+            newTable.gameObject.name = spawnTables[i].TableName;
 
             newTable.logTable = debugAllTables;
 

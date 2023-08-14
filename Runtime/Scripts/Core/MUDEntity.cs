@@ -12,9 +12,11 @@ namespace mud.Client {
         public string Name {get{return entityName;}}
         public List<MUDComponent> Components { get { return components; } }
         public List<MUDComponent> ExpectedComponents { get { return expected; } }
+        public System.Action OnComponent;
         public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public System.Action<MUDComponent, UpdateInfo> OnComponentUpdated;
         public System.Action OnInit, OnUpdated;
+        Dictionary<string, MUDComponent> componentDict;
 
 
         [Header("MUD")]
@@ -27,6 +29,7 @@ namespace mud.Client {
         protected override void Awake() {
             base.Awake();
 
+            componentDict = new Dictionary<string, MUDComponent>();
             expected = new List<MUDComponent>();
             components = new List<MUDComponent>();
 
@@ -102,18 +105,15 @@ namespace mud.Client {
             return getComponent;
         }
 
-        //TODO find a better solution than a loop to find the component
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
         public T GetMUDComponent<T>() where T : MUDComponent {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == typeof(T)) { return Components[i] as T; }}
-            return null;
+            componentDict.TryGetValue(typeof(T).Name, out MUDComponent value);
+            return value as T;
         }
-        
-        //TODO find a better solution than a loop to find the component
         public T GetMUDComponent<T>(T component) where T : MUDComponent {
-            for (int i = 0; i < Components.Count; i++) { if (Components[i].GetType() == component.GetType()) { return Components[i] as T; } }
-            return null;
+            componentDict.TryGetValue(component.GetType().Name, out MUDComponent value);
+            return value as T;
         }
 
         public T AddComponent<T>(T prefab, TableManager fromTable) where T : MUDComponent {
@@ -131,6 +131,7 @@ namespace mud.Client {
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
+                componentDict.Add(c.GetType().Name, c);
                 expected.Add(prefab);
                 List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
                 expected = newExpected;
@@ -140,6 +141,7 @@ namespace mud.Client {
                 c.OnUpdatedInfo += ComponentUpdate;
 
                 OnComponentAdded?.Invoke(c);
+                OnComponent?.Invoke();
             }
 
             return c;
@@ -149,13 +151,15 @@ namespace mud.Client {
         public void RemoveComponent(MUDComponent c) {
 
             if (c == null) {
-                Debug.LogError("Removing a null component", this);
+
+            } else {
+                c.OnUpdatedInfo -= ComponentUpdate;
+                components.Remove(c);
+                componentDict.Remove(c.GetType().Name);
+                OnComponentRemoved?.Invoke(c);
             }
 
-            c.OnUpdatedInfo -= ComponentUpdate;
-
-            components.Remove(c);
-            OnComponentRemoved?.Invoke(c);
+            OnComponent?.Invoke();
 
             Destroy(c);
         }

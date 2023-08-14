@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 namespace mud.Client {
 
@@ -19,25 +20,21 @@ namespace mud.Client {
         protected MUDComponent componentPrefab;
         protected MUDComponent ourComponent;
 
-        string componentString;
-
-
         //if we wanted to sync position, we would return the Position component class for example
-        public abstract System.Type TargetComponentType();
+        public abstract MUDComponent TargetComponentType();
 
-        protected virtual void Start() {
+        protected virtual void Awake() {
 
             //do not let the update loop fire
-
             enabled = false;
-
             ourComponent = GetComponent<MUDComponent>();
-            componentString = TargetComponentType().ToString();
+            ourComponent.OnInit += SetupSync;
+        
+        }
 
-            if(string.IsNullOrEmpty(componentString)) { Debug.LogError("Could not find component type", this);}
+        void SetupSync() {
 
-            componentPrefab = ComponentDictionary.StringToComponentPrefab(componentString);
-
+            componentPrefab = ComponentDictionary.FindPrefab(TargetComponentType());
             if (!ourComponent.RequiredComponents.Contains(componentPrefab)) {
                 // Debug.Log("Adding our required component.", gameObject);
                 ourComponent.RequiredComponents.Add(componentPrefab);
@@ -69,6 +66,9 @@ namespace mud.Client {
             //get our targetcomponent
             targetComponent = ourComponent.Entity.GetMUDComponent(componentPrefab);
 
+            if(targetComponent == null) {
+                Debug.LogError("Couldn't find " + componentPrefab.TableName + " to sync.", this);
+            }
             //if we want to keep lerping towards the value we get, enable this component
             enabled = syncType == ComponentSyncType.Lerp;
 

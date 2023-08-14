@@ -13,14 +13,12 @@ namespace mud.Client {
 
 
     public class TableManager : MUDTable {
-        //dictionary of all entities
-        public static Action<bool, TableManager> OnTableToggle;
-        public Action<bool, MUDComponent> OnComponentToggle;
-        public static Dictionary<string, TableManager> Tables;
-        
-        public Type ComponentType { get { return componentType; } }
-        public string ComponentString { get { return componentString; } }
 
+        public Action<bool, MUDComponent> OnComponentToggle;
+        
+        //dictionary of all entities        
+        public Type ComponentType { get { return componentPrefab.TableType; } }
+        public string ComponentName { get { return componentPrefab.TableName; } }
 
         //dictionary of all the components this specific table has
         public bool EntityHasComponent(string key) { return Components.ContainsKey(key); }
@@ -39,20 +37,16 @@ namespace mud.Client {
         public bool logTable = false;
         public List<MUDComponent> SpawnedComponents;
 
-        Type componentType;
+        private IDisposable subscribe;
 
-        string componentString;
         // public Dictionary<string, MUDComponent> Components;
 
 
         protected override void Awake() {
             base.Awake();
-
+            
             SpawnedComponents = new List<MUDComponent>();
 
-            if (Tables == null) {
-                Tables = new Dictionary<string, TableManager>();
-            }
         }
 
         protected override void Start() {
@@ -68,57 +62,40 @@ namespace mud.Client {
                 return;
             }
 
-            //set our table type based on the prefab we have selected
-            componentType = componentPrefab.GetType();
-            componentString = componentPrefab.GetType().ToString();
-
             Components = new Dictionary<string, MUDComponent>();
 
-            if (Tables.ContainsKey(ComponentType.ToString())) {
+            if (TableDictionary.TableDict.ContainsKey(ComponentName)) {
                 Debug.LogError("Bad, multiple tables of same type " + ComponentType);
                 return;
             }
 
-            Debug.Log("Adding " + componentString + " Manager");
+            Debug.Log("Adding " + ComponentName + " Manager");
 
-            Tables.Add(ComponentString, this);
-            OnTableToggle?.Invoke(true, this);
+            TableDictionary.AddTable(this);
 
         }
 
         protected override void OnDestroy() {
             base.OnDestroy();
 
-            Tables.Remove(ComponentString);
-            OnTableToggle?.Invoke(false, this);
+            TableDictionary.DeleteTable(this);
+            subscribe?.Dispose();
         }
 
         protected override void Subscribe(mud.Unity.NetworkManager nm) {
 
-            if (subscribeInsert) {
-                IMudTable insert = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
-                var InsertSub = ObservableExtensions.Subscribe(SubscribeTable(insert, nm, UpdateType.SetRecord).ObserveOnMainThread(), OnInsertRecord);
-                _disposers.Add(InsertSub);
-            }
-
-            if (subscribeUpdate) {
-                IMudTable update = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
-                var UpdateSub = ObservableExtensions.Subscribe(SubscribeTable(update, nm, UpdateType.SetField).ObserveOnMainThread(), OnUpdateRecord);
-                _disposers.Add(UpdateSub);
-            }
-
-            if (subscribeDelete) {
-                IMudTable delete = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
-                var DeleteSub = ObservableExtensions.Subscribe(SubscribeTable(delete, nm, UpdateType.DeleteRecord).ObserveOnMainThread(), OnDeleteRecord);
-                _disposers.Add(DeleteSub);
-            }
+            var query = new Query().In(componentPrefab.TableReference.TableId);
+            subscribe = ObservableExtensions.Subscribe(net.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);
+        }
+        
+        
+        private void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update)
+        {
+            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
+            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
         }
 
-        void OnInsertRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
-        void OnUpdateRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.SetField, UpdateSource.Onchain));}
-        void OnDeleteRecord(RecordUpdate tableUpdate) {IngestRecord(tableUpdate, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
-
-        public static IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
+        public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
             return NetworkManager.Instance.ds.OnDataStoreUpdate
             .Where(
                 update => update.TableId == tableType.TableId.ToString() && update.Type == updateType
@@ -128,40 +105,9 @@ namespace mud.Client {
             );
         }
 
-        public static T FindComponent<T>(string entity) where T : MUDComponent {
-
-            //try to find the tablemanager
-            TableManager tm = FindTable<T>();
-            MUDComponent component = null;
-            tm.Components.TryGetValue(entity, out component);
-            return component as T;
-        }
-
-        public static T FindOrMakeComponent<T>(string entityKey) where T : MUDComponent {
-
-            //try to find the tablemanager
-            TableManager tm = FindTable<T>();
-            MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
-            MUDComponent component = entity.AddComponent<T>(ComponentDictionary.FindPrefab<T>(), tm);
-            return component as T;
-        }
-
-
-        public static TableManager FindTable<T>() where T : MUDComponent {
-            TableManager tm = Tables[typeof(T).Name];
-            if (tm == null) { Debug.LogError("Could not find " + typeof(T).Name + " table"); }
-            return tm;
-        }
-
-        public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
-            T table = new T();
-            // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return IMudTable.GetValueFromTable<T>(entityKey);
-        }
-
-        protected virtual void IngestRecord(RecordUpdate tableUpdate, UpdateInfo newInfo) {
+        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo) {
             //process the table event to a key and the entity of that key
-            string entityKey = tableUpdate.Key;
+            string entityKey = newRecord.key;
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -169,7 +115,7 @@ namespace mud.Client {
             }
 
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
-            mudTable = mudTable.RecordUpdateToTable(tableUpdate);
+            mudTable.RecordToTable(newRecord);
 
             IngestTable(entityKey, mudTable, newInfo);
         }
@@ -196,7 +142,7 @@ namespace mud.Client {
 
             if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.UpdateSource.ToString(), component);}
 
-            //send the UDPATE!
+            //send the update to the component
             Components[entityKey].DoUpdate(mudTable, newInfo);
             
             //delete cleanup
@@ -224,5 +170,17 @@ namespace mud.Client {
             }
         }
 
+
+        void OnDrawGizmosSelected() {
+            if(Application.isPlaying) {
+                Gizmos.color = Color.blue;
+                for (int i = 0; i < SpawnedComponents.Count; i++) {
+                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.forward * .5f, SpawnedComponents[i].transform.position - Vector3.forward * .5f);
+                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.right * .5f, SpawnedComponents[i].transform.position - Vector3.right * .5f);
+                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.up * .5f, SpawnedComponents[i].transform.position - Vector3.up * .5f);
+                }
+            }
+        }
     }
+
 }

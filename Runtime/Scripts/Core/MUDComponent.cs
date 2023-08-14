@@ -29,6 +29,7 @@ namespace mud.Client {
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
         //unless we were to manually add the DefaultNamespace to the UniMud package by name
         public IMudTable TableReference { get { return GetTable(); }}
+        public string TableName { get { return GetTable().TableType().Name; }}
         public Type TableType { get { return GetTable().TableType(); }}
         public Type TableTypeUpdate { get { return GetTable().TableUpdateType(); }}
         // public Type TableType { get { if (internalRef == null) LoadAssembly(); return internalRef.TableType(); } }
@@ -62,11 +63,15 @@ namespace mud.Client {
 
         public MUDComponent() { }
 
-        public void DoInit(MUDEntity ourEntity, TableManager ourTable) {
+        public async void DoInit(MUDEntity ourEntity, TableManager ourTable) {
+
+            //set up our entity and table hooks
             Init(ourEntity, ourTable);
             hasInit = true;
             OnInit?.Invoke();
-            DoLoad();
+
+            //get our required components and other references
+            await DoLoad();
         }
 
         protected virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
@@ -83,30 +88,51 @@ namespace mud.Client {
 
         async UniTask DoLoad() {
 
-            await LoadComponents();
+            gameObject.SetActive(false);
+
+            //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
+            //chop it up so that not everything loads at the same frame
+            await UniTask.Delay(UnityEngine.Random.Range(100, 200));
+
+            if(requiredComponents.Count > 0) {
+
+                ScanComponents();
+                if(!loaded) {
+                    Entity.OnComponent += ScanComponents;
+                }
+            } else {
+                FinishLoad();
+            }
+        }
+
+        void FinishLoad() {
+
+            gameObject.SetActive(true);
+
             loaded = true;
             OnLoaded?.Invoke();
+
             PostInit();
             OnPostInit?.Invoke();
-
         }
 
         protected virtual void PostInit() {
 
         }
 
-        protected virtual async UniTask LoadComponents() {
+        void ScanComponents() {
 
-            //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
-            //chop it up so that not everything loads at the same frame
-            await UniTask.Delay(UnityEngine.Random.Range(100, 200));
-
-            for (int i = 0; i < requiredComponents.Count; i++) {
-                // Debug.Log("Loading " + i + " " + requiredComponents[i].GetType(), this);
-                MUDComponent c = await entity.GetMUDComponentAsync(requiredComponents[i]);
-                if (c == null) Debug.LogError("Required component missing " + requiredComponents[i].GetType(), this);
+            int components = 0;
+            foreach(MUDComponent c in Entity.Components) {
+                if(requiredComponents.Contains( ComponentDictionary.FindPrefab(c) )) {
+                    components++;
+                }
             }
 
+            if(components == requiredComponents.Count) {
+                Entity.OnComponent -= ScanComponents;
+                FinishLoad();
+            }
         }
 
         public virtual void Destroy() {
@@ -121,6 +147,7 @@ namespace mud.Client {
 
         protected virtual void InitDestroy() {
             tableManager.RegisterComponent(false, this);
+            Entity.OnComponent -= ScanComponents;
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
