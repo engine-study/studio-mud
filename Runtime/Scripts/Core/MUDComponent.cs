@@ -153,7 +153,8 @@ namespace mud.Client {
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
 
             if(table == null) {
-                table = onchainTable;
+                Debug.LogError("No table", this);
+                return;
             }
             
             //update our internal table

@@ -91,6 +91,7 @@ namespace mud.Client {
         
         private void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update)
         {
+            if (logTable) { Debug.Log(gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
             foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
             foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
         }
@@ -127,14 +128,13 @@ namespace mud.Client {
                 return;
             }
 
-            //create the entity if it doesn't exist
+            //find or spawn the entity if it doesn't exist
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
             //find the component
-            MUDComponent component = null;
-            Components.TryGetValue(entityKey, out component);
+            Components.TryGetValue(entityKey, out MUDComponent component);
 
-            //add a component if we can't find one
+            //spawn the component if we can't find one
             if(component == null) {
                 component = entity.AddComponent(componentPrefab, this); 
                 OnComponentToggle?.Invoke(true, component);
