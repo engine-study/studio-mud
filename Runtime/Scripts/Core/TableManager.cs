@@ -12,10 +12,16 @@ using System.Threading.Tasks;
 namespace mud.Client {
 
 
-    public class TableManager : MUDTable {
+    public class TableManager : MonoBehaviour {
 
         public Action<bool, MUDComponent> OnComponentToggle;
-        
+        public bool HasInit {get{return hasInit;}}
+        protected CompositeDisposable _disposers = new();
+        protected mud.Unity.NetworkManager net; 
+        public Action OnInit;
+        public Action OnAdded, OnUpdated, OnDeleted;
+
+
         //dictionary of all entities        
         public Type ComponentType { get { return componentPrefab.TableType; } }
         public string ComponentName { get { return componentPrefab.TableName; } }
@@ -38,19 +44,26 @@ namespace mud.Client {
         public List<MUDComponent> SpawnedComponents;
 
         private IDisposable subscribe;
+        bool hasInit;
 
         // public Dictionary<string, MUDComponent> Components;
 
 
-        protected override void Awake() {
-            base.Awake();
+        protected void Awake() {
             
             SpawnedComponents = new List<MUDComponent>();
 
         }
 
-        protected override void Start() {
-            base.Start();
+        protected void Start() {
+
+            net = mud.Unity.NetworkManager.Instance;
+
+            if(NetworkManager.NetworkInitialized) {
+                DoInit(net);
+            } else {
+                net.OnNetworkInitialized += DoInit;
+            }
 
             if (componentPrefab == null) {
                 Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);
@@ -75,14 +88,29 @@ namespace mud.Client {
 
         }
 
-        protected override void OnDestroy() {
-            base.OnDestroy();
+        void DoInit(NetworkManager nm) {
 
+            if(hasInit) {
+                Debug.LogError("Oh no, double Init", this);
+                return;
+            }
+
+            Subscribe(net);            
+            Debug.Log("Init: " + gameObject.name);
+            
+            hasInit = true;
+            OnInit?.Invoke();
+
+        }   
+
+        protected void OnDestroy() {
+            _disposers?.Dispose();
+            net.OnNetworkInitialized -= DoInit;
             TableDictionary.DeleteTable(this);
             subscribe?.Dispose();
         }
 
-        protected override void Subscribe(mud.Unity.NetworkManager nm) {
+        protected void Subscribe(mud.Unity.NetworkManager nm) {
 
             var query = new Query().In(componentPrefab.TableReference.TableId);
             subscribe = ObservableExtensions.Subscribe(net.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);

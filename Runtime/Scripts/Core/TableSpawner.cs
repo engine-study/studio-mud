@@ -8,9 +8,10 @@ public class TableSpawner : MonoBehaviour {
 
     public static bool Loaded = false; 
     public static System.Action OnComplete;
+    
+    [SerializeField] bool debugAllTables;
     [SerializeField] private MUDComponent[] spawnTables;
 
-    [SerializeField] bool debugAllTables;
 
     async void Start() {
         await LoadTables();
@@ -38,7 +39,6 @@ public class TableSpawner : MonoBehaviour {
 
         Loaded = true; 
         OnComplete?.Invoke();
-
-
     }
+
 }
