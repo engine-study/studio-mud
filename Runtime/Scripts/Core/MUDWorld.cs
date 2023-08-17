@@ -11,11 +11,11 @@ namespace mud.Client
 
         public static T FindComponent<T>(string entity) where T : MUDComponent, new()
         {
-
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
-            tm.Components.TryGetValue(entity, out MUDComponent component);
-            return component as T;
+            MUDComponent component = null;
+            tm?.Components.TryGetValue(entity, out component);
+            return (T)component;
         }
 
         public static T FindOrMakeComponent<T>(string entityKey) where T : MUDComponent, new()
@@ -33,7 +33,6 @@ namespace mud.Client
         {
             MUDComponent refComponent = new T();
             TableDictionary.TableDict.TryGetValue(refComponent.TableName, out TableManager tm);
-            if (tm == null) { Debug.LogError("Could not find " + refComponent.TableName + " table"); }
             return tm;
         }
 
