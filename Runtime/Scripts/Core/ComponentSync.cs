@@ -49,10 +49,16 @@ namespace mud.Client {
         }
 
         void DoSync() {
+
             enabled = true;
+
             InitComponents();
-            synced = true;
+
             InitialSync();
+            UpdateSync();
+
+            synced = true;
+
             OnSync?.Invoke();
         }
 
@@ -69,6 +75,7 @@ namespace mud.Client {
             if(targetComponent == null) {
                 Debug.LogError("Couldn't find " + componentPrefab.TableName + " to sync.", this);
             }
+            
             //if we want to keep lerping towards the value we get, enable this component
             enabled = syncType == ComponentSyncType.Lerp;
 
@@ -83,16 +90,12 @@ namespace mud.Client {
         //UpdateSync would
         protected virtual void InitialSync() {
 
-            //do our first "normal" updatesync update
-            UpdateSync();
-
         }
 
         //updated sync with new values midway through play
         protected virtual void UpdateSync() {
             //.... override this update the values here
             //ex.             
-
         }
 
         protected virtual void Update() {

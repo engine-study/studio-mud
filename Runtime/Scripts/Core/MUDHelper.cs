@@ -12,6 +12,9 @@ using Nethereum.ABI.Model;
 using Nethereum.ABI.Util;
 using Nethereum.Util;
 using Vector3 = UnityEngine.Vector3;
+
+using Common = mud.Network.schemas.Common;
+
 // using Nethereum.JsonRpc.WebSocketStreamingClient;
 // using Nethereum.RPC.Eth.Blocks;
 // using Nethereum.Web3;
@@ -22,8 +25,12 @@ namespace mud.Client {
 
     public class MUDHelper : MonoBehaviour {
 
-        public static string EntityKeyToBytes32(string address) {
-            return "0x" + address.Replace("0x", "").PadLeft(64, '0').ToLower();
+        public static byte[] EntityToBytes32(string address) {
+            return Common.HexStringToByteArray(address);
+        }
+
+        public static string ByteArrayToHexString(byte[] array) {
+            return Common.ByteArrayToHexString(array);
         }
         
         public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {
@@ -229,13 +236,5 @@ namespace mud.Client {
             return abiValues;
         }
 
-        public static byte[] ToByteArray(string HexString) {
-            int NumberChars = HexString.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2) {
-                bytes[i / 2] = System.Convert.ToByte(HexString.Substring(i, 2), 16);
-            }
-            return bytes;
-        }
     }
 }
