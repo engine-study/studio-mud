@@ -39,12 +39,12 @@ namespace mud.Client {
         [SerializeField] private List<MUDComponent> requiredComponents;
         [NonSerialized] private MUDTableObject tableType;
 
+        private MUDEntity entity;
+        private TableManager tableManager;
+        private IMudTable activeTable;
 
         [Header("Debug")]
-        [SerializeField] private MUDEntity entity;
-        [SerializeField] private TableManager tableManager;
         [SerializeField] private UpdateInfo updateInfo, networkInfo;
-        [SerializeField] private IMudTable activeTable;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
         private IMudTable onchainTable;
