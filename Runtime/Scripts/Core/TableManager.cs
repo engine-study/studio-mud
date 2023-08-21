@@ -170,6 +170,10 @@ namespace mud.Client {
 
             if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.UpdateSource.ToString(), component);}
 
+            //TODO check if the update is equal to the current table, send event if it is
+            //probably do this on the table itself
+            //look at Record Equals() and test
+
             //send the update to the component
             Components[entityKey].DoUpdate(mudTable, newInfo);
             

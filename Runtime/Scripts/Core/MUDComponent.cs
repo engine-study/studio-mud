@@ -21,7 +21,7 @@ namespace mud.Client {
         public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
         public UpdateType UpdateType { get { return updateInfo.UpdateType; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnInit, OnLoaded, OnPostInit, OnUpdated;
+        public Action OnInit, OnLoaded, OnPostInit, OnUpdated, OnNewValues;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager TableManager { get { return tableManager; } }
 
