@@ -78,7 +78,7 @@ namespace mud.Client {
             Components = new Dictionary<string, MUDComponent>();
 
             if (TableDictionary.TableDict.ContainsKey(ComponentName)) {
-                Debug.LogError("Bad, multiple tables of same type " + ComponentType);
+                Debug.LogError("Bad, multiple tables of same type " + ComponentName);
                 return;
             }
 
