@@ -82,7 +82,7 @@ namespace mud.Client {
                 return;
             }
 
-            Debug.Log("Adding " + ComponentName + " Manager");
+            if(logTable) Debug.Log("Adding " + ComponentName + " Manager");
 
             TableDictionary.AddTable(this);
 
@@ -95,8 +95,9 @@ namespace mud.Client {
                 return;
             }
 
-            Subscribe(net);            
-            Debug.Log("Init: " + gameObject.name);
+            Subscribe(net);    
+
+            if(logTable) Debug.Log("Init: " + gameObject.name);
             
             hasInit = true;
             OnInit?.Invoke();
