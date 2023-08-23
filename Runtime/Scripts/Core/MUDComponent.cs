@@ -23,7 +23,7 @@ namespace mud.Client {
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public Action OnInit, OnLoaded, OnPostInit, OnUpdated, OnNewValues;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
-        public TableManager TableManager { get { return tableManager; } }
+        public TableManager Manager { get { return tableManager; } }
 
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
@@ -31,9 +31,6 @@ namespace mud.Client {
         public IMudTable TableReference { get { return GetTable(); }}
         public string TableName { get { return GetTable().TableType().Name; }}
         public Type TableType { get { return GetTable().TableType(); }}
-        public Type TableTypeUpdate { get { return GetTable().TableUpdateType(); }}
-        // public Type TableType { get { if (internalRef == null) LoadAssembly(); return internalRef.TableType(); } }
-        // public Type TableTypeUpdate { get { if (internalRef == null) LoadAssembly(); return internalRef.TableUpdateType(); } }
 
         [Header("Settings")]
         [SerializeField] private List<MUDComponent> requiredComponents;
@@ -96,9 +93,9 @@ namespace mud.Client {
 
             if(requiredComponents.Count > 0) {
 
-                ScanComponents(null);
+                HasLoadedAllComponents(null);
                 if(!loaded) {
-                    Entity.OnComponentAdded += ScanComponents;
+                    Entity.OnComponentAdded += HasLoadedAllComponents;
                 }
             } else {
                 FinishLoad();
@@ -120,17 +117,17 @@ namespace mud.Client {
 
         }
 
-        void ScanComponents(MUDComponent newComponent) {
+        void HasLoadedAllComponents(MUDComponent newComponent) {
 
             int components = 0;
             foreach(MUDComponent c in Entity.Components) {
-                if(requiredComponents.Contains( ComponentDictionary.FindPrefab(c) )) {
+                if(requiredComponents.Contains( c.Manager.Prefab )) {
                     components++;
                 }
             }
 
             if(components == requiredComponents.Count) {
-                Entity.OnComponentAdded -= ScanComponents;
+                Entity.OnComponentAdded -= HasLoadedAllComponents;
                 FinishLoad();
             }
         }
@@ -147,7 +144,7 @@ namespace mud.Client {
 
         protected virtual void InitDestroy() {
             tableManager.RegisterComponent(false, this);
-            Entity.OnComponentAdded -= ScanComponents;
+            Entity.OnComponentAdded -= HasLoadedAllComponents;
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
@@ -222,14 +219,17 @@ namespace mud.Client {
 
         }
 
-        void LoadAssembly() {
-            //find the mud namespace
-            Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
-            string namespaceName = tableType.TableName.Substring(0, tableType.TableName.IndexOf("."));
-            // Debug.Log("Namespace: " + namespaceName);
-            System.Reflection.Assembly a = System.Reflection.Assembly.Load(namespaceName);
-            Type t = a.GetType(tableType.TableName);
-            internalRef = (IMudTable)System.Activator.CreateInstance(t);
+        public void ToggleRequiredComponent(bool toggle, MUDComponent prefab) {
+
+            if(Loaded) {
+                Debug.LogError("Already loaded", this);
+            }
+
+            if(toggle) {
+                if (!requiredComponents.Contains(prefab)) { requiredComponents.Add(prefab); }
+            } else {
+                requiredComponents.Remove(prefab);
+            }
         }
 
     }

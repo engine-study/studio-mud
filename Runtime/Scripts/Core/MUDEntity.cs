@@ -87,24 +87,6 @@ namespace mud.Client {
             OnComponentAdded += InitEntityCheck;
         }
 
-
-        public async UniTask<T> GetMUDComponentAsync<T>(T component = null) where T : MUDComponent {
-
-            T getComponent = GetMUDComponent<T>(component);
-
-            int timeout = 10;
-            while (getComponent == null) {
-
-                timeout--;
-                if (timeout < 0) { return null; }
-
-                await UniTask.Delay(500);
-                getComponent = GetMUDComponent<T>(component);
-            }
-
-            return getComponent;
-        }
-
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
         public T GetMUDComponent<T>() where T : MUDComponent {
