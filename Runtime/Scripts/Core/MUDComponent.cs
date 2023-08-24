@@ -41,9 +41,10 @@ namespace mud.Client {
         private IMudTable activeTable;
 
         [Header("Debug")]
-        [SerializeField] private UpdateInfo updateInfo, networkInfo;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
+        [SerializeField] private UpdateInfo updateInfo, networkInfo;
+        
         private IMudTable onchainTable;
         private IMudTable overrideTable;
         private IMudTable optimisticTable;
