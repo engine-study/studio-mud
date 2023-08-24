@@ -12,7 +12,7 @@ namespace mud.Client {
         public System.Action OnSync, OnUpdate;
 
         [Header("Settings")]
-        [SerializeField] protected ComponentSyncType syncType;
+        [SerializeField] protected ComponentSyncType syncType = ComponentSyncType.Lerp;
 
         [Header("Debug")]
         [SerializeField] bool synced;
