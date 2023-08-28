@@ -22,7 +22,8 @@ namespace mud.Client
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
-            MUDComponent component = entity.AddComponent<T>(FindPrefab<T>(), tm);
+            SpawnInfo si = new SpawnInfo(entity, SpawnSource.InGame, tm);
+            MUDComponent component = entity.AddComponent<T>(FindPrefab<T>(), si);
             return component as T;
         }
 

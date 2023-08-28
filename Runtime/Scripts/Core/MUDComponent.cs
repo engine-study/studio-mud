@@ -6,24 +6,27 @@ using Cysharp.Threading.Tasks;
 using mud.Client;
 using NetworkManager = mud.Unity.NetworkManager;
 
-namespace mud.Client {
+namespace mud.Client
+{
 
+    public enum SpawnSource{Load, InGame}
     public enum UpdateSource {None, Onchain, Optimistic, Revert, Override}
+
     public abstract class MUDComponent : MonoBehaviour {
 
-        public MUDEntity Entity { get { return entity; } }
+        public MUDEntity Entity { get { return spawnInfo.Entity; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public IMudTable ActiveTable { get { return activeTable; } }
         public IMudTable OnchainTable { get { return onchainTable; } }
+        public SpawnInfo SpawnInfo {get{return spawnInfo;}}
         public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
-        public UpdateSource UpdateSource { get { return updateInfo.UpdateSource; } }
-        public UpdateType UpdateType { get { return updateInfo.UpdateType; } }
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnInit, OnLoaded, OnPostInit, OnUpdated, OnNewValues;
+        public Action OnComponentAwake, OnComponentsLoaded, OnStart;
+        public Action OnUpdated, OnStaleUpdate, OnRichUpdate, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
-        public TableManager Manager { get { return tableManager; } }
+        public TableManager Manager { get { return spawnInfo.Table; } }
 
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
@@ -36,13 +39,12 @@ namespace mud.Client {
         [SerializeField] private List<MUDComponent> requiredComponents;
         [NonSerialized] private MUDTableObject tableType;
 
-        private MUDEntity entity;
-        private TableManager tableManager;
-        private IMudTable activeTable;
+        private IMudTable activeTable, lastTable;
 
         [Header("Debug")]
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
+        [SerializeField] private SpawnInfo spawnInfo;
         [SerializeField] private UpdateInfo updateInfo, networkInfo;
         
         private IMudTable onchainTable;
@@ -61,26 +63,26 @@ namespace mud.Client {
 
         public MUDComponent() { }
 
-        public async void DoInit(MUDEntity ourEntity, TableManager ourTable) {
+        public async void DoInit(SpawnInfo spawnInfo) {
 
             //set up our entity and table hooks
-            Init(ourEntity, ourTable);
+            Init(spawnInfo);
             hasInit = true;
-            OnInit?.Invoke();
+            OnComponentAwake?.Invoke();
 
             //get our required components and other references
             await DoLoad();
         }
 
-        protected virtual void Init(MUDEntity ourEntity, TableManager ourTable) {
+        protected virtual void Init(SpawnInfo newSpawnInfo) {
 
             Debug.Assert(hasInit == false, "Double init", this);
             // Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
 
-            entity = ourEntity;
-            tableManager = ourTable;
+            spawnInfo = newSpawnInfo;
 
-            tableManager.RegisterComponent(true, this);
+            if(spawnInfo.Table)
+                spawnInfo.Table.RegisterComponent(true, this);
 
         }
 
@@ -108,10 +110,12 @@ namespace mud.Client {
             gameObject.SetActive(true);
 
             loaded = true;
-            OnLoaded?.Invoke();
+            OnComponentsLoaded?.Invoke();
 
             PostInit();
-            OnPostInit?.Invoke();
+            OnStart?.Invoke();
+            if (Manager.Loaded) { OnCreated?.Invoke(); }
+            
         }
 
         protected virtual void PostInit() {
@@ -144,7 +148,8 @@ namespace mud.Client {
         }
 
         protected virtual void InitDestroy() {
-            tableManager.RegisterComponent(false, this);
+            if(spawnInfo.Table)
+                spawnInfo.Table.RegisterComponent(false, this);
             Entity.OnComponentAdded -= HasLoadedAllComponents;
         }
 
@@ -157,19 +162,25 @@ namespace mud.Client {
             
             //update our internal table
             IngestUpdate(table, newInfo);
-
-            //use internal table to update component
             UpdateComponent(activeTable, newInfo);
-
-            FinishUpdate();
 
             OnUpdated?.Invoke();
             OnUpdatedInfo?.Invoke(this, newInfo);
+
+            if (IsRichUpdate()) {
+                UpdateComponentRich();
+                OnRichUpdate?.Invoke();
+            } else {
+                UpdateComponentInstant();
+                OnStaleUpdate?.Invoke();
+            }
+
         }
 
+        protected virtual bool IsRichUpdate() {return Loaded && UpdateInfo.Source != UpdateSource.Revert; } //&& !IMudTable.Equals(lastTable, activeTable)
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
 
-            if (newInfo.UpdateSource == UpdateSource.Onchain) {
+            if (newInfo.Source == UpdateSource.Onchain) {
                 //ONCHAIN update
 
                 if (newInfo.UpdateType == UpdateType.DeleteRecord) {
@@ -182,15 +193,15 @@ namespace mud.Client {
 
                 networkInfo = newInfo;
 
-            } else if (newInfo.UpdateSource == UpdateSource.Optimistic) {
+            } else if (newInfo.Source == UpdateSource.Optimistic) {
                 //OPTIMISTIC update
                 optimisticTable = table;
                 activeTable = optimisticTable;
-            } else if (newInfo.UpdateSource == UpdateSource.Override) {
+            } else if (newInfo.Source == UpdateSource.Override) {
                 //OVERRIde update
                 overrideTable = table;
                 activeTable = overrideTable;
-            } else if (newInfo.UpdateSource == UpdateSource.Revert) {
+            } else if (newInfo.Source == UpdateSource.Revert) {
                 //REVERT update (undo optimistic update)
                 Debug.Assert(onchainTable != null, "Reverting " + gameObject.name + ", but no onchain update", this);
 
@@ -209,16 +220,8 @@ namespace mud.Client {
 
         protected abstract IMudTable GetTable();
         protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateInfo newInfo);
-
-        void FinishUpdate() {
-
-            // if (NetworkState == UpdateType.DeleteRecord) {
-            //     gameObject.SetActive(false);
-            // } else if (gameObject.activeSelf == false) {
-            //     gameObject.SetActive(true);
-            // }
-
-        }
+        protected virtual void UpdateComponentInstant() { }
+        protected virtual void UpdateComponentRich() { }
 
         public void ToggleRequiredComponent(bool toggle, MUDComponent prefab) {
 

@@ -98,7 +98,7 @@ namespace mud.Client {
             return value as T;
         }
 
-        public T AddComponent<T>(T prefab, TableManager fromTable) where T : MUDComponent {
+        public T AddComponent<T>(T prefab, SpawnInfo newSpawnInfo) where T : MUDComponent {
             // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
             T c = GetMUDComponent(prefab);
 
@@ -114,12 +114,11 @@ namespace mud.Client {
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
                 componentDict.Add(c.GetType().Name, c);
-                expected.Add(prefab);
-                List<MUDComponent> newExpected = expected.Union(c.RequiredComponents).ToList();
-                expected = newExpected;
+
+                UpdateExpected(prefab);
 
                 //init it
-                c.DoInit(this, fromTable);
+                c.DoInit(newSpawnInfo);
                 c.OnUpdatedInfo += ComponentUpdate;
 
                 OnComponentAdded?.Invoke(c);
@@ -127,6 +126,12 @@ namespace mud.Client {
             }
 
             return c;
+        }
+
+        public void UpdateExpected(MUDComponent componentPrefab) {
+            expected.Add(componentPrefab);
+            List<MUDComponent> newExpected = expected.Union(componentPrefab.RequiredComponents).ToList();
+            expected = newExpected;
         }
 
 

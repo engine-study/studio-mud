@@ -14,8 +14,8 @@ namespace mud.Client {
 
     public class TableManager : MonoBehaviour {
 
-        public Action<bool, MUDComponent> OnComponentToggle;
-        public bool HasInit {get{return hasInit;}}
+        public Action<MUDComponent> OnComponentSpawned;
+        public bool Loaded {get{return hasInit;}}
         protected CompositeDisposable _disposers = new();
         protected mud.Unity.NetworkManager net; 
         public Action OnInit;
@@ -165,11 +165,12 @@ namespace mud.Client {
 
             //spawn the component if we can't find one
             if(component == null) {
-                component = entity.AddComponent(componentPrefab, this); 
-                OnComponentToggle?.Invoke(true, component);
+                SpawnInfo spawn = new SpawnInfo(entity, SpawnSource.Load, this);
+                component = entity.AddComponent(componentPrefab, spawn); 
+                OnComponentSpawned?.Invoke(component);
             }
 
-            if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.UpdateSource.ToString(), component);}
+            if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
@@ -179,8 +180,8 @@ namespace mud.Client {
             Components[entityKey].DoUpdate(mudTable, newInfo);
             
             //delete cleanup
-            if (newInfo.UpdateType == UpdateType.DeleteRecord && deletedRecordDestroysEntity) {
-                EntityDictionary.DestroyEntity(entityKey);
+            if (newInfo.UpdateType == UpdateType.DeleteRecord) {
+                if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
             }
 
         }

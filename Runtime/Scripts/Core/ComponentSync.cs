@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System;
 
 namespace mud.Client {
 
@@ -9,7 +10,7 @@ namespace mud.Client {
         public enum ComponentSyncType { Lerp, Instant }
 
         public MUDComponent SyncComponent {get{return targetComponent;}}
-        public System.Action OnSync, OnUpdate;
+        public Action OnAwake, OnUpdate, OnDelete;
 
         [Header("Settings")]
         [SerializeField] protected ComponentSyncType syncType = ComponentSyncType.Lerp;
@@ -28,7 +29,7 @@ namespace mud.Client {
             //do not let the update loop fire
             enabled = false;
             ourComponent = GetComponent<MUDComponent>();
-            ourComponent.OnInit += SetupSync;
+            ourComponent.OnComponentAwake += SetupSync;
         
         }
 
@@ -40,11 +41,11 @@ namespace mud.Client {
                 ourComponent.RequiredComponents.Add(componentPrefab);
             }
 
-            ourComponent.OnLoaded += DoSync;
+            ourComponent.OnComponentsLoaded += DoSync;
         }
 
         protected virtual void OnDestroy() {
-            if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
+            if (ourComponent) { ourComponent.OnComponentsLoaded -= DoSync; }
             if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
         }
 
@@ -59,7 +60,7 @@ namespace mud.Client {
 
             synced = true;
 
-            OnSync?.Invoke();
+            OnAwake?.Invoke();
         }
 
         void DoUpdate() {

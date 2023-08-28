@@ -8,7 +8,7 @@ public class Entity : MonoBehaviour
 
     [Header("Entity")]
     [SerializeField] protected bool hasInit = false; 
-
+    
     protected virtual void Awake() {
         
     }

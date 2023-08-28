@@ -99,17 +99,27 @@ namespace mud.Client {
     }
 
     [System.Serializable]
+    public class SpawnInfo {
+        public SpawnInfo(MUDEntity newEntity, SpawnSource newSpawnSource, TableManager newSpawnTable) {
+            Entity = newEntity;
+            Source = newSpawnSource;
+            Table = newSpawnTable;
+        }
+        public MUDEntity Entity { get; private set; }
+        public SpawnSource Source { get; private set; }
+        public TableManager Table { get; private set; }
+
+    }
+
+    [System.Serializable]
     public class UpdateInfo {
         public UpdateInfo(UpdateType newUpdateType, UpdateSource newSource) {
-            updateType = newUpdateType;
-            source = newSource;
+            UpdateType = newUpdateType;
+            Source = newSource;
         }
 
-        public UpdateType UpdateType {get{return updateType;}}
-        public UpdateSource UpdateSource {get{return source;}}
-
-        [SerializeField] private UpdateType updateType;
-        [SerializeField] private UpdateSource source;
+        public UpdateType UpdateType { get; private set; }
+        public UpdateSource Source { get; private set; }
     }
 
     [System.Serializable]

@@ -37,7 +37,11 @@ namespace mud.Client {
         [SerializeField] private float position = -1f;
 
         MUDComponent component;
+        bool init = false;
         void Awake() {
+
+            if (init) { return; }
+
             component = GetComponentInParent<MUDComponent>();
 
             if (!component) {
@@ -74,14 +78,14 @@ namespace mud.Client {
             if (component.HasInit) {
                 Init();
             } else {
-                component.OnLoaded += Init;
+                component.OnComponentsLoaded += Init;
             }
 
         }
 
         void OnDestroy() {
             if (component)
-                component.OnInit -= Init;
+                component.OnComponentAwake -= Init;
         }
         void Init() {
 
@@ -126,6 +130,8 @@ namespace mud.Client {
                 position = position * .01f;
                 transform.localPosition = Vector3.Lerp(minPos, maxPos, position);
             }
+
+            init = true;
         }
     }
 
