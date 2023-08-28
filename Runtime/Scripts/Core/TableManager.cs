@@ -35,7 +35,6 @@ namespace mud.Client {
         [Header("Settings")]
         public MUDComponent componentPrefab;
         public bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
-
         [Header("Behaviour")]
         public bool deletedRecordDestroysEntity = false;
 
@@ -45,6 +44,7 @@ namespace mud.Client {
 
         private IDisposable subscribe;
         bool hasInit;
+        bool firstUpdate = true;
 
         // public Dictionary<string, MUDComponent> Components;
 
@@ -118,11 +118,15 @@ namespace mud.Client {
         }
         
         
+        //TODO, what order do these lists update in? also what about SetField?
         private void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update)
         {
+            SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
+            firstUpdate = false;
+
             if (logTable) { Debug.Log(gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
-            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain));}
-            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain));}
+            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
+            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
         }
 
         public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
@@ -135,7 +139,7 @@ namespace mud.Client {
             );
         }
 
-        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo) {
+        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
             //process the table event to a key and the entity of that key
             string entityKey = newRecord.key;
 
@@ -147,10 +151,10 @@ namespace mud.Client {
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
             mudTable.RecordToTable(newRecord);
 
-            IngestTable(entityKey, mudTable, newInfo);
+            IngestTable(entityKey, mudTable, newInfo, newSpawn);
         }
 
-        protected virtual void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
+        protected virtual void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -165,7 +169,7 @@ namespace mud.Client {
 
             //spawn the component if we can't find one
             if(component == null) {
-                SpawnInfo spawn = new SpawnInfo(entity, SpawnSource.Load, this);
+                SpawnInfo spawn = new SpawnInfo(entity, newSpawn?.Source ?? (Loaded ? SpawnSource.InGame : SpawnSource.Load), this);
                 component = entity.AddComponent(componentPrefab, spawn); 
                 OnComponentSpawned?.Invoke(component);
             }
