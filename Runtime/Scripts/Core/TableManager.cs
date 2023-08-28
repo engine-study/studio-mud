@@ -131,12 +131,8 @@ namespace mud.Client {
 
         public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
             return NetworkManager.Instance.ds.OnDataStoreUpdate
-            .Where(
-                update => update.TableId == tableType.TableId.ToString() && update.Type == updateType
-            )
-            .Select(
-                update => tableType.CreateTypedRecord(update)
-            );
+            .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
+            .Select( update => tableType.CreateTypedRecord(update) );
         }
 
         protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {

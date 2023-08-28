@@ -45,7 +45,6 @@ namespace mud.Client {
             component = GetComponentInParent<MUDComponent>();
 
             if (!component) {
-                Debug.LogError("Can't find entity", this);
                 return;
             }
 
