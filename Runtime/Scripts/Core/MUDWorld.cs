@@ -29,6 +29,7 @@ namespace mud.Client
 
 
         public static TableManager FindTable<T>() where T : MUDComponent, new() {
+            //TODO we can't creat MUDComponent with new keyword
             MUDComponent refComponent = new T();
             TableDictionary.TableDict.TryGetValue(refComponent.TableName, out TableManager tm);
             return tm;
