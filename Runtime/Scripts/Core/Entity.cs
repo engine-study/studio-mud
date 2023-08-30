@@ -7,8 +7,7 @@ public class Entity : MonoBehaviour
     public bool HasInit{get{return hasInit;}}
 
     [Header("Entity")]
-    [SerializeField] protected bool hasInit = false; 
-    
+    [SerializeField] bool hasInit = false; 
     protected virtual void Awake() {
         
     }

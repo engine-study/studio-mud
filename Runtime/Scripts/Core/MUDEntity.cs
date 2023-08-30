@@ -20,10 +20,11 @@ namespace mud.Client {
 
 
         [Header("MUD")]
-        [SerializeField] protected string mudKey;
-        [SerializeField] protected string entityName;
-        [SerializeField] protected List<MUDComponent> components;
-        [SerializeField] protected List<MUDComponent> expected;
+        [SerializeField] string mudKey;
+        [SerializeField] string entityName;
+        [SerializeField] List<MUDComponent> components;
+        [SerializeField] List<MUDComponent> expected;
+
         public void SetName(string newName) {entityName = newName; gameObject.name = entityName;}
 
         protected override void Awake() {
@@ -52,13 +53,12 @@ namespace mud.Client {
 
         void DoInit() {
 
-            if (hasInit) {
+            if (HasInit) {
                 Debug.LogError("Double init", this);
                 return;
             }
 
             Init();
-            hasInit = true;
             OnInit?.Invoke();
         }
 
