@@ -64,7 +64,6 @@ namespace mud.Client {
 
         void DoUpdate() {
             UpdateSync();
-            if(syncType == ComponentSyncType.Lerp) { UpdateLerp(); }
             OnUpdate?.Invoke();
         }
 
