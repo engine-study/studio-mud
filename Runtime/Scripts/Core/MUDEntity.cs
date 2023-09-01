@@ -64,9 +64,8 @@ namespace mud.Client {
 
         protected async void InitEntityCheck(MUDComponent newComponent) {
 
-            if (components.Count < 1 || expected.Count > components.Count) {
-                return;
-            }
+            //entities must have at least one component and have loaded all expected components
+            if (components.Count < 1 || expected.Count > components.Count) { return; }
 
             OnComponentAdded -= InitEntityCheck;
             DoInit();
