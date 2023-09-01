@@ -24,7 +24,7 @@ namespace mud.Client
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public Action OnComponentAwake, OnComponentsLoaded, OnStart;
-        public Action OnUpdated, OnStaleUpdate, OnRichUpdate, OnCreated, OnDeleted;
+        public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager Manager { get { return spawnInfo.Table; } }
 
@@ -172,7 +172,7 @@ namespace mud.Client
                 OnRichUpdate?.Invoke();
             } else {
                 UpdateComponentInstant();
-                OnStaleUpdate?.Invoke();
+                OnInstantUpdate?.Invoke();
             }
 
         }
