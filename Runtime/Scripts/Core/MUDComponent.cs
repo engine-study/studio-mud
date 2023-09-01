@@ -156,7 +156,7 @@ namespace mud.Client
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
 
             if(table == null) {
-                Debug.LogError("No table", this);
+                Debug.LogError(gameObject.name + ": null table", this);
                 return;
             }
             
