@@ -17,6 +17,7 @@ namespace mud.Client
         public MUDEntity Entity { get { return spawnInfo.Entity; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
+        public bool IsOptimistic { get; private set; }
         public IMudTable ActiveTable { get { return activeTable; } }
         public IMudTable OnchainTable { get { return onchainTable; } }
         public SpawnInfo SpawnInfo {get{return spawnInfo;}}
@@ -24,7 +25,7 @@ namespace mud.Client
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
         public Action OnComponentAwake, OnComponentsLoaded, OnStart;
-        public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnCreated, OnDeleted;
+        public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager Manager { get { return spawnInfo.Table; } }
 
@@ -51,6 +52,14 @@ namespace mud.Client
         private IMudTable overrideTable;
         private IMudTable optimisticTable;
         private IMudTable internalRef;
+        private TxUpdate optimisticUpdate;
+        public void SetOptimistic(TxUpdate newUpdate) { 
+            if (optimisticUpdate != null && newUpdate != null) {
+                Debug.LogError(gameObject.name + ": already optimistic", this); return; 
+            }
+            optimisticUpdate = newUpdate;
+            IsOptimistic = optimisticUpdate != null;
+        }
 
         protected virtual void Awake() { 
             hasInit = false;
@@ -159,14 +168,17 @@ namespace mud.Client
                 Debug.LogError(gameObject.name + ": null table", this);
                 return;
             }
-            
+
+            mud.Client.IMudTable lastTable = activeTable;
+
             //update our internal table
             IngestUpdate(table, newInfo);
             UpdateComponent(activeTable, newInfo);
 
+            // if(lastTable == null || !lastTable.Equals(activeTable)) OnValueUpdated?.Invoke();
             OnUpdated?.Invoke();
             OnUpdatedInfo?.Invoke(this, newInfo);
-
+            
             if (IsRichUpdate()) {
                 UpdateComponentRich();
                 OnRichUpdate?.Invoke();
@@ -182,7 +194,6 @@ namespace mud.Client
 
             if (newInfo.Source == UpdateSource.Onchain) {
                 //ONCHAIN update
-
                 if (newInfo.UpdateType == UpdateType.DeleteRecord) {
                     //don't update activeTable in the event of a deletion, leave it to last onchain value
                     //in the case of a REVERT, then we can fall back to the last onchain value

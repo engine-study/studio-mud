@@ -17,9 +17,7 @@ namespace mud.Client {
         public static TxManager Instance;
         public static System.Action<bool> OnUpdate;
         public static System.Action<bool> OnTransaction;
-        public static bool InProgress;
-        //send transaction but revert our optimistic updates if it goes wrong
-        private static List<int> transactions = new List<int>();
+
         private static int transactionCount = 0;
         private static int transactionCompleted = 0;
 
@@ -27,35 +25,39 @@ namespace mud.Client {
 
         void Awake() {
             Instance = this;
-            transactions = new List<int>();
         }
         void OnDestroy() {
             Instance = null;
-            transactions = null;
             transactionCount = 0;
             transactionCompleted = 0;
         }
+    
+        public static bool CanSendTx { get { return transactionCompleted == transactionCount; } }
+
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
+            if (!CanSendTx) { return false; }
             return await Send<TFunction>(new List<TxUpdate> { update }, parameters);
         }
 
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
-            bool txSuccess = await Send<TFunction>(parameters);
+            if (!CanSendTx) { return false; }
 
-            if(!txSuccess) {
-                foreach (TxUpdate u in updates) { u.Revert(); }
-            }
+            UniTask<bool> tx = Send<TFunction>(parameters);
+            foreach (TxUpdate u in updates) { u.SetTx(tx); }
+
+            bool txSuccess = await tx;
+
+            foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
 
             return txSuccess;
         }
         
         public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
-            int txIndex = transactionCount;
-            transactionCount++;
+            if (!CanSendTx) { return false; }
 
-            while (transactionCompleted != txIndex) { await UniTask.Delay(200); }
             if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
+            transactionCount++;
 
             bool txSuccess = await SendDirect<TFunction>(parameters);
 
@@ -65,6 +67,7 @@ namespace mud.Client {
         }
 
         public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
             OnTransaction?.Invoke(txSuccess);
             return txSuccess;
@@ -135,10 +138,12 @@ namespace mud.Client {
         [SerializeField] private UpdateInfo info;
         [SerializeField] private MUDComponent component;
         [SerializeField] private IMudTable optimistic;
-        //TODO add TX status
+        [SerializeField] private UniTask<bool> tx;
         
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
             component = c;
+
+            if (c.IsOptimistic) { Debug.LogError(c.gameObject.name + ": Already optimistic.", c); return; }
 
             //derive table from component
             Type tableType = component.TableType;
@@ -149,12 +154,13 @@ namespace mud.Client {
                 //create an optimistic table
                 optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
                 optimistic.SetValues(tableParameters);
-
+                component.SetOptimistic(this);
                 component.DoUpdate(optimistic, info);
 
             } else if(newType == UpdateType.DeleteRecord) {
                 
                 //delete table
+                component.SetOptimistic(this);
                 component.DoUpdate(component.OnchainTable, info);
                 
             } else {
@@ -164,10 +170,21 @@ namespace mud.Client {
             OnUpdate?.Invoke(this);
         }
 
+        public void Complete(bool success) {
+
+            component.SetOptimistic(null);
+
+            if(success) {
+
+            } else {
+                Revert();
+            }
+
+            
+        }
         public void Revert() {
 
             info = new UpdateInfo(info.UpdateType, UpdateSource.Revert);
-            
             if (info.UpdateType == UpdateType.SetRecord) {
                 component.Destroy();
             } else if (info.UpdateType == UpdateType.SetField) {
@@ -180,6 +197,7 @@ namespace mud.Client {
 
         }
 
+        public void SetTx(UniTask<bool> newTX) { tx = newTX;}
 
 
 
