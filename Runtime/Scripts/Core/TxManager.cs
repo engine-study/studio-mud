@@ -43,7 +43,7 @@ namespace mud.Client {
             if (!CanSendTx) { return false; }
 
             UniTask<bool> tx = Send<TFunction>(parameters);
-            foreach (TxUpdate u in updates) { u.SetTx(tx); }
+            foreach (TxUpdate u in updates) { u.Apply(tx); }
 
             bool txSuccess = await tx;
 
@@ -132,7 +132,7 @@ namespace mud.Client {
 
     [System.Serializable]
     public class TxUpdate {
-        public static Action<TxUpdate> OnUpdate;
+        public static Action<TxUpdate> OnUpdated;
 
         public UpdateInfo Info {get{return info;}}
         [SerializeField] private UpdateInfo info;
@@ -141,23 +141,32 @@ namespace mud.Client {
         [SerializeField] private UniTask<bool> tx;
         
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
-            component = c;
-
+            
+            //to be safe don't let optimistic updates override optimistic components
             if (c.IsOptimistic) { Debug.LogError(c.gameObject.name + ": Already optimistic.", c); return; }
+
+            component = c;
 
             //derive table from component
             Type tableType = component.TableType;
             info = new UpdateInfo(newType, UpdateSource.Optimistic);
 
-            if(newType == UpdateType.SetRecord || newType == UpdateType.SetField) {
+            //create an optimistic table
+            optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
+            optimistic.SetValues(tableParameters);
 
-                //create an optimistic table
-                optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
-                optimistic.SetValues(tableParameters);
+        }
+
+        public void Apply(UniTask<bool> newTX) { 
+            
+            tx = newTX;
+            
+            if(info.UpdateType == UpdateType.SetRecord || info.UpdateType == UpdateType.SetField) {
+
                 component.SetOptimistic(this);
                 component.DoUpdate(optimistic, info);
 
-            } else if(newType == UpdateType.DeleteRecord) {
+            } else if(info.UpdateType == UpdateType.DeleteRecord) {
                 
                 //delete table
                 component.SetOptimistic(this);
@@ -167,7 +176,7 @@ namespace mud.Client {
                 Debug.LogError("?");
             }
 
-            OnUpdate?.Invoke(this);
+            OnUpdated?.Invoke(this);
         }
 
         public void Complete(bool success) {
@@ -193,11 +202,9 @@ namespace mud.Client {
                 component.DoUpdate(component.OnchainTable, info);
             }
 
-            OnUpdate?.Invoke(this);
+            OnUpdated?.Invoke(this);
 
         }
-
-        public void SetTx(UniTask<bool> newTX) { tx = newTX;}
 
 
 
