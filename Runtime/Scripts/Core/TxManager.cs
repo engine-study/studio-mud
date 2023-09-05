@@ -32,7 +32,7 @@ namespace mud.Client {
             transactionCompleted = 0;
         }
     
-        public static bool CanSendTx { get { return transactionCompleted == transactionCount; } }
+        public static bool CanSendTx { get { if(transactionCompleted != transactionCount) Debug.LogError("Too many transactions");  return transactionCompleted == transactionCount; } }
 
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
             if (!CanSendTx) { return false; }
@@ -48,7 +48,6 @@ namespace mud.Client {
             bool txSuccess = await tx;
 
             foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
-
             return txSuccess;
         }
         
@@ -94,7 +93,7 @@ namespace mud.Client {
 
         public static TxUpdate MakeOptimisticDelete(MUDComponent component) {
             //update the component
-            TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord);
+            TxUpdate update = new TxUpdate(component, UpdateType.DeleteRecord, null);
             return update;
         }
 
@@ -152,8 +151,13 @@ namespace mud.Client {
             info = new UpdateInfo(newType, UpdateSource.Optimistic);
 
             //create an optimistic table
-            optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
-            optimistic.SetValues(tableParameters);
+            if(info.UpdateType == UpdateType.SetRecord || info.UpdateType == UpdateType.SetField) {
+                optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
+                optimistic.SetValues(tableParameters);
+            } else {
+                if (component.OnchainTable == null) { Debug.LogError(component.gameObject.name + ": No onchain table", c); }
+                optimistic = component.OnchainTable;
+            }
 
         }
 
@@ -161,17 +165,12 @@ namespace mud.Client {
             
             tx = newTX;
             
+            component.SetOptimistic(this);
+
             if(info.UpdateType == UpdateType.SetRecord || info.UpdateType == UpdateType.SetField) {
-
-                component.SetOptimistic(this);
                 component.DoUpdate(optimistic, info);
-
             } else if(info.UpdateType == UpdateType.DeleteRecord) {
-                
-                //delete table
-                component.SetOptimistic(this);
                 component.DoUpdate(component.OnchainTable, info);
-                
             } else {
                 Debug.LogError("?");
             }
