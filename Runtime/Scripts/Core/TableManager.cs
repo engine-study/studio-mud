@@ -17,7 +17,6 @@ namespace mud.Client {
         public Action<MUDComponent> OnComponentSpawned;
         public bool Loaded {get{return hasInit;}}
         protected CompositeDisposable _disposers = new();
-        protected mud.Unity.NetworkManager net; 
         public Action OnInit;
         public Action OnAdded, OnUpdated, OnDeleted;
 
@@ -49,20 +48,18 @@ namespace mud.Client {
         // public Dictionary<string, MUDComponent> Components;
 
 
-        protected void Awake() {
+        private void Awake() {
             
             SpawnedComponents = new List<MUDComponent>();
 
         }
 
-        protected void Start() {
-
-            net = mud.Unity.NetworkManager.Instance;
+        private void Start() {
 
             if(NetworkManager.NetworkInitialized) {
-                DoInit(net);
+                DoInit();
             } else {
-                net.OnNetworkInitialized += DoInit;
+                NetworkManager.OnInitialized += DoInit;
             }
 
             if (componentPrefab == null) {
@@ -88,14 +85,14 @@ namespace mud.Client {
 
         }
 
-        void DoInit(NetworkManager nm) {
+        private void DoInit() {
 
             if(hasInit) {
                 Debug.LogError("Oh no, double Init", this);
                 return;
             }
 
-            Subscribe(net);    
+            Subscribe(NetworkManager.Instance);    
 
             if(logTable) Debug.Log("Init: " + gameObject.name);
             
@@ -104,18 +101,25 @@ namespace mud.Client {
 
         }   
 
-        protected void OnDestroy() {
+        private void OnDestroy() {
             _disposers?.Dispose();
-            net.OnNetworkInitialized -= DoInit;
+            NetworkManager.OnInitialized -= DoInit;
             TableDictionary.DeleteTable(this);
             subscribe?.Dispose();
         }
 
-        protected void Subscribe(mud.Unity.NetworkManager nm) {
-
+        private void Subscribe(mud.Unity.NetworkManager nm) {
             var query = new Query().In(componentPrefab.TableReference.TableId);
-            subscribe = ObservableExtensions.Subscribe(net.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);
+            subscribe = ObservableExtensions.Subscribe(nm.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);
         }
+
+        //old method        
+        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
+        //     return NetworkManager.Instance.ds.OnDataStoreUpdate
+        //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
+        //     .Select( update => tableType.CreateTypedRecord(update) );
+        // }
+
         
         
         //TODO, what order do these lists update in? also what about SetField?
@@ -127,12 +131,6 @@ namespace mud.Client {
             // if (logTable) { Debug.Log(gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
             foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
             foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
-        }
-
-        public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-            .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
-            .Select( update => tableType.CreateTypedRecord(update) );
         }
 
         protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
@@ -186,7 +184,7 @@ namespace mud.Client {
 
         }
 
-        public void RegisterComponent(bool toggle, MUDComponent component) {
+        public virtual void RegisterComponent(bool toggle, MUDComponent component) {
             if (toggle) {
                 if (SpawnedComponents.Contains(component)) {
                     Debug.LogError("Component already added", component);
