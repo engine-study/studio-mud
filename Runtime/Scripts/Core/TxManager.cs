@@ -40,7 +40,7 @@ namespace mud.Client {
         }
 
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
-            if (updates == null || updates.Count == 0 || updates.GetType() != typeof(TxUpdate)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
+            if (updates == null || updates.Count == 0 || updates.GetType() != typeof(List<TxUpdate>)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
             if (!CanSendTx) { return false; }
 
             UniTask<bool> tx = Send<TFunction>(parameters);
