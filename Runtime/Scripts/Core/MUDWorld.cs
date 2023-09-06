@@ -17,6 +17,7 @@ namespace mud.Client
             return (T)component;
         }
 
+        public static T FindOrMakeComponent<T>(MUDEntity entity) where T : MUDComponent, new() { return FindOrMakeComponent<T>(entity.Key); }
         public static T FindOrMakeComponent<T>(string entityKey) where T : MUDComponent, new() {
 
             //try to find the tablemanager
