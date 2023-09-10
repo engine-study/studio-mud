@@ -44,11 +44,13 @@ namespace mud.Client {
             if (!CanSendTx) { return false; }
 
             UniTask<bool> tx = Send<TFunction>(parameters);
+            
             foreach (TxUpdate u in updates) { u.Apply(tx); }
 
             bool txSuccess = await tx;
 
             foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
+
             return txSuccess;
         }
         

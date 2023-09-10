@@ -41,6 +41,7 @@ namespace mud.Client
         [NonSerialized] private MUDTableObject tableType;
 
         private IMudTable activeTable, lastTable;
+        private UpdateInfo lastInfo;
 
         [Header("Debug")]
         [SerializeField] private bool hasInit = false;
@@ -169,7 +170,8 @@ namespace mud.Client
                 return;
             }
 
-            mud.Client.IMudTable lastTable = activeTable;
+            lastTable = activeTable;
+            lastInfo = updateInfo;
 
             //update our internal table
             IngestUpdate(table, newInfo);
@@ -189,7 +191,11 @@ namespace mud.Client
 
         }
 
-        protected virtual bool IsRichUpdate() {return Loaded && UpdateInfo.Source != UpdateSource.Revert; } //&& !IMudTable.Equals(lastTable, activeTable)
+        protected virtual bool IsRichUpdate()
+        {
+            //check if onchain update connects to the local optimistic update?
+            bool wasNotOptimistic = lastInfo != null && lastInfo.Source != UpdateSource.Optimistic;
+            return Loaded && UpdateInfo.Source != UpdateSource.Revert && wasNotOptimistic;} //&& !IMudTable.Equals(lastTable, activeTable)
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
 
             if (newInfo.Source == UpdateSource.Onchain) {
