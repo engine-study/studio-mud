@@ -43,7 +43,7 @@ namespace mud.Client {
             if (updates == null || updates.Count == 0 || updates.GetType() != typeof(List<TxUpdate>)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
             if (!CanSendTx) { return false; }
 
-            UniTask<bool> tx = Send<TFunction>(parameters);
+            UniTask<bool> tx = SendSafe<TFunction>(parameters);
             
             foreach (TxUpdate u in updates) { u.Apply(tx); }
 
@@ -54,7 +54,7 @@ namespace mud.Client {
             return txSuccess;
         }
         
-        public static async UniTask<bool> Send<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+        public static async UniTask<bool> SendSafe<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
             if (!CanSendTx) { return false; }
 
