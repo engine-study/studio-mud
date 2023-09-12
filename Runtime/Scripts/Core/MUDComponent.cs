@@ -40,14 +40,13 @@ namespace mud.Client
         [SerializeField] private List<MUDComponent> requiredComponents;
         [NonSerialized] private MUDTableObject tableType;
 
-        private IMudTable activeTable, lastTable;
-        private UpdateInfo lastInfo;
+        private IMudTable activeTable;
 
         [Header("Debug")]
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
         [SerializeField] private SpawnInfo spawnInfo;
-        [SerializeField] private UpdateInfo updateInfo, networkInfo;
+        [SerializeField] private UpdateInfo updateInfo, networkInfo, lastInfo;
         
         private IMudTable onchainTable;
         private IMudTable overrideTable;
@@ -67,6 +66,7 @@ namespace mud.Client
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
             networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
         }
+
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
@@ -170,9 +170,6 @@ namespace mud.Client
                 return;
             }
 
-            lastTable = activeTable;
-            lastInfo = updateInfo;
-
             //update our internal table
             IngestUpdate(table, newInfo);
             UpdateComponent(activeTable, newInfo);
@@ -195,8 +192,14 @@ namespace mud.Client
         {
             //check if onchain update connects to the local optimistic update?
             bool wasNotOptimistic = lastInfo != null && lastInfo.Source != UpdateSource.Optimistic;
-            return Loaded && UpdateInfo.Source != UpdateSource.Revert && wasNotOptimistic;} //&& !IMudTable.Equals(lastTable, activeTable)
+            //&& !IMudTable.Equals(lastTable, activeTable)
+            return Loaded && UpdateInfo.Source != UpdateSource.Revert && wasNotOptimistic;
+        } 
+
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+
+            //cache last info
+            lastInfo = new UpdateInfo(updateInfo);
 
             if (newInfo.Source == UpdateSource.Onchain) {
                 //ONCHAIN update
