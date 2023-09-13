@@ -79,7 +79,7 @@ namespace mud.Client {
                 return;
             }
 
-            if(logTable) Debug.Log("Adding " + ComponentName + " Manager");
+            if(logTable) Debug.Log("[TABLE] " + "Adding " + ComponentName + " Manager");
 
             TableDictionary.AddTable(this);
 
@@ -94,7 +94,7 @@ namespace mud.Client {
 
             Subscribe(NetworkManager.Instance);    
 
-            if(logTable) Debug.Log("Init: " + gameObject.name);
+            if(logTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
             
             hasInit = true;
             OnInit?.Invoke();
@@ -128,7 +128,7 @@ namespace mud.Client {
             SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
             firstUpdate = false;
 
-            // if (logTable) { Debug.Log(gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
+            // if (logTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
             foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
             foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
         }
@@ -168,7 +168,7 @@ namespace mud.Client {
                 OnComponentSpawned?.Invoke(component);
             }
 
-            if (logTable) { Debug.Log(gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
+            if (logTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
