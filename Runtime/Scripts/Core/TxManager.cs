@@ -44,7 +44,7 @@ namespace mud.Client {
             if (updates == null || updates.Count == 0 || updates.GetType() != typeof(List<TxUpdate>)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
             if (!CanSendTx) { return false; }
 
-            UniTask<bool> tx = SendSafe<TFunction>(parameters);
+            UniTask<bool> tx = SendQueue<TFunction>(parameters);
             
             foreach (TxUpdate u in updates) { u.Apply(tx); }
 
@@ -57,7 +57,7 @@ namespace mud.Client {
         
 
         //only lets one transation send at a time
-        public static async UniTask<bool> SendSafe<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+        public static async UniTask<bool> SendQueue<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
             if (!CanSendTx) { return false; }
 
@@ -71,7 +71,23 @@ namespace mud.Client {
             return txSuccess;
         }
 
-        //sends tx directly, can send multiple
+
+        public static async UniTask<bool> SendUntilPasses<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() { return await SendUntilPasses<TFunction>(1500, 5, parameters); }
+        public static async UniTask<bool> SendUntilPasses<TFunction>(int millisecondDelay = 1500, int attempts = 5, params object[] parameters) where TFunction : FunctionMessage, new() {
+
+            int timeout = attempts;
+            bool txSuccess = false;
+
+            while(txSuccess == false && timeout > 0) {
+                txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+                if (!txSuccess) { attempts--; await UniTask.Delay(1500); }
+            }
+
+            return txSuccess;
+        }
+
+
+        //sends tx directly
         public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
