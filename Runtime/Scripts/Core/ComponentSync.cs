@@ -53,11 +53,8 @@ namespace mud.Client {
 
         void DoSync() {
 
-            enabled = true;
-
             InitComponents();
             InitialSync();
-            UpdateSync();
 
             synced = true;
 
@@ -77,9 +74,6 @@ namespace mud.Client {
             if(targetComponent == null) {
                 Debug.LogError("Couldn't find " + ourTable.Prefab.TableName + " to sync.", this);
             }
-            
-            //if we want to keep lerping towards the value we get, enable this component
-            enabled = syncType == ComponentSyncType.Lerp;
 
             //listen for further updates
             targetComponent.OnUpdated += DoUpdate;
