@@ -61,12 +61,10 @@ namespace mud.Client {
 
             if (!CanSendTx) { return false; }
 
-            if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
             transactionCount++;
 
             bool txSuccess = await SendDirect<TFunction>(parameters);
 
-            if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
             transactionCompleted++;
             return txSuccess;
         }
@@ -79,7 +77,7 @@ namespace mud.Client {
             bool txSuccess = false;
 
             while(txSuccess == false && timeout > 0) {
-                txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+                txSuccess = await SendDirect<TFunction>(parameters);
                 if (!txSuccess) { attempts--; await UniTask.Delay(1500); }
             }
 
@@ -89,8 +87,9 @@ namespace mud.Client {
 
         //sends tx directly
         public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
-
+            if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
             OnTransaction?.Invoke(txSuccess);
             return txSuccess;
         }
