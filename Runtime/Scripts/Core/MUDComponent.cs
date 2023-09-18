@@ -71,8 +71,6 @@ namespace mud.Client
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
 
-        public MUDComponent() { }
-
         public async void DoInit(SpawnInfo spawnInfo) {
 
             //set up our entity and table hooks

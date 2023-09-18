@@ -17,6 +17,7 @@ namespace mud.Client {
         public System.Action<MUDComponent, UpdateInfo> OnComponentUpdated;
         public System.Action OnInit, OnUpdated;
         Dictionary<string, MUDComponent> componentDict;
+        Dictionary<Type, MUDComponent> componentTypeDict;
 
 
         [Header("MUD")]
@@ -31,6 +32,8 @@ namespace mud.Client {
             base.Awake();
 
             componentDict = new Dictionary<string, MUDComponent>();
+            componentTypeDict = new Dictionary<Type, MUDComponent>();
+
             expected = new List<MUDComponent>();
             components = new List<MUDComponent>();
 
@@ -89,11 +92,11 @@ namespace mud.Client {
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
         public T GetMUDComponent<T>() where T : MUDComponent {
-            componentDict.TryGetValue(typeof(T).Name, out MUDComponent value);
+            componentTypeDict.TryGetValue(typeof(T), out MUDComponent value);
             return value as T;
         }
         public T GetMUDComponent<T>(T component) where T : MUDComponent {
-            componentDict.TryGetValue(component.GetType().Name, out MUDComponent value);
+            componentDict.TryGetValue(component.TableName, out MUDComponent value);
             return value as T;
         }
 
@@ -112,7 +115,8 @@ namespace mud.Client {
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
-                componentDict.Add(c.GetType().Name, c);
+                componentDict.Add(c.TableName, c);
+                componentTypeDict.Add(c.GetType(), c);
 
                 UpdateExpected(prefab);
 
@@ -142,6 +146,7 @@ namespace mud.Client {
                 c.OnUpdatedInfo -= ComponentUpdate;
                 components.Remove(c);
                 componentDict.Remove(c.GetType().Name);
+                componentTypeDict.Remove(c.GetType());
                 OnComponentRemoved?.Invoke(c);
             }
 

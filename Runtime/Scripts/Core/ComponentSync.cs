@@ -18,11 +18,11 @@ namespace mud.Client {
         [Header("Debug")]
         [SerializeField] bool synced;
         [SerializeField] MUDComponent targetComponent;
-        protected MUDComponent componentPrefab;
+        protected TableManager ourTable;
         protected MUDComponent ourComponent;
 
         //if we wanted to sync position, we would return the Position component class for example
-        public abstract MUDComponent SyncedComponent();
+        public abstract Type MUDTableType();
 
         protected virtual void Awake() {
 
@@ -35,10 +35,12 @@ namespace mud.Client {
 
         void SetupSync() {
 
-            componentPrefab = MUDWorld.FindPrefab(SyncedComponent().TableReference);
-            if (!ourComponent.RequiredComponents.Contains(componentPrefab)) {
+            ourTable = MUDWorld.FindTableByMUDTable(MUDTableType());
+
+            if(ourTable == null) {Debug.LogError("Could not find table " + MUDTableType().Name); return;}
+            if (!ourComponent.RequiredComponents.Contains(ourTable.Prefab)) {
                 // Debug.Log("Adding our required component.", gameObject);
-                ourComponent.RequiredComponents.Add(componentPrefab);
+                ourComponent.RequiredComponents.Add(ourTable.Prefab);
             }
 
             ourComponent.OnComponentsLoaded += DoSync;
@@ -70,10 +72,10 @@ namespace mud.Client {
         protected virtual void InitComponents() {
 
             //get our targetcomponent
-            targetComponent = ourComponent.Entity.GetMUDComponent(componentPrefab);
+            targetComponent = ourComponent.Entity.GetMUDComponent(ourTable.Prefab);
 
             if(targetComponent == null) {
-                Debug.LogError("Couldn't find " + componentPrefab.TableName + " to sync.", this);
+                Debug.LogError("Couldn't find " + ourTable.Prefab.TableName + " to sync.", this);
             }
             
             //if we want to keep lerping towards the value we get, enable this component

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,23 +30,10 @@ namespace mud.Client
         }
 
 
-        public static TableManager FindTable<T>() where T : MUDComponent, new() {
-            //TODO we can't creat MUDComponent with new keyword
-            MUDComponent refComponent = new T();
-            TableDictionary.TableDict.TryGetValue(refComponent.TableName, out TableManager tm);
-            return tm;
-        }
-
-        public static TableManager FindTable<T>(T c) where T : MUDComponent, new() {
-            MUDComponent refComponent = new T();
-            TableDictionary.TableDict.TryGetValue(refComponent.TableName, out TableManager tm);
-            return tm;
-        }
-
-        public static TableManager FindTableFromTable<T>(T c) where T : IMudTable {
-            TableDictionary.TableDict.TryGetValue(c.GetType().Name, out TableManager tm);
-            return tm;
-        }
+        public static TableManager FindTable<T>() where T : MUDComponent {TableDictionary.ComponentDict.TryGetValue(typeof(T), out TableManager tm); return tm;}
+        public static TableManager FindTable<T>(T c) where T : MUDComponent {TableDictionary.ComponentDict.TryGetValue(c.GetType(), out TableManager tm); return tm;}
+        public static TableManager FindTableByMUDTable(IMudTable mudTable) { TableDictionary.TableDict.TryGetValue(mudTable.GetType().Name, out TableManager tm); return tm; }
+        public static TableManager FindTableByMUDTable(Type mudTableType) { TableDictionary.TableDict.TryGetValue(mudTableType.Name, out TableManager tm); return tm; }
 
         public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
             T table = new T();
@@ -54,13 +42,8 @@ namespace mud.Client
         }
 
         
-        public static T FindPrefab<T>() where T : MUDComponent, new() {
-            return (T)FindTable<T>()?.Prefab;
-        }
-
-        public static MUDComponent FindPrefab(IMudTable c) {
-            return FindTableFromTable(c)?.Prefab;
-        }
+        public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)FindTable<T>()?.Prefab;}
+        public static MUDComponent FindPrefab(IMudTable table) { return FindTableByMUDTable(table)?.Prefab;}
 
     }
 }
