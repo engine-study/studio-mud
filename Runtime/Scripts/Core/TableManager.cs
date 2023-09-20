@@ -47,19 +47,21 @@ namespace mud.Client {
 
         // public Dictionary<string, MUDComponent> Components;
 
-
-        private void Awake() {
-            
-            SpawnedComponents = new List<MUDComponent>();
-
-        }
-
         private void Start() {
 
             if(NetworkManager.NetworkInitialized) {
                 DoInit();
             } else {
                 NetworkManager.OnInitialized += DoInit;
+            }
+
+        }
+
+        private void DoInit() {
+
+            if(hasInit) {
+                Debug.LogError("Oh no, double Init", this);
+                return;
             }
 
             if (componentPrefab == null) {
@@ -72,30 +74,19 @@ namespace mud.Client {
                 return;
             }
 
-            Components = new Dictionary<string, MUDComponent>();
-
             if (TableDictionary.TableDict.ContainsKey(ComponentName)) {
                 Debug.LogError("Bad, multiple tables of same type " + ComponentName);
                 return;
             }
 
-            if(logTable) Debug.Log("[TABLE] " + "Adding " + ComponentName + " Manager");
-
+            SpawnedComponents = new List<MUDComponent>();
+            Components = new Dictionary<string, MUDComponent>();
             TableDictionary.AddTable(this);
-
-        }
-
-        private void DoInit() {
-
-            if(hasInit) {
-                Debug.LogError("Oh no, double Init", this);
-                return;
-            }
 
             Subscribe(NetworkManager.Instance);    
 
             if(logTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
-            
+
             hasInit = true;
             OnInit?.Invoke();
 
@@ -109,6 +100,7 @@ namespace mud.Client {
         }
 
         private void Subscribe(mud.Unity.NetworkManager nm) {
+            
             var query = new Query().In(componentPrefab.TableReference.TableId);
             subscribe = ObservableExtensions.Subscribe(nm.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);
         }
