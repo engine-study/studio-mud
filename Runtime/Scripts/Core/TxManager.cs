@@ -207,8 +207,10 @@ namespace mud.Client {
 
         public void Complete(bool success) {
 
+            //not great but components cant release themselves from optimistic updates
+            //but we also want components to have gotten their update before we send new updates
             component.SetOptimistic(null);
-
+            
             if(success) {
 
             } else {
