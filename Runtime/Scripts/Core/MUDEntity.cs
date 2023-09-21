@@ -95,6 +95,12 @@ namespace mud.Client {
             componentTypeDict.TryGetValue(typeof(T), out MUDComponent value);
             return value as T;
         }
+
+        public MUDComponent GetMUDComponent(Type componentType) {
+            componentTypeDict.TryGetValue(componentType, out MUDComponent value);
+            return value;
+        }
+        
         public T GetMUDComponent<T>(T component) where T : MUDComponent {
             componentDict.TryGetValue(component.TableName, out MUDComponent value);
             return value as T;
