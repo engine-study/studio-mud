@@ -34,7 +34,7 @@ public class TableSpawner : MonoBehaviour {
 
             newTable.logTable = debugAllTables;
 
-            await UniTask.Delay(50);
+            await UniTask.Delay(100);
         }
 
         Loaded = true; 

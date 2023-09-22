@@ -49,7 +49,7 @@ namespace mud.Client {
 
         private void Start() {
 
-            if(NetworkManager.NetworkInitialized) {
+            if(NetworkManager.Initialized) {
                 DoInit();
             } else {
                 NetworkManager.OnInitialized += DoInit;
