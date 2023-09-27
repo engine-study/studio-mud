@@ -45,11 +45,12 @@ namespace mud.Client {
                 ourComponent.RequiredComponents.Add(ourTable.Prefab);
             }
 
-            ourComponent.OnLoaded += DoSync;
+            if(ourComponent.Loaded) {DoSync();}
+            else {ourComponent.OnLoaded += DoSync;}
         }
 
         protected virtual void OnDestroy() {
-            if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
+            if (ourComponent) { ourComponent.OnLoaded -= DoSync; ourComponent.OnInit -= SetupSync;}
             if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
         }
 

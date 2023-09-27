@@ -67,8 +67,10 @@ namespace mud.Client
 
             //set up our entity and table hooks
             Init(spawnInfo);
-            hasInit = true;
             
+            hasInit = true;
+            OnInit?.Invoke();
+
             //get our required components and other references
             await DoLoad();
         }
@@ -95,7 +97,6 @@ namespace mud.Client
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
             await UniTask.Delay(UnityEngine.Random.Range(100, 300));
-            OnInit?.Invoke();
 
             if(requiredComponents.Count > 0) {
 
