@@ -6,6 +6,7 @@ public class EntityDictionary : MonoBehaviour {
     public static System.Action OnEntitySpawned;
     public static System.Action OnEntityDestroyed;
     public static EntityDictionary Instance;
+    public static Transform Parent {get{return Instance.entityParent;}}
 
     private static Dictionary<string, MUDEntity> m_Entities;
     private static Dictionary<string, MUDEntity> m_chunkedEntities;

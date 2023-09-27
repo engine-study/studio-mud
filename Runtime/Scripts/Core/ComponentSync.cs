@@ -29,7 +29,9 @@ namespace mud.Client {
             //do not let the update loop fire
             enabled = false;
             ourComponent = GetComponent<MUDComponent>();
-            ourComponent.OnAwake += SetupSync;
+
+            if(ourComponent.HasInit) {SetupSync();}
+            else {ourComponent.OnInit += SetupSync;}
         
         }
 

@@ -171,7 +171,6 @@ namespace mud.Client {
 
             //send the update to the component
             Components[entityKey].DoUpdate(mudTable, newInfo);
-            
             OnComponentUpdated?.Invoke(component);
 
             //delete cleanup

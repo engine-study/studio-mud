@@ -25,7 +25,7 @@ namespace mud.Client
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         //TODO change this so that it checks the types, not the prefabs themselves
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnAwake, OnLoaded, OnStart;
+        public Action OnInit, OnLoaded, OnStart;
         public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager Manager { get { return spawnInfo.Table; } }
@@ -95,7 +95,7 @@ namespace mud.Client
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
             await UniTask.Delay(UnityEngine.Random.Range(100, 300));
-            OnAwake?.Invoke();
+            OnInit?.Invoke();
 
             if(requiredComponents.Count > 0) {
 

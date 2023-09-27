@@ -84,7 +84,7 @@ namespace mud.Client {
 
         void OnDestroy() {
             if (component)
-                component.OnAwake -= Init;
+                component.OnInit -= Init;
         }
         void Init() {
 
