@@ -40,9 +40,9 @@ namespace mud.Client {
             ourTable = MUDWorld.FindTable(MUDComponentType());
             
             if(ourTable == null) {Debug.LogError("Could not find table " + MUDComponentType().Name); return;}
-            if (!ourComponent.RequiredComponents.Contains(ourTable.Prefab)) {
+            if (!ourComponent.RequiredTypes.Contains(ourTable.Prefab.GetType())) {
                 // Debug.Log("Adding our required component.", gameObject);
-                ourComponent.RequiredComponents.Add(ourTable.Prefab);
+                ourComponent.RequiredTypes.Add(ourTable.Prefab.GetType());
             }
 
             if(ourComponent.Loaded) {DoSync();}

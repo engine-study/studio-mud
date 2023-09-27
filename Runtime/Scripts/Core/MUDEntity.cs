@@ -11,7 +11,7 @@ namespace mud.Client {
         public string Key { get { return mudKey; } }
         public string Name {get{return entityName;}}
         public List<MUDComponent> Components { get { return components; } }
-        public List<MUDComponent> ExpectedComponents { get { return expected; } }
+        public List<Type> ExpectedComponents { get { return expected; } }
         public Action OnComponent;
         public Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public Action<MUDComponent, UpdateInfo> OnComponentUpdated;
@@ -25,29 +25,24 @@ namespace mud.Client {
         [SerializeField] string mudKey;
         [SerializeField] string entityName;
         [SerializeField] List<MUDComponent> components;
-        [SerializeField] List<MUDComponent> expected;
+        [SerializeField] List<Type> expected;
 
         public void SetName(string newName) {entityName = newName; gameObject.name = entityName;}
 
-        protected override void Awake() {
-            base.Awake();
+        public void InitEntity(string newKey) {
+            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
+            mudKey = newKey;
 
             componentDict = new Dictionary<string, MUDComponent>();
             componentTypeDict = new Dictionary<Type, MUDComponent>();
 
-            expected = new List<MUDComponent>();
+            expected = new List<Type>();
             components = new List<MUDComponent>();
-
-        }
-
-        
-        public void InitEntity(string newKey) {
-            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
-            mudKey = newKey;
         }
 
         //entities must have at least one component and have loaded all expected components
         void HandleNewComponent(MUDComponent newComponent) {
+
             if(HasInit) {
                 
             } else {
@@ -58,9 +53,16 @@ namespace mud.Client {
 
         //let our added components update the amount of expected components
         public void UpdateExpected(MUDComponent componentPrefab) {
-            expected.Add(componentPrefab);
-            List<MUDComponent> newExpected = expected.Union(componentPrefab.RequiredComponents).ToList();
-            expected = newExpected;
+
+            //add the component itself to the expected list, and all its required types
+            Type newComponentType = componentPrefab.GetType();
+            if(expected.Contains(newComponentType) == false) {expected.Add(newComponentType);}
+
+            for(int i = 0; i < componentPrefab.RequiredPrefabs.Count; i++) {
+                Type t = componentPrefab.RequiredPrefabs[i].GetType();
+                if(expected.Contains(t)) continue;
+                expected.Add(t);
+            }
         }
 
         void DoInit() {

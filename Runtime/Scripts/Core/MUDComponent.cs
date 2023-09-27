@@ -24,7 +24,8 @@ namespace mud.Client
         public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
         //TODO change this so that it checks the types, not the prefabs themselves
-        public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
+        public List<Type> RequiredTypes { get { return requiredTypes; } }
+        public List<MUDComponent> RequiredPrefabs { get { return requiredComponents; } }
         public Action OnInit, OnLoaded, OnStart;
         public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
@@ -39,6 +40,7 @@ namespace mud.Client
 
         [Header("Settings")]
         [SerializeField] private List<MUDComponent> requiredComponents;
+        [SerializeField] private List<Type> requiredTypes;
         [NonSerialized] private MUDTableObject tableType;
 
         private IMudTable activeTable;
@@ -67,7 +69,7 @@ namespace mud.Client
 
             //set up our entity and table hooks
             Init(spawnInfo);
-            
+
             hasInit = true;
             OnInit?.Invoke();
 
@@ -79,6 +81,8 @@ namespace mud.Client
 
             Debug.Assert(hasInit == false, "Double init", this);
 
+            requiredTypes = new List<Type>();
+            for(int i = 0; i < requiredComponents.Count; i++) {requiredTypes.Add(requiredComponents[i].GetType());}
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
             networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
 
@@ -96,20 +100,18 @@ namespace mud.Client
 
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
-            await UniTask.Delay(UnityEngine.Random.Range(100, 300));
+            await UniTask.Delay(200);
 
-            if(requiredComponents.Count > 0) {
-
-                HasLoadedAllComponents(null);
-                if(!loaded) {
-                    Entity.OnComponentAdded += HasLoadedAllComponents;
-                }
-            } else {
+            if(HasLoadedAllComponents()) {
                 FinishLoad();
+            } else {
+                Entity.OnComponentAdded += EntityComponentUpdate;
             }
         }
 
         void FinishLoad() {
+            Debug.Assert(loaded == false, "Already loaded", this);
+            Entity.OnComponentAdded -= EntityComponentUpdate;
 
             gameObject.SetActive(true);
 
@@ -126,19 +128,21 @@ namespace mud.Client
 
         }
 
-        void HasLoadedAllComponents(MUDComponent newComponent) {
+        void EntityComponentUpdate(MUDComponent newComponent) {
+            HasLoadedAllComponents();
+        }
+
+        bool HasLoadedAllComponents() {
 
             int components = 0;
             foreach(MUDComponent c in Entity.Components) {
-                if(requiredComponents.Contains( c.Manager.Prefab )) {
+                if(requiredTypes.Contains( c.Manager.Prefab.GetType() )) {
                     components++;
                 }
             }
 
-            if(components == requiredComponents.Count) {
-                Entity.OnComponentAdded -= HasLoadedAllComponents;
-                FinishLoad();
-            }
+            return components == requiredTypes.Count;
+
         }
 
         public virtual void Destroy() {
@@ -152,9 +156,8 @@ namespace mud.Client
         }
 
         protected virtual void InitDestroy() {
-            if(spawnInfo.Table)
-                spawnInfo.Table.RegisterComponent(false, this);
-            Entity.OnComponentAdded -= HasLoadedAllComponents;
+            if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(false, this);}
+            if(Entity) {Entity.OnComponentAdded -= EntityComponentUpdate;}
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
@@ -252,9 +255,13 @@ namespace mud.Client
             }
 
             if(toggle) {
-                if (!requiredComponents.Contains(prefab)) { requiredComponents.Add(prefab); }
+                if (!requiredComponents.Contains(prefab)) { 
+                    requiredComponents.Add(prefab); 
+                    requiredTypes.Add(prefab.GetType());
+                }
             } else {
                 requiredComponents.Remove(prefab);
+                requiredTypes.Remove(prefab.GetType());
             }
         }
 

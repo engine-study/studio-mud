@@ -21,7 +21,8 @@ namespace mud.Client {
 
 
         //dictionary of all entities        
-        public Type ComponentType { get { return componentPrefab.TableType; } }
+        public Type ComponentType { get { return componentPrefab.GetType(); } }
+        public Type MUDTableType { get { return componentPrefab.TableType; } }
         public string ComponentName { get { return componentPrefab.TableName; } }
 
         //dictionary of all the components this specific table has
