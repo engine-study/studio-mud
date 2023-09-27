@@ -6,11 +6,15 @@ using Cysharp.Threading.Tasks;
 
 public class TableSpawner : MonoBehaviour {
 
-    public static bool Loaded = false; 
+    public bool Loaded {get{return loaded;}} 
     public static System.Action OnComplete;
     
+    [Header("Spawner")]
     [SerializeField] bool debugAllTables;
     [SerializeField] private MUDComponent[] spawnTables;
+
+    [Header("Debug")]
+    [SerializeField] bool loaded;
 
 
     async void Start() {
@@ -18,7 +22,7 @@ public class TableSpawner : MonoBehaviour {
     }
 
     void OnDestroy() {
-        Loaded = false; 
+        loaded = false; 
     }
 
     async UniTask LoadTables() {
@@ -37,7 +41,7 @@ public class TableSpawner : MonoBehaviour {
             await UniTask.Delay(100);
         }
 
-        Loaded = true; 
+        loaded = true; 
         OnComplete?.Invoke();
     }
 

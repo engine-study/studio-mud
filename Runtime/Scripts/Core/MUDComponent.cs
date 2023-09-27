@@ -14,7 +14,7 @@ namespace mud.Client
 
     public abstract class MUDComponent : MonoBehaviour {
 
-        public MUDEntity Entity { get { return spawnInfo.Entity; } }
+        public MUDEntity Entity { get { return entity; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public bool IsOptimistic { get; private set; }
@@ -23,8 +23,9 @@ namespace mud.Client
         public SpawnInfo SpawnInfo {get{return spawnInfo;}}
         public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
+        //TODO change this so that it checks the types, not the prefabs themselves
         public List<MUDComponent> RequiredComponents { get { return requiredComponents; } }
-        public Action OnComponentAwake, OnComponentsLoaded, OnStart;
+        public Action OnAwake, OnLoaded, OnStart;
         public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager Manager { get { return spawnInfo.Table; } }
@@ -43,30 +44,21 @@ namespace mud.Client
         private IMudTable activeTable;
 
         [Header("Debug")]
+        [SerializeField] private MUDEntity entity;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
         [SerializeField] private SpawnInfo spawnInfo;
         [SerializeField] private UpdateInfo updateInfo, networkInfo, lastInfo;
         
+        //tables
         private IMudTable onchainTable;
         private IMudTable overrideTable;
         private IMudTable optimisticTable;
         private IMudTable internalRef;
         private TxUpdate optimisticUpdate;
-        public void SetOptimistic(TxUpdate newUpdate) { 
-            if (optimisticUpdate != null && newUpdate != null) {
-                Debug.LogError(gameObject.name + ": already optimistic", this); return; 
-            }
-            optimisticUpdate = newUpdate;
-            IsOptimistic = optimisticUpdate != null;
-        }
 
-        protected virtual void Awake() { 
-            hasInit = false;
-            updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
-            networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
-        }
 
+        protected virtual void Awake() { }
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
@@ -76,8 +68,7 @@ namespace mud.Client
             //set up our entity and table hooks
             Init(spawnInfo);
             hasInit = true;
-            OnComponentAwake?.Invoke();
-
+            
             //get our required components and other references
             await DoLoad();
         }
@@ -85,12 +76,15 @@ namespace mud.Client
         protected virtual void Init(SpawnInfo newSpawnInfo) {
 
             Debug.Assert(hasInit == false, "Double init", this);
+
+            updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
+            networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
+
             // Debug.Assert(tableType != null, gameObject.name + ": no table reference.", this);
-
             spawnInfo = newSpawnInfo;
+            entity = spawnInfo.Entity;
 
-            if(spawnInfo.Table)
-                spawnInfo.Table.RegisterComponent(true, this);
+            if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(true, this);}
 
         }
 
@@ -100,7 +94,8 @@ namespace mud.Client
 
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
-            await UniTask.Delay(UnityEngine.Random.Range(100, 200));
+            await UniTask.Delay(UnityEngine.Random.Range(100, 300));
+            OnAwake?.Invoke();
 
             if(requiredComponents.Count > 0) {
 
@@ -118,7 +113,7 @@ namespace mud.Client
             gameObject.SetActive(true);
 
             loaded = true;
-            OnComponentsLoaded?.Invoke();
+            OnLoaded?.Invoke();
 
             PostInit();
             OnStart?.Invoke();
@@ -234,6 +229,14 @@ namespace mud.Client
 
             updateInfo = newInfo;
 
+        }
+
+        public void SetOptimistic(TxUpdate newUpdate) { 
+            if (optimisticUpdate != null && newUpdate != null) {
+                Debug.LogError(gameObject.name + ": already optimistic", this); return; 
+            }
+            optimisticUpdate = newUpdate;
+            IsOptimistic = optimisticUpdate != null;
         }
 
         protected abstract IMudTable GetTable();

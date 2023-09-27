@@ -22,32 +22,32 @@ namespace mud.Client {
         protected MUDComponent ourComponent;
 
         //if we wanted to sync position, we would return the Position component class for example
-        public abstract Type MUDTableType();
+        public abstract Type MUDComponentType();
 
         protected virtual void Awake() {
 
             //do not let the update loop fire
             enabled = false;
             ourComponent = GetComponent<MUDComponent>();
-            ourComponent.OnComponentAwake += SetupSync;
+            ourComponent.OnAwake += SetupSync;
         
         }
 
         void SetupSync() {
 
-            ourTable = MUDWorld.FindTableByMUDTable(MUDTableType());
-
-            if(ourTable == null) {Debug.LogError("Could not find table " + MUDTableType().Name); return;}
+            ourTable = MUDWorld.FindTable(MUDComponentType());
+            
+            if(ourTable == null) {Debug.LogError("Could not find table " + MUDComponentType().Name); return;}
             if (!ourComponent.RequiredComponents.Contains(ourTable.Prefab)) {
                 // Debug.Log("Adding our required component.", gameObject);
                 ourComponent.RequiredComponents.Add(ourTable.Prefab);
             }
 
-            ourComponent.OnComponentsLoaded += DoSync;
+            ourComponent.OnLoaded += DoSync;
         }
 
         protected virtual void OnDestroy() {
-            if (ourComponent) { ourComponent.OnComponentsLoaded -= DoSync; }
+            if (ourComponent) { ourComponent.OnLoaded -= DoSync; }
             if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
         }
 
@@ -57,28 +57,22 @@ namespace mud.Client {
             InitialSync();
 
             synced = true;
-
             OnAwake?.Invoke();
         }
 
-        void DoUpdate() {
-            UpdateSync();
-            OnUpdate?.Invoke();
-        }
-
         protected virtual void InitComponents() {
-
             //get our targetcomponent
-            targetComponent = ourComponent.Entity.GetMUDComponent(ourTable.Prefab);
-
-            if(targetComponent == null) {
-                Debug.LogError("Couldn't find " + ourTable.Prefab.TableName + " to sync.", this);
-            }
+            targetComponent = ourComponent.Entity.GetMUDComponent(MUDComponentType());
+            if(targetComponent == null) { Debug.LogError("Couldn't find " + MUDComponentType() + " to sync.", this);}
 
             //listen for further updates
             targetComponent.OnUpdated += DoUpdate;
-            
+        }
 
+        void DoUpdate() {
+            if(!synced) {Debug.LogError(gameObject.name + " updated before sync.");}
+            UpdateSync();
+            OnUpdate?.Invoke();
         }
 
         //first initial sync with network values

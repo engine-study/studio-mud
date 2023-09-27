@@ -77,14 +77,14 @@ namespace mud.Client {
             if (component.HasInit) {
                 Init();
             } else {
-                component.OnComponentsLoaded += Init;
+                component.OnLoaded += Init;
             }
 
         }
 
         void OnDestroy() {
             if (component)
-                component.OnComponentAwake -= Init;
+                component.OnAwake -= Init;
         }
         void Init() {
 

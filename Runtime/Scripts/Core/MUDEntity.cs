@@ -12,10 +12,11 @@ namespace mud.Client {
         public string Name {get{return entityName;}}
         public List<MUDComponent> Components { get { return components; } }
         public List<MUDComponent> ExpectedComponents { get { return expected; } }
-        public System.Action OnComponent;
-        public System.Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
-        public System.Action<MUDComponent, UpdateInfo> OnComponentUpdated;
-        public System.Action OnInit, OnUpdated;
+        public Action OnComponent;
+        public Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
+        public Action<MUDComponent, UpdateInfo> OnComponentUpdated;
+        public Action OnInit, OnUpdated;
+        public Action<MUDEntity> OnInitInfo, OnUpdatedInfo;
         Dictionary<string, MUDComponent> componentDict;
         Dictionary<Type, MUDComponent> componentTypeDict;
 
@@ -39,19 +40,27 @@ namespace mud.Client {
 
         }
 
-        protected override void Start() {
-            base.Start();
-
+        
+        public void InitEntity(string newKey) {
+            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
+            mudKey = newKey;
         }
 
-        public override void Init() {
-            base.Init();
-
-            if (string.IsNullOrEmpty(mudKey)) {
-                Debug.LogError("NO entity key");
-                return;
+        //entities must have at least one component and have loaded all expected components
+        void HandleNewComponent(MUDComponent newComponent) {
+            if(HasInit) {
+                
+            } else {
+                if (components.Count < 1 || expected.Count > components.Count) { return; }
+                DoInit();
             }
+        }
 
+        //let our added components update the amount of expected components
+        public void UpdateExpected(MUDComponent componentPrefab) {
+            expected.Add(componentPrefab);
+            List<MUDComponent> newExpected = expected.Union(componentPrefab.RequiredComponents).ToList();
+            expected = newExpected;
         }
 
         void DoInit() {
@@ -62,17 +71,19 @@ namespace mud.Client {
             }
 
             Init();
+
             OnInit?.Invoke();
+            OnInitInfo?.Invoke(this);
         }
 
-        protected async void InitEntityCheck(MUDComponent newComponent) {
 
-            //entities must have at least one component and have loaded all expected components
-            if (components.Count < 1 || expected.Count > components.Count) { return; }
+        public override void Init() {
+            base.Init();
 
-            OnComponentAdded -= InitEntityCheck;
-            DoInit();
-
+            if (string.IsNullOrEmpty(mudKey)) {
+                Debug.LogError("NO entity key");
+                return;
+            }
         }
 
         protected override void Destroy() {
@@ -83,11 +94,6 @@ namespace mud.Client {
             }
         }
 
-        public void InitEntity(string newKey) {
-            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
-            mudKey = newKey;
-            OnComponentAdded += InitEntityCheck;
-        }
 
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
@@ -132,17 +138,12 @@ namespace mud.Client {
 
                 OnComponentAdded?.Invoke(c);
                 OnComponent?.Invoke();
+
+                HandleNewComponent(c);
             }
 
             return c;
         }
-
-        public void UpdateExpected(MUDComponent componentPrefab) {
-            expected.Add(componentPrefab);
-            List<MUDComponent> newExpected = expected.Union(componentPrefab.RequiredComponents).ToList();
-            expected = newExpected;
-        }
-
 
         public void RemoveComponent(MUDComponent c) {
 
@@ -165,6 +166,7 @@ namespace mud.Client {
         void ComponentUpdate(MUDComponent c, UpdateInfo i) {
             OnComponentUpdated?.Invoke(c, i);
             OnUpdated?.Invoke();
+            OnUpdatedInfo?.Invoke(this);
         }
 
 

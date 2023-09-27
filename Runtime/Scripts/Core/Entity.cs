@@ -8,29 +8,20 @@ public class Entity : MonoBehaviour
 
     [Header("Entity")]
     [SerializeField] bool hasInit = false; 
-    protected virtual void Awake() {
-        
-    }
 
-    protected virtual void Start()
-    {
-       
-    }
+    protected virtual void Awake() { }
+    protected virtual void Start() { }
 
-    public virtual void Init()
-    {   
+    public virtual void Init() {   
         hasInit = true; 
     }
 
-    protected virtual void OnDestroy()
-    {
+    protected virtual void OnDestroy() {
         if(hasInit) {
             Destroy();
         }
     }
 
-    protected virtual void Destroy() {
-
-    }
+    protected virtual void Destroy() {}
  
 }

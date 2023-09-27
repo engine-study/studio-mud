@@ -14,9 +14,8 @@ namespace mud.Client {
 
     public class TableManager : MonoBehaviour {
 
-        public Action<MUDComponent> OnComponentSpawned;
+        public Action<MUDComponent> OnComponentSpawned, OnComponentUpdated;
         public bool Loaded {get{return hasInit;}}
-        protected CompositeDisposable _disposers = new();
         public Action OnInit;
         public Action OnAdded, OnUpdated, OnDeleted;
 
@@ -34,30 +33,32 @@ namespace mud.Client {
         [Header("Settings")]
         public MUDComponent componentPrefab;
         public bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
+
         [Header("Behaviour")]
+        public bool autoSpawn = true;
         public bool deletedRecordDestroysEntity = false;
 
         [Header("Debug")]
         public bool logTable = false;
         public List<MUDComponent> SpawnedComponents;
 
-        private IDisposable subscribe;
+        CompositeDisposable _disposers = new();
         bool hasInit;
         bool firstUpdate = true;
 
         // public Dictionary<string, MUDComponent> Components;
 
-        private void Start() {
+        void Start() {
 
             if(NetworkManager.Initialized) {
                 DoInit();
             } else {
                 NetworkManager.OnInitialized += DoInit;
             }
-
+        
         }
 
-        private void DoInit() {
+        void DoInit() {
 
             if(hasInit) {
                 Debug.LogError("Oh no, double Init", this);
@@ -83,26 +84,30 @@ namespace mud.Client {
             Components = new Dictionary<string, MUDComponent>();
             TableDictionary.AddTable(this);
 
-            Subscribe(NetworkManager.Instance);    
-
             if(logTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
 
             hasInit = true;
             OnInit?.Invoke();
 
+            if(autoSpawn) {
+                SubscribeAll();    
+            }
         }   
 
-        private void OnDestroy() {
+        void OnDestroy() {
             _disposers?.Dispose();
             NetworkManager.OnInitialized -= DoInit;
             TableDictionary.DeleteTable(this);
-            subscribe?.Dispose();
         }
 
-        private void Subscribe(mud.Unity.NetworkManager nm) {
-            
+        //loads a chunk and updates them (TODO how do we prevent double subscribes?)
+        public void SubscribeAll() {
             var query = new Query().In(componentPrefab.TableReference.TableId);
-            subscribe = ObservableExtensions.Subscribe(nm.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate);
+            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));        
+        }
+
+        public void Subscribe(Query query) {
+            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));
         }
 
         //old method        
@@ -111,12 +116,10 @@ namespace mud.Client {
         //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
         //     .Select( update => tableType.CreateTypedRecord(update) );
         // }
-
-        
         
         //TODO, what order do these lists update in? also what about SetField?
-        private void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update)
-        {
+        void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update) {
+
             SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
             firstUpdate = false;
 
@@ -169,6 +172,8 @@ namespace mud.Client {
             //send the update to the component
             Components[entityKey].DoUpdate(mudTable, newInfo);
             
+            OnComponentUpdated?.Invoke(component);
+
             //delete cleanup
             if (newInfo.UpdateType == UpdateType.DeleteRecord) {
                 if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
