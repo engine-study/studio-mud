@@ -14,7 +14,7 @@ namespace mud.Client
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
             MUDComponent component = null;
-            tm?.Components.TryGetValue(entity, out component);
+            tm?.ComponentDict.TryGetValue(entity, out component);
             return (T)component;
         }
 

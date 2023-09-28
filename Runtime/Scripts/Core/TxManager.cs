@@ -174,7 +174,7 @@ namespace mud.Client {
             component = c;
 
             //derive table from component
-            Type tableType = component.TableType;
+            Type tableType = component.MUDTableType;
             info = new UpdateInfo(newType, UpdateSource.Optimistic);
 
             //create an optimistic table

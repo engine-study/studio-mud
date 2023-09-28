@@ -8,6 +8,7 @@ using NetworkManager = mud.Unity.NetworkManager;
 using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
+using UnityEditor;
 
 namespace mud.Client {
 
@@ -22,26 +23,26 @@ namespace mud.Client {
 
         //dictionary of all entities        
         public Type ComponentType { get { return componentPrefab.GetType(); } }
-        public Type MUDTableType { get { return componentPrefab.TableType; } }
-        public string ComponentName { get { return componentPrefab.TableName; } }
+        public string ComponentName { get { return componentPrefab.MUDTableName; } }
+        public List<MUDComponent> Components { get { return components; } }
+        public MUDComponent Prefab { get { return componentPrefab; } }
+        public Dictionary<string, MUDComponent> ComponentDict;
 
         //dictionary of all the components this specific table has
-        public bool EntityHasComponent(string key) { return Components.ContainsKey(key); }
-        public MUDComponent EntityToComponent(string key) { return Components[key]; }
-        public Dictionary<string, MUDComponent> Components;
-        public MUDComponent Prefab { get { return componentPrefab; } }
+        public bool EntityHasComponent(string key) { return ComponentDict.ContainsKey(key); }
+        public MUDComponent EntityToComponent(string key) { return ComponentDict[key]; }
 
         [Header("Settings")]
-        public MUDComponent componentPrefab;
-        public bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
+        [SerializeField] MUDComponent componentPrefab;
+        [SerializeField] bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
 
         [Header("Behaviour")]
-        public bool autoSpawn = true;
-        public bool deletedRecordDestroysEntity = false;
+        [SerializeField] public bool AutoSpawn = true;
+        [SerializeField] bool deletedRecordDestroysEntity = false;
 
         [Header("Debug")]
-        public bool logTable = false;
-        public List<MUDComponent> SpawnedComponents;
+        public bool LogTable = false;
+        [SerializeField] List<MUDComponent> components;
 
         CompositeDisposable _disposers = new();
         bool hasInit;
@@ -51,49 +52,56 @@ namespace mud.Client {
 
         void Start() {
 
-            if(NetworkManager.Initialized) {
-                DoInit();
-            } else {
-                NetworkManager.OnInitialized += DoInit;
-            }
+            if(NetworkManager.Initialized) { DoInit(); } 
+            else { NetworkManager.OnInitialized += DoInit; }
         
         }
 
         void DoInit() {
 
-            if(hasInit) {
-                Debug.LogError("Oh no, double Init", this);
-                return;
-            }
+            if(hasInit) { Debug.LogError("Oh no, double Init", this);return; }
+            if (componentPrefab == null) { Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);return;}
+            if (componentPrefab.MUDTableType == null) { Debug.LogError("No table type on " + componentPrefab.gameObject, componentPrefab);return;}
+            if (TableDictionary.TableDict.ContainsKey(ComponentName)) { Debug.LogError("Bad, multiple tables of same type " + ComponentName); return;}
 
-            if (componentPrefab == null) {
-                Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);
-                return;
-            }
+            components = new List<MUDComponent>();
+            ComponentDict = new Dictionary<string, MUDComponent>();
 
-            if (componentPrefab.TableType == null) {
-                Debug.LogError("No table type on " + componentPrefab.gameObject, componentPrefab);
-                return;
-            }
-
-            if (TableDictionary.TableDict.ContainsKey(ComponentName)) {
-                Debug.LogError("Bad, multiple tables of same type " + ComponentName);
-                return;
-            }
-
-            SpawnedComponents = new List<MUDComponent>();
-            Components = new Dictionary<string, MUDComponent>();
             TableDictionary.AddTable(this);
 
-            if(logTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
+            if(LogTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
 
             hasInit = true;
             OnInit?.Invoke();
 
-            if(autoSpawn) {
-                SubscribeAll();    
+            if(AutoSpawn) {
+                Spawn(componentPrefab);
             }
+
         }   
+
+        public void Spawn(MUDComponent prefab) {
+
+            if(!hasInit) { Debug.LogError("Has to init", this);return; }
+
+            gameObject.name = prefab.MUDTableName;
+            AutoSpawn = false;
+
+            SetPrefab(prefab);
+            SubscribeAll();    
+
+        }
+
+        //PrefabUtility.GetPrefabType into PrefabUtility.GetPrefabAssetType and PrefabUtility.GetPrefabInstanceStatus.
+        //TODO check to see if the prefab set in Editor is an instance or not, give a warning if it is
+        public void SetPrefab(MUDComponent newPrefab) {
+            componentPrefab = newPrefab;
+            #if UNITY_EDITOR
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(newPrefab), "Please connect the " + newPrefab.gameObject.name + " prefab from your Project window, not from a " + newPrefab.gameObject.name + " in the scene.", this); 
+            #endif
+        }
+
+        
 
         void OnDestroy() {
             _disposers?.Dispose();
@@ -124,7 +132,7 @@ namespace mud.Client {
             SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
             firstUpdate = false;
 
-            // if (logTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
+            // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
             foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
             foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
         }
@@ -138,7 +146,7 @@ namespace mud.Client {
                 return;
             }
 
-            IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.TableType);
+            IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
             mudTable.RecordToTable(newRecord);
 
             IngestTable(entityKey, mudTable, newInfo, newSpawn);
@@ -155,7 +163,7 @@ namespace mud.Client {
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
 
             //find the component
-            Components.TryGetValue(entityKey, out MUDComponent component);
+            ComponentDict.TryGetValue(entityKey, out MUDComponent component);
 
             //spawn the component if we can't find one
             if(component == null) {
@@ -164,14 +172,14 @@ namespace mud.Client {
                 OnComponentSpawned?.Invoke(component);
             }
 
-            if (logTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
+            if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
             //look at Record Equals() and test
 
             //send the update to the component
-            Components[entityKey].DoUpdate(mudTable, newInfo);
+            ComponentDict[entityKey].DoUpdate(mudTable, newInfo);
             OnComponentUpdated?.Invoke(component);
 
             //delete cleanup
@@ -183,19 +191,19 @@ namespace mud.Client {
 
         public virtual void RegisterComponent(bool toggle, MUDComponent component) {
             if (toggle) {
-                if (SpawnedComponents.Contains(component)) {
+                if (components.Contains(component)) {
                     Debug.LogError("Component already added", component);
                 }
-                Components.Add(component.Entity.Key, component);
-                SpawnedComponents.Add(component);
+                ComponentDict.Add(component.Entity.Key, component);
+                components.Add(component);
             } else {
 
-                if (!SpawnedComponents.Contains(component)) {
+                if (!components.Contains(component)) {
                     Debug.LogError("Component was never added", component);
                 }
 
-                Components.Remove(component.Entity.Key);
-                SpawnedComponents.Remove(component);
+                ComponentDict.Remove(component.Entity.Key);
+                components.Remove(component);
             }
         }
 
@@ -203,10 +211,10 @@ namespace mud.Client {
         void OnDrawGizmosSelected() {
             if(Application.isPlaying) {
                 Gizmos.color = Color.blue;
-                for (int i = 0; i < SpawnedComponents.Count; i++) {
-                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.forward * .5f, SpawnedComponents[i].transform.position - Vector3.forward * .5f);
-                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.right * .5f, SpawnedComponents[i].transform.position - Vector3.right * .5f);
-                    Gizmos.DrawLine(SpawnedComponents[i].transform.position + Vector3.up * .5f, SpawnedComponents[i].transform.position - Vector3.up * .5f);
+                for (int i = 0; i < components.Count; i++) {
+                    Gizmos.DrawLine(components[i].transform.position + Vector3.forward * .5f, components[i].transform.position - Vector3.forward * .5f);
+                    Gizmos.DrawLine(components[i].transform.position + Vector3.right * .5f, components[i].transform.position - Vector3.right * .5f);
+                    Gizmos.DrawLine(components[i].transform.position + Vector3.up * .5f, components[i].transform.position - Vector3.up * .5f);
                 }
             }
         }

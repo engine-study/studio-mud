@@ -110,7 +110,7 @@ namespace mud.Client {
         }
         
         public T GetMUDComponent<T>(T component) where T : MUDComponent {
-            componentDict.TryGetValue(component.TableName, out MUDComponent value);
+            componentDict.TryGetValue(component.MUDTableName, out MUDComponent value);
             return value as T;
         }
 
@@ -129,7 +129,7 @@ namespace mud.Client {
 
                 //add the component to both components list, but also add the "required" components
                 components.Add(c);
-                componentDict.Add(c.TableName, c);
+                componentDict.Add(c.MUDTableName, c);
                 componentTypeDict.Add(c.GetType(), c);
 
                 UpdateExpected(prefab);

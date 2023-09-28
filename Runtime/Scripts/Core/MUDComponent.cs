@@ -35,8 +35,8 @@ namespace mud.Client
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
         //unless we were to manually add the DefaultNamespace to the UniMud package by name
         public IMudTable TableReference { get { return GetTable(); }}
-        public string TableName { get { return GetTable().TableType().Name; }}
-        public Type TableType { get { return GetTable().TableType(); }}
+        public string MUDTableName { get { return GetTable().TableType().Name; }}
+        public Type MUDTableType { get { return GetTable().TableType(); }}
 
         [Header("Settings")]
         [SerializeField] private List<MUDComponent> requiredComponents;
