@@ -138,11 +138,10 @@ namespace mud.Client
 
         bool HasLoadedAllComponents() {
 
+            //TODO handle when new components are added after loading
             int components = 0;
             foreach(MUDComponent c in Entity.Components) {
-                if(requiredTypes.Contains( c.Manager.Prefab.GetType() )) {
-                    components++;
-                }
+                if(requiredTypes.Contains( c.Manager.Prefab.GetType() )) { components++;}
             }
 
             return components == requiredTypes.Count;

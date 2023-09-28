@@ -73,8 +73,9 @@ namespace mud.Client {
         }
 
         void DoUpdate() {
-            if(!synced) {Debug.LogError(gameObject.name + " updated before sync.");}
-            UpdateSync();
+            Debug.Assert(synced, gameObject.name + " updated before sync.", this);
+            
+            HandleUpdate();
             OnUpdate?.Invoke();
         }
 
@@ -85,7 +86,7 @@ namespace mud.Client {
         }
 
         //updated sync with new values midway through play
-        protected virtual void UpdateSync() {
+        protected virtual void HandleUpdate() {
             //.... override this update the values here
             //ex.             
         }
