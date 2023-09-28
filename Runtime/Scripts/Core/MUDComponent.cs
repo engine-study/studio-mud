@@ -83,6 +83,7 @@ namespace mud.Client
 
             requiredTypes = new List<Type>();
             for(int i = 0; i < requiredComponents.Count; i++) {requiredTypes.Add(requiredComponents[i].GetType());}
+
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
             networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
 
@@ -109,6 +110,11 @@ namespace mud.Client
             }
         }
 
+        void EntityComponentUpdate(MUDComponent newComponent) {
+            if( HasLoadedAllComponents() ) { FinishLoad();}
+        }
+
+
         void FinishLoad() {
             Debug.Assert(loaded == false, "Already loaded", this);
             Entity.OnComponentAdded -= EntityComponentUpdate;
@@ -125,11 +131,9 @@ namespace mud.Client
         }
 
         protected virtual void PostInit() {
-
-        }
-
-        void EntityComponentUpdate(MUDComponent newComponent) {
-            HasLoadedAllComponents();
+            //think of this like the true "Awake" of the MUDComponent
+            //at this point the Entity will have loaded all the RequiredComponents
+            //it will be safe to get components using Entity.GetMUDComponent<ExampleComponent();
         }
 
         bool HasLoadedAllComponents() {

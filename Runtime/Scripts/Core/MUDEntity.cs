@@ -25,7 +25,7 @@ namespace mud.Client {
         [SerializeField] string mudKey;
         [SerializeField] string entityName;
         [SerializeField] List<MUDComponent> components;
-        [SerializeField] List<Type> expected;
+        [SerializeField] List<Type> expected = null;
 
         public void SetName(string newName) {entityName = newName; gameObject.name = entityName;}
 
