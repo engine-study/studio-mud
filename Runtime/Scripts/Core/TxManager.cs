@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using mud.Unity;
+
 using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.RPC.Eth.DTOs;
@@ -10,7 +10,7 @@ using Nethereum.Contracts.CQS;
 using Nethereum.Contracts;
 using Cysharp.Threading.Tasks;
 
-namespace mud.Client {
+namespace mud {
 
     public class TxManager : MonoBehaviour {
 
@@ -88,7 +88,7 @@ namespace mud.Client {
         //sends tx directly
         public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
             if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
-            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            bool txSuccess = await NetworkManager.World.Write<TFunction>(parameters);
             if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
             OnTransaction?.Invoke(txSuccess);
             return txSuccess;

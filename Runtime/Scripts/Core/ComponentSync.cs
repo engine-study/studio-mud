@@ -4,7 +4,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System;
 
-namespace mud.Client {
+namespace mud {
 
     public abstract class ComponentSync : MonoBehaviour {
         public enum ComponentSyncType { Lerp, Instant }

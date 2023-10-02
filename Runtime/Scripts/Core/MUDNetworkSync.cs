@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Unity;
+
 using UniRx;
 
-namespace mud.Client
+namespace mud
 {
 
 
@@ -12,7 +12,7 @@ namespace mud.Client
     {
 
         public System.Action OnNetworkInit;
-        mud.Unity.NetworkManager net;
+        mud.NetworkManager net;
         protected CompositeDisposable _disposers = new();
 
         protected virtual void Awake()
@@ -22,7 +22,7 @@ namespace mud.Client
 
         protected virtual void Start()
         {
-            net = mud.Unity.NetworkManager.Instance;
+            net = mud.NetworkManager.Instance;
             net.OnNetworkInitialized += DoInit;
         }
 
@@ -32,11 +32,11 @@ namespace mud.Client
             net.OnNetworkInitialized -= DoInit;
         }
 
-        void DoInit(mud.Unity.NetworkManager nm) {
+        void DoInit(mud.NetworkManager nm) {
             Init(nm);
             OnNetworkInit?.Invoke();
         }
-        protected virtual async void Init(mud.Unity.NetworkManager nm)
+        protected virtual async void Init(mud.NetworkManager nm)
         {
 
         }

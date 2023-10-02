@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using mud.Client;
-using NetworkManager = mud.Unity.NetworkManager;
+using mud;
+using NetworkManager = mud.NetworkManager;
 
-namespace mud.Client
+namespace mud
 {
 
     public enum SpawnSource{Load, InGame}
@@ -163,7 +163,7 @@ namespace mud.Client
             if(Entity) {Entity.OnComponentAdded -= EntityComponentUpdate;}
         }
 
-        public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+        public void DoUpdate(mud.IMudTable table, UpdateInfo newInfo) {
 
             if(table == null) {
                 Debug.LogError(gameObject.name + ": null table", this);
@@ -196,7 +196,7 @@ namespace mud.Client
             return Loaded && UpdateInfo.Source != UpdateSource.Revert && wasNotOptimistic;
         } 
 
-        protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+        protected virtual void IngestUpdate(mud.IMudTable table, UpdateInfo newInfo) {
 
             //cache last info
             lastInfo = new UpdateInfo(updateInfo);
@@ -247,7 +247,7 @@ namespace mud.Client
         }
 
         protected abstract IMudTable GetTable();
-        protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateInfo newInfo);
+        protected abstract void UpdateComponent(mud.IMudTable table, UpdateInfo newInfo);
         protected virtual void UpdateComponentInstant() { }
         protected virtual void UpdateComponentRich() { }
 

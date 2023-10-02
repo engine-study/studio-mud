@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace mud.Client{
+namespace mud{
 
     //some components help the game keep track of whether and Entity is "active" or not
     //helps keep track of updates with new values

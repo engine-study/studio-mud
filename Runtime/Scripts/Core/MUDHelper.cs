@@ -13,14 +13,14 @@ using Nethereum.ABI.Util;
 using Nethereum.Util;
 using Vector3 = UnityEngine.Vector3;
 
-using Common = mud.Network.schemas.Common;
+using Common = mud.Common;
 
 // using Nethereum.JsonRpc.WebSocketStreamingClient;
 // using Nethereum.RPC.Eth.Blocks;
 // using Nethereum.Web3;
 // using Nethereum.Web3.Accounts;
 
-namespace mud.Client {
+namespace mud {
 
 
     public class MUDHelper : MonoBehaviour {
@@ -30,7 +30,7 @@ namespace mud.Client {
         }
 
         public static string ByteArrayToHexString(byte[] array) {
-            return Common.ByteArrayToHexString(array);
+            return mud.Common.BytesToHex(array);
         }
         
         public static MUDEntity GetMUDEntityFromRadius(Vector3 position, float radius) {

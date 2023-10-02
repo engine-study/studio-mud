@@ -207,7 +207,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8786384311073745310}
-  - component: {fileID: 1200377520162337971}
+  - component: {fileID: 5456167729897835244}
   m_Layer: 0
   m_Name: MUD
   m_TagString: Untagged
@@ -232,9 +232,9 @@ Transform:
   - {fileID: 2173018970966705068}
   - {fileID: 1965001346719452247}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1200377520162337971
+--- !u!114 &5456167729897835244
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -243,18 +243,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 7180575907617087376}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88c2f0f44d7cc4c3abe5f498cfeca6be, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ef0393121ab4608aae4ec9fb2e94bc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoConnect: 1
+  autoWallet: 1
+  uniqueWallets: 0
+  pk: 
   networkType: 0
   local: {fileID: 11400000, guid: 8f9de2d4a845cd9409aa4027b0fdc8b4, type: 2}
-  testnet: {fileID: 11400000, guid: 81361fd2f55627647aa60811fe3080ac, type: 2}
-  mainnet: {fileID: 11400000, guid: 526c97e7537d6274cb7a496684db0980, type: 2}
-  worldAddress: 
-  faucetUrl: 
-  pk: 
-  uniqueWallets: 1
-  disableCache: 1
-  verbose: 0
+  testnet: {fileID: 11400000, guid: 526c97e7537d6274cb7a496684db0980, type: 2}
+  mainnet: {fileID: 11400000, guid: 81361fd2f55627647aa60811fe3080ac, type: 2}
   address: 
   addressKey: 

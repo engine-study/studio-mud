@@ -2,15 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Unity;
-using mud.Client;
-using NetworkManager = mud.Unity.NetworkManager;
+
+using mud;
+using NetworkManager = mud.NetworkManager;
 using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
 using UnityEditor;
 
-namespace mud.Client {
+namespace mud {
 
 
     public class TableManager : MonoBehaviour {
@@ -38,7 +38,7 @@ namespace mud.Client {
 
         [Header("Behaviour")]
         [SerializeField] public bool AutoSpawn = true;
-        [SerializeField] bool deletedRecordDestroysEntity = false;
+        [SerializeField] bool deletedRxRecordDestroysEntity = false;
 
         [Header("Debug")]
         public bool LogTable = false;
@@ -111,7 +111,7 @@ namespace mud.Client {
 
         //loads a chunk and updates them (TODO how do we prevent double subscribes?)
         public void SubscribeAll() {
-            var query = new Query().In(componentPrefab.TableReference.TableId);
+            var query = new Query().In(componentPrefab.TableReference.Table);
             _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));        
         }
 
@@ -120,26 +120,26 @@ namespace mud.Client {
         }
 
         //old method        
-        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
+        // public IObservable<RxRecordUpdate> SubscribeTable(IMudTable tableType, mud.NetworkManager nm, UpdateType updateType) {
         //     return NetworkManager.Instance.ds.OnDataStoreUpdate
         //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
-        //     .Select( update => tableType.CreateTypedRecord(update) );
+        //     .Select( update => tableType.CreateTypedRxRecord(update) );
         // }
         
         //TODO, what order do these lists update in? also what about SetField?
-        void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update) {
+        void OnUpdate((List<RxRecord> SetRxRecords, List<RxRecord> RemovedRxRecords) update) {
 
             SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
             firstUpdate = false;
 
-            // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
-            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
-            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
+            // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRxRecords?.Count + "] [Deletes " + update.RemovedRxRecords?.Count + "]"); }
+            foreach(RxRecord r in update.SetRxRecords) { IngestRxRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
+            foreach(RxRecord r in update.RemovedRxRecords) { IngestRxRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
         }
 
-        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
+        protected virtual void IngestRxRecord(RxRecord newRxRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
             //process the table event to a key and the entity of that key
-            string entityKey = newRecord.key;
+            string entityKey = newRxRecord.key;
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -147,7 +147,7 @@ namespace mud.Client {
             }
 
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
-            mudTable.RecordToTable(newRecord);
+            mudTable.RecordToTable(newRxRecord);
 
             IngestTable(entityKey, mudTable, newInfo, newSpawn);
         }
@@ -176,7 +176,7 @@ namespace mud.Client {
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
-            //look at Record Equals() and test
+            //look at RxRecord Equals() and test
 
             //send the update to the component
             ComponentDict[entityKey].DoUpdate(mudTable, newInfo);
@@ -184,7 +184,7 @@ namespace mud.Client {
 
             //delete cleanup
             if (newInfo.UpdateType == UpdateType.DeleteRecord) {
-                if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
+                if(deletedRxRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
             }
 
         }

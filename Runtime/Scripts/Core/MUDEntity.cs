@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace mud.Client {
+namespace mud {
     public class MUDEntity : Entity {
         public string Key { get { return mudKey; } }
         public string Name {get{return entityName;}}
