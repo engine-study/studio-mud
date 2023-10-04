@@ -15,6 +15,7 @@ namespace mud.Client
     public abstract class MUDComponent : MonoBehaviour {
 
         public MUDEntity Entity { get { return entity; } }
+        public bool Active { get { return isActive; } }
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public bool IsOptimistic { get; private set; }
@@ -26,7 +27,8 @@ namespace mud.Client
         //TODO change this so that it checks the types, not the prefabs themselves
         public List<Type> RequiredTypes { get { return requiredTypes; } }
         public List<MUDComponent> RequiredPrefabs { get { return requiredComponents; } }
-        public Action OnInit, OnLoaded, OnStart;
+        public Action OnInit, OnLoaded, OnPostInit, OnToggle;
+        public Action<bool> OnToggleActive;
         public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
         public TableManager Manager { get { return spawnInfo.Table; } }
@@ -49,6 +51,7 @@ namespace mud.Client
         [SerializeField] private MUDEntity entity;
         [SerializeField] private bool hasInit = false;
         [SerializeField] private bool loaded = false;
+        [SerializeField] private bool isActive = false;
         [SerializeField] private SpawnInfo spawnInfo;
         [SerializeField] private UpdateInfo updateInfo, networkInfo, lastInfo;
         
@@ -64,6 +67,11 @@ namespace mud.Client
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
+        public virtual void Toggle(bool toggle, bool invokeActions) {
+            isActive = toggle; 
+            gameObject.SetActive(toggle); 
+            if(invokeActions) {OnToggle?.Invoke(); OnToggleActive?.Invoke(toggle);}
+        }
 
         public async void DoInit(SpawnInfo spawnInfo) {
 
@@ -97,7 +105,7 @@ namespace mud.Client
 
         async UniTask DoLoad() {
 
-            gameObject.SetActive(false);
+            Toggle(false, false);
 
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
@@ -116,16 +124,18 @@ namespace mud.Client
 
 
         void FinishLoad() {
+
             Debug.Assert(loaded == false, "Already loaded", this);
             Entity.OnComponentAdded -= EntityComponentUpdate;
-
-            gameObject.SetActive(true);
-
+            
             loaded = true;
             OnLoaded?.Invoke();
 
+            //send an active event if we are spawning from a live event
+            Toggle(true, spawnInfo.Source == SpawnSource.InGame);
+
             PostInit();
-            OnStart?.Invoke();
+            OnPostInit?.Invoke();
             if (Manager.Loaded) { OnCreated?.Invoke(); }
             
         }
