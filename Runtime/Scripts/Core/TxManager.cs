@@ -44,12 +44,16 @@ namespace mud.Client {
             if (updates == null || updates.Count == 0 || updates.GetType() != typeof(List<TxUpdate>)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
             if (!CanSendTx) { return false; }
 
+            //send tx
             UniTask<bool> tx = SendQueue<TFunction>(parameters);
             
+            //apple the optimistic updates
             foreach (TxUpdate u in updates) { u.Apply(tx); }
 
+            //await 
             bool txSuccess = await tx;
 
+            //release the optimistic updates
             foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
 
             return txSuccess;

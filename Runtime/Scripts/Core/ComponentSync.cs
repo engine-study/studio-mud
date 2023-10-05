@@ -17,6 +17,7 @@ namespace mud.Client {
 
         [Header("Debug")]
         [SerializeField] bool synced;
+        [SerializeField] bool started;
         [SerializeField] MUDComponent targetComponent;
         protected TableManager ourTable;
         protected MUDComponent ourComponent;
@@ -24,34 +25,44 @@ namespace mud.Client {
         //if we wanted to sync position, we would return the Position component class for example
         public abstract Type MUDComponentType();
 
-        protected virtual void Awake() {
-
-            //do not let the update loop fire
-            enabled = false;
-            ourComponent = GetComponent<MUDComponent>();
-
-            if(ourComponent.HasInit) {SetupSync();}
-            else {ourComponent.OnInit += SetupSync;}
-        
+        public void SetSyncType(ComponentSyncType newType) {
+            syncType = newType;
         }
 
-        void SetupSync() {
+        protected virtual async void Awake() {
 
-            ourTable = MUDWorld.FindTable(MUDComponentType());
+            //setup our component
+            ourComponent = GetComponent<MUDComponent>();
+            if(ourComponent.HasInit) {AddRequiredComponents();}
+            else {ourComponent.OnInit += AddRequiredComponents;}
+        }
+
+        protected virtual void Start() {
             
+            //disable this for updating (for now)
+            enabled = false;
+
+            //sync after Awake so that if we use AddComponent we can chance the SyncType before the first sync
+            if(ourComponent.Loaded) {DoSync();}
+            else {ourComponent.OnLoaded += DoSync;}
+        }
+
+         protected virtual void OnDestroy() {
+            if (ourComponent) { ourComponent.OnLoaded -= DoSync; ourComponent.OnInit -= AddRequiredComponents;}
+            if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
+        }
+
+
+        void AddRequiredComponents() {
+
+            //add our required components 
+            ourTable = MUDWorld.FindTable(MUDComponentType());
             if(ourTable == null) {Debug.LogError("Could not find table " + MUDComponentType().Name); return;}
             if (!ourComponent.RequiredTypes.Contains(ourTable.Prefab.GetType())) {
                 // Debug.Log("Adding our required component.", gameObject);
                 ourComponent.RequiredTypes.Add(ourTable.Prefab.GetType());
             }
-
-            if(ourComponent.Loaded) {DoSync();}
-            else {ourComponent.OnLoaded += DoSync;}
-        }
-
-        protected virtual void OnDestroy() {
-            if (ourComponent) { ourComponent.OnLoaded -= DoSync; ourComponent.OnInit -= SetupSync;}
-            if (targetComponent) { targetComponent.OnUpdated -= DoUpdate; }
+            
         }
 
         void DoSync() {
@@ -61,15 +72,18 @@ namespace mud.Client {
 
             synced = true;
             OnAwake?.Invoke();
+
+            //listen for further updates
+            targetComponent.OnUpdated += DoUpdate;
+
         }
 
         protected virtual void InitComponents() {
+
             //get our targetcomponent
             targetComponent = ourComponent.Entity.GetMUDComponent(MUDComponentType());
             if(targetComponent == null) { Debug.LogError("Couldn't find " + MUDComponentType() + " to sync.", this);}
 
-            //listen for further updates
-            targetComponent.OnUpdated += DoUpdate;
         }
 
         void DoUpdate() {
@@ -92,6 +106,9 @@ namespace mud.Client {
         }
 
         protected virtual void Update() {
+            //need this check because Update was being called
+            //despite enabled = false
+            if(!synced) return;
             UpdateLerp();
         }
 

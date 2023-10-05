@@ -198,8 +198,7 @@ namespace mud.Client
 
         }
 
-        protected virtual bool IsRichUpdate()
-        {
+        protected virtual bool IsRichUpdate() {
             //check if onchain update connects to the local optimistic update?
             bool wasNotOptimistic = lastInfo != null && lastInfo.Source != UpdateSource.Optimistic;
             //&& !IMudTable.Equals(lastTable, activeTable)
@@ -224,6 +223,8 @@ namespace mud.Client
                 networkInfo = newInfo;
 
             } else if (newInfo.Source == UpdateSource.Optimistic) {
+
+                if(lastInfo.Source == UpdateSource.Optimistic) {Debug.LogError(gameObject.name + ": never recieved onchain update.");}
                 //OPTIMISTIC update
                 optimisticTable = table;
                 activeTable = optimisticTable;
