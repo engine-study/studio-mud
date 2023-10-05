@@ -14,7 +14,7 @@ namespace mud.Client {
 
         [Header("Settings")]
         [SerializeField] protected ComponentSyncType syncType = ComponentSyncType.Instant;
-        private bool debug = true;
+        private bool debug = false;
 
         [Header("Debug")]
         [SerializeField] bool synced;
