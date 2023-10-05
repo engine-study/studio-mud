@@ -135,6 +135,7 @@ namespace mud.Client
             Toggle(true, spawnInfo.Source == SpawnSource.InGame);
 
             PostInit();
+            
             OnPostInit?.Invoke();
             if (Manager.Loaded) { OnCreated?.Invoke(); }
             
@@ -200,9 +201,9 @@ namespace mud.Client
 
         protected virtual bool IsRichUpdate() {
             //check if onchain update connects to the local optimistic update?
-            bool wasNotOptimistic = lastInfo != null && lastInfo.Source != UpdateSource.Optimistic;
+            // bool wasNotOptimistic = lastInfo != null && lastInfo.Source != UpdateSource.Optimistic;
             //&& !IMudTable.Equals(lastTable, activeTable)
-            return Loaded && UpdateInfo.Source != UpdateSource.Revert && wasNotOptimistic;
+            return Loaded && UpdateInfo.Source != UpdateSource.Revert;
         } 
 
         protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {

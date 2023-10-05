@@ -96,6 +96,12 @@ namespace mud.Client {
             }
         }
 
+        public void Toggle(bool toggle) {
+            gameObject.SetActive(toggle);
+            // for(int i = 0; i < components.Count; i++) {
+            //     components[i].Toggle(toggle);
+            // }
+        }
 
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);

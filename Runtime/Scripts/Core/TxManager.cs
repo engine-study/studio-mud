@@ -21,6 +21,7 @@ namespace mud.Client {
         private static int transactionCount = 0;
         private static int transactionCompleted = 0;
 
+        public bool Optimistic = true;
         public bool Verbose = true;
 
         void Awake() {
@@ -48,13 +49,13 @@ namespace mud.Client {
             UniTask<bool> tx = SendQueue<TFunction>(parameters);
             
             //apple the optimistic updates
-            foreach (TxUpdate u in updates) { u.Apply(tx); }
+            if(Instance.Optimistic) foreach (TxUpdate u in updates) { u.Apply(tx); }
 
             //await 
             bool txSuccess = await tx;
 
             //release the optimistic updates
-            foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
+            if(Instance.Optimistic) foreach (TxUpdate u in updates) { u.Complete(txSuccess); }
 
             return txSuccess;
         }

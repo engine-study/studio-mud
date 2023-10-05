@@ -17,7 +17,6 @@ namespace mud.Client {
 
         [Header("Debug")]
         [SerializeField] bool synced;
-        [SerializeField] bool started;
         [SerializeField] MUDComponent targetComponent;
         protected TableManager ourTable;
         protected MUDComponent ourComponent;
@@ -44,7 +43,7 @@ namespace mud.Client {
 
             //sync after Awake so that if we use AddComponent we can chance the SyncType before the first sync
             if(ourComponent.Loaded) {DoSync();}
-            else {ourComponent.OnLoaded += DoSync;}
+            else {ourComponent.OnPostInit += DoSync;}
         }
 
          protected virtual void OnDestroy() {
