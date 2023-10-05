@@ -172,7 +172,7 @@ namespace mud.Client {
                 OnComponentSpawned?.Invoke(component);
             }
 
-            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
+            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name.ToUpper() + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
