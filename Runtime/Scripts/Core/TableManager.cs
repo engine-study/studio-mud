@@ -166,10 +166,11 @@ namespace mud.Client {
             ComponentDict.TryGetValue(entityKey, out MUDComponent component);
 
             //spawn the component if we can't find one
+            bool wasSpawned = false;
             if(component == null) {
                 SpawnInfo spawn = new SpawnInfo(entity, newSpawn?.Source ?? (Loaded ? SpawnSource.InGame : SpawnSource.Load), this);
                 component = entity.AddComponent(componentPrefab, spawn); 
-                OnComponentSpawned?.Invoke(component);
+                wasSpawned = true;
             }
 
             if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name.ToUpper() + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
@@ -180,6 +181,8 @@ namespace mud.Client {
 
             //send the update to the component
             ComponentDict[entityKey].DoUpdate(mudTable, newInfo);
+
+            if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
             //delete cleanup

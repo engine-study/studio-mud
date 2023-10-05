@@ -87,6 +87,8 @@ namespace mud.Client {
                 component.OnInit -= Init;
         }
         void Init() {
+            
+            if (init) { return; }
 
             if (randomizeChildren) {
 
@@ -119,7 +121,6 @@ namespace mud.Client {
 
             if (useScale) {
                 scale = (int)MUDHelper.RandomNumber((int)(range.x * 100f), (int)(range.y * 100f), component.Entity, randomType, seed + 2);
-
                 scale = scale * .01f;
                 transform.localScale *= scale;
             }

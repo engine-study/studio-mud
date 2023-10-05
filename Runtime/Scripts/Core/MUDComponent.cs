@@ -111,22 +111,15 @@ namespace mud.Client
             //chop it up so that not everything loads at the same frame
             await UniTask.Delay(200);
 
-            if(HasLoadedAllComponents()) {
-                FinishLoad();
-            } else {
-                Entity.OnComponentAdded += EntityComponentUpdate;
-            }
+            while(HasLoadedAllComponents() == false) { await UniTask.Delay(200);}
+
+            Load();
+          
         }
 
-        void EntityComponentUpdate(MUDComponent newComponent) {
-            if( HasLoadedAllComponents() ) { FinishLoad();}
-        }
-
-
-        void FinishLoad() {
+        void Load() {
 
             Debug.Assert(loaded == false, "Already loaded", this);
-            Entity.OnComponentAdded -= EntityComponentUpdate;
             
             loaded = true;
             OnLoaded?.Invoke();
@@ -171,7 +164,6 @@ namespace mud.Client
 
         protected virtual void InitDestroy() {
             if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(false, this);}
-            if(Entity) {Entity.OnComponentAdded -= EntityComponentUpdate;}
         }
 
         public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {

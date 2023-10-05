@@ -7,93 +7,100 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace mud.Client {
-    public class MUDEntity : Entity {
+    public class MUDEntity : MonoBehaviour {
+
+        public bool HasInit{get{return hasInit;}}
         public string Key { get { return mudKey; } }
         public string Name {get{return entityName;}}
+        public bool Loaded {get{return loaded;}}
         public List<MUDComponent> Components { get { return components; } }
         public List<Type> ExpectedComponents { get { return expected; } }
         public Action OnComponent;
         public Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public Action<MUDComponent, UpdateInfo> OnComponentUpdated;
-        public Action OnInit, OnUpdated;
-        public Action<MUDEntity> OnInitInfo, OnUpdatedInfo;
+        public Action OnLoaded, OnUpdated;
+        public Action<MUDEntity> OnLoadedInfo, OnUpdatedInfo;
         Dictionary<string, MUDComponent> componentDict;
         Dictionary<Type, MUDComponent> componentTypeDict;
 
 
         [Header("MUD")]
+        [SerializeField] bool hasInit;
+        [SerializeField] bool loaded;
         [SerializeField] string mudKey;
         [SerializeField] string entityName;
         [SerializeField] List<MUDComponent> components;
+        [SerializeField] List<MUDComponent> expectedComponents;
         [SerializeField] List<Type> expected = null;
 
         public void SetName(string newName) {entityName = newName; gameObject.name = entityName;}
 
-        public void InitEntity(string newKey) {
-            if (!string.IsNullOrEmpty(mudKey)) { Debug.LogError("We already have a key?", this); }
-            mudKey = newKey;
+        protected virtual void Awake() { }
+        protected virtual void Start() { }
+        protected virtual void OnDestroy() {if(hasInit) { Destroy();}}
+
+
+        public void DoInit(string newKey) {
+
+            Init(newKey);
+            hasInit = true; 
+
+        }
+
+        public virtual void Init(string newKey) {   
+            Debug.Assert(hasInit == false, "Double init", this);
 
             componentDict = new Dictionary<string, MUDComponent>();
             componentTypeDict = new Dictionary<Type, MUDComponent>();
 
             expected = new List<Type>();
+            expectedComponents = new List<MUDComponent>();
             components = new List<MUDComponent>();
+
+            mudKey = newKey;
         }
 
         //entities must have at least one component and have loaded all expected components
-        void HandleNewComponent(MUDComponent newComponent) {
+        async void HandleNewComponent(MUDComponent newComponent) {
+            
+            //update our required components
+            UpdateExpected(newComponent);
 
-            if(HasInit) {
-                
-            } else {
-                if (components.Count < 1 || expected.Count > components.Count) { return; }
-                DoInit();
-            }
+            //wait to see if a new component is getting loaded this same frame
+            await UniTask.Delay(100);
+            
+            //check if we have those components
+            if (components.Count < 1 || expected.Count > components.Count) { return; }
+            
+            //when we do, send a message to all components we have loaded
+            DoLoad();
+            
         }
 
         //let our added components update the amount of expected components
-        public void UpdateExpected(MUDComponent componentPrefab) {
+        public void UpdateExpected(MUDComponent newComponent) {
 
             //add the component itself to the expected list, and all its required types
-            Type newComponentType = componentPrefab.GetType();
-            if(expected.Contains(newComponentType) == false) {expected.Add(newComponentType);}
+            Type newComponentType = newComponent.GetType();
+            if(expected.Contains(newComponentType) == false) {
+                expected.Add(newComponentType);
+                expectedComponents.Add(newComponent);
+            }
 
-            for(int i = 0; i < componentPrefab.RequiredPrefabs.Count; i++) {
-                Type t = componentPrefab.RequiredPrefabs[i].GetType();
-                if(expected.Contains(t)) continue;
-                expected.Add(t);
+            for(int i = 0; i < newComponent.RequiredPrefabs.Count; i++) {
+                Type t = newComponent.RequiredPrefabs[i].GetType();
+                if(expected.Contains(t) == false) {
+                    expected.Add(t);
+                    expectedComponents.Add(newComponent.RequiredPrefabs[i]);
+                }
             }
         }
 
-        void DoInit() {
+        void DoLoad() {
 
-            if (HasInit) {
-                Debug.LogError("Double init", this);
-                return;
-            }
-
-            Init();
-
-            OnInit?.Invoke();
-            OnInitInfo?.Invoke(this);
-        }
-
-
-        public override void Init() {
-            base.Init();
-
-            if (string.IsNullOrEmpty(mudKey)) {
-                Debug.LogError("NO entity key");
-                return;
-            }
-        }
-
-        protected override void Destroy() {
-            base.Destroy();
-
-            for (int i = components.Count - 1; i > -1; i--) {
-                RemoveComponent(components[i]);
-            }
+            loaded = true;
+            OnLoaded?.Invoke();
+            OnLoadedInfo?.Invoke(this);
         }
 
         public void Toggle(bool toggle) {
@@ -138,8 +145,6 @@ namespace mud.Client {
                 componentDict.Add(c.MUDTableName, c);
                 componentTypeDict.Add(c.GetType(), c);
 
-                UpdateExpected(prefab);
-
                 //init it
                 c.DoInit(newSpawnInfo);
                 c.OnUpdatedInfo += ComponentUpdate;
@@ -151,6 +156,16 @@ namespace mud.Client {
             }
 
             return c;
+        }
+
+        void ComponentUpdate(MUDComponent c, UpdateInfo i) {
+            OnComponentUpdated?.Invoke(c, i);
+            OnUpdated?.Invoke();
+            OnUpdatedInfo?.Invoke(this);
+        }
+
+        protected virtual void Destroy() {
+            for (int i = components.Count - 1; i > -1; i--) { RemoveComponent(components[i]); }
         }
 
         public void RemoveComponent(MUDComponent c) {
@@ -169,13 +184,7 @@ namespace mud.Client {
 
             Destroy(c);
         }
-
-
-        void ComponentUpdate(MUDComponent c, UpdateInfo i) {
-            OnComponentUpdated?.Invoke(c, i);
-            OnUpdated?.Invoke();
-            OnUpdatedInfo?.Invoke(this);
-        }
+        
 
 
     }
