@@ -9,16 +9,20 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Contracts.CQS;
 using Nethereum.Contracts;
 using Cysharp.Threading.Tasks;
+using System.Net.Http.Headers;
 
 namespace mud.Client {
 
     public class TxManager : MonoBehaviour {
 
+        public static bool CanSendTx { get { return !IsTxPending; } }
+        public static bool IsTxPending {get{return sendingTx;}}
         public static TxManager Instance;
         public static System.Action<bool> OnUpdate;
         public static System.Action OnSend, OnRecieve;
         public static System.Action<bool> OnTransaction;
 
+        private static bool sendingTx;
         private static int transactionCount = 0;
         private static int transactionCompleted = 0;
 
@@ -34,17 +38,16 @@ namespace mud.Client {
             transactionCompleted = 0;
         }
     
-        public static bool CanSendTx { get { if(transactionCompleted != transactionCount) Debug.LogError("Too many transactions");  return transactionCompleted == transactionCount; } }
 
         public static async UniTask<bool> Send<TFunction>(TxUpdate update, params object[] parameters) where TFunction : FunctionMessage, new() {
-            if (!CanSendTx) { return false; }
+            if (!CanSendTx) { Debug.LogError("Tx Pending"); return false; }
             return await Send<TFunction>(new List<TxUpdate> { update }, parameters);
         }
 
         //send optimistic
         public static async UniTask<bool> Send<TFunction>(List<TxUpdate> updates, params object[] parameters) where TFunction : FunctionMessage, new() {
             if (updates == null || updates.Count == 0 || updates.GetType() != typeof(List<TxUpdate>)) { Debug.LogError("No optimistic updates, use SendDirect instead"); return false; }
-            if (!CanSendTx) { return false; }
+            if (!CanSendTx) { Debug.LogError("Tx Pending"); return false; }
 
             //send tx
             UniTask<bool> tx = SendQueue<TFunction>(parameters);
@@ -65,13 +68,16 @@ namespace mud.Client {
         //only lets one transation send at a time
         public static async UniTask<bool> SendQueue<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
 
-            if (!CanSendTx) { return false; }
+            if (!CanSendTx) { Debug.LogError("Tx Pending"); return false; }
 
             transactionCount++;
+            sendingTx = true;
 
             bool txSuccess = await SendDirect<TFunction>(parameters);
 
             transactionCompleted++;
+            sendingTx = transactionCount != transactionCompleted;
+
             return txSuccess;
         }
 
