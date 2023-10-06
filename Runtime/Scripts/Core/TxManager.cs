@@ -16,6 +16,7 @@ namespace mud.Client {
 
         public static TxManager Instance;
         public static System.Action<bool> OnUpdate;
+        public static System.Action OnSend, OnRecieve;
         public static System.Action<bool> OnTransaction;
 
         private static int transactionCount = 0;
@@ -92,10 +93,18 @@ namespace mud.Client {
 
         //sends tx directly
         public static async UniTask<bool> SendDirect<TFunction>(params object[] parameters) where TFunction : FunctionMessage, new() {
+            
+            OnSend?.Invoke();
+            
             if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
+
             bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            
             if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
+            
+            OnRecieve?.Invoke();
             OnTransaction?.Invoke(txSuccess);
+
             return txSuccess;
         }
 
