@@ -67,10 +67,15 @@ namespace mud.Client
         protected virtual void Start() { }
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
-        public virtual void Toggle(bool toggle, bool invokeActions) {
+        public virtual void Toggle(bool toggle, bool invokeActions = true, bool force = false) {
+
+            if(isActive == toggle && !force) return;
+
             isActive = toggle; 
             gameObject.SetActive(toggle); 
+            
             if(invokeActions) {OnToggle?.Invoke(); OnToggleActive?.Invoke(toggle);}
+
         }
 
         public async void DoInit(SpawnInfo spawnInfo) {
@@ -104,8 +109,8 @@ namespace mud.Client
         }
 
         async UniTask DoLoad() {
-
-            Toggle(false, false);
+            
+            Toggle(false, false, true);
 
             //always delay a frame so that RequiredComponents has been fully added to by any other scripts on Start and Awake ex. check ComponentSync
             //chop it up so that not everything loads at the same frame
