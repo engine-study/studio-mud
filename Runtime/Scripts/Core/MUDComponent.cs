@@ -171,7 +171,7 @@ namespace mud.Client
             if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(false, this);}
         }
 
-        public void DoUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+        public void DoUpdate(IMudTable table, UpdateInfo newInfo) {
 
             if(table == null) {
                 Debug.LogError(gameObject.name + ": null table", this);
@@ -203,7 +203,7 @@ namespace mud.Client
             return Loaded && UpdateInfo.Source != UpdateSource.Revert;
         } 
 
-        protected virtual void IngestUpdate(mud.Client.IMudTable table, UpdateInfo newInfo) {
+        protected virtual void IngestUpdate(IMudTable table, UpdateInfo newInfo) {
 
             //cache last info
             lastInfo = new UpdateInfo(updateInfo);
@@ -256,7 +256,7 @@ namespace mud.Client
         }
 
         protected abstract IMudTable GetTable();
-        protected abstract void UpdateComponent(mud.Client.IMudTable table, UpdateInfo newInfo);
+        protected abstract void UpdateComponent(IMudTable table, UpdateInfo newInfo);
         protected virtual void UpdateComponentInstant() { }
         protected virtual void UpdateComponentRich() { }
 
