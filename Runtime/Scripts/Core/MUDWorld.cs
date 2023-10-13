@@ -9,6 +9,9 @@ namespace mud.Client
 
     public class MUDWorld : MonoBehaviour
     {
+        public static MUDEntity FindEntity(string entity) {
+            return EntityDictionary.FindEntitySafe(entity);
+        }
 
         public static T FindComponent<T>(string entity) where T : MUDComponent, new() {
             //try to find the tablemanager
