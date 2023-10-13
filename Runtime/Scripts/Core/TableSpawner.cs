@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Client;
+using mud;
 using Cysharp.Threading.Tasks;
-using mud.Unity;
+using mud;
 
 public class TableSpawner : MonoBehaviour {
 

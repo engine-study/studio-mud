@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using mud.Client;
-using NetworkManager = mud.Unity.NetworkManager;
+using mud;
+using NetworkManager = mud.NetworkManager;
 
-namespace mud.Client
+namespace mud
 {
 
     public enum SpawnSource{Load, InGame}
@@ -35,7 +35,7 @@ namespace mud.Client
 
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
-        //unless we were to manually add the DefaultNamespace to the UniMud package by name
+        //unless we were to manually add the mudworld to the UniMud package by name
         public IMudTable TableReference { get { return GetTable(); }}
         public string MUDTableName { get { return GetTable().TableType().Name; }}
         public Type MUDTableType { get { return GetTable().TableType(); }}

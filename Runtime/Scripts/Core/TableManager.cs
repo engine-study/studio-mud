@@ -2,15 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Unity;
-using mud.Client;
-using NetworkManager = mud.Unity.NetworkManager;
+using mud;
+using NetworkManager = mud.NetworkManager;
 using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
 using UnityEditor;
 
-namespace mud.Client {
+namespace mud {
 
 
     public class TableManager : MonoBehaviour {
@@ -111,35 +110,32 @@ namespace mud.Client {
 
         //loads a chunk and updates them (TODO how do we prevent double subscribes?)
         public void SubscribeAll() {
-            var query = new Query().In(componentPrefab.TableReference.TableId);
-            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));        
-        }
 
-        public void Subscribe(Query query) {
-            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));
+            var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(OnUpdate);
+            _disposers.Add(_sub);        
         }
 
         //old method        
-        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
+        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.NetworkManager nm, UpdateType updateType) {
         //     return NetworkManager.Instance.ds.OnDataStoreUpdate
         //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
         //     .Select( update => tableType.CreateTypedRecord(update) );
         // }
         
         //TODO, what order do these lists update in? also what about SetField?
-        void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update) {
+        void OnUpdate((List<RxRecord> SetRecords, List<RxRecord> RemovedRecords) update) {
 
             SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
             firstUpdate = false;
 
             // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
-            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
-            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
+            foreach(RxRecord r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
+            foreach(RxRecord r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
         }
 
-        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
+        protected virtual void IngestRecord(RxRecord newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
             //process the table event to a key and the entity of that key
-            string entityKey = newRecord.key;
+            string entityKey = newRecord.Key;
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -177,7 +173,7 @@ namespace mud.Client {
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
-            //look at Record Equals() and test
+            //look at RxRecord Equals() and test
 
             //send the update to the component
             ComponentDict[entityKey].DoUpdate(mudTable, newInfo);

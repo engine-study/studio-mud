@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Client;
+using mud;
 public class EntityDictionary : MonoBehaviour {
     public static System.Action OnEntitySpawned;
     public static System.Action OnEntityDestroyed;

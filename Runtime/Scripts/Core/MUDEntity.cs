@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace mud.Client {
+namespace mud {
     public class MUDEntity : MonoBehaviour {
 
         public bool HasInit{get{return hasInit;}}
