@@ -112,7 +112,7 @@ namespace mud {
         //loads a chunk and updates them (TODO how do we prevent double subscribes?)
         public void SubscribeAll() {
 
-            var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(IngestUpdate);
+            var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(IngestUpdate);
             _disposers.Add(_sub);
                   
             hasSubscribed = false;            
@@ -129,7 +129,7 @@ namespace mud {
             
             p.TryGetValue("key", out object keyObject);
             string entityKey = (string)keyObject;
-            
+
             if (string.IsNullOrEmpty(entityKey)) { Debug.LogError("No key " + gameObject.name, this); return;}
 
 
