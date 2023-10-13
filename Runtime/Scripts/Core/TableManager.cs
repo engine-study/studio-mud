@@ -111,8 +111,8 @@ namespace mud {
         //loads a chunk and updates them (TODO how do we prevent double subscribes?)
         public void SubscribeAll() {
 
-            var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(OnUpdate);
-            _disposers.Add(_sub);        
+            // var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(OnUpdate);
+            // _disposers.Add(_sub);        
         }
 
         //old method        
