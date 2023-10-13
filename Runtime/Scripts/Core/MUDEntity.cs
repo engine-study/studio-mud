@@ -127,6 +127,17 @@ namespace mud.Client {
             return value as T;
         }
 
+        //way of doing a GetComponent on just the roots of the Entity's components
+        //quicker than searching everything with a GetComponentInChildren
+        public T GetRootComponent<T>() where T : Component {
+            for(int i = 0; i < components.Count; i++) {
+                T c = components[i].GetComponent<T>();
+                if(c) { return c; }
+            }
+            return null;
+        }
+
+
         public T AddComponent<T>(T prefab, SpawnInfo newSpawnInfo) where T : MUDComponent {
             // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
             T c = GetMUDComponent(prefab);
