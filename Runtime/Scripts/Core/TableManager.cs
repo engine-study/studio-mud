@@ -8,6 +8,7 @@ using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
 using UnityEditor;
+using Property = System.Collections.Generic.Dictionary<string, object>;
 
 namespace mud {
 
@@ -45,7 +46,7 @@ namespace mud {
 
         CompositeDisposable _disposers = new();
         bool hasInit;
-        bool firstUpdate = true;
+        bool hasSubscribed = true;
 
         // public Dictionary<string, MUDComponent> Components;
 
@@ -53,7 +54,7 @@ namespace mud {
 
             if(NetworkManager.Initialized) { DoInit(); } 
             else { NetworkManager.OnInitialized += DoInit; }
-        
+
         }
 
         void DoInit() {
@@ -111,41 +112,31 @@ namespace mud {
         //loads a chunk and updates them (TODO how do we prevent double subscribes?)
         public void SubscribeAll() {
 
-            // var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(OnUpdate);
-            // _disposers.Add(_sub);        
+            var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.Table.GetType()).ObserveOnMainThread().Subscribe(IngestUpdate);
+            _disposers.Add(_sub);
+                  
+            hasSubscribed = false;            
+  
         }
 
-        //old method        
-        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.NetworkManager nm, UpdateType updateType) {
-        //     return NetworkManager.Instance.ds.OnDataStoreUpdate
-        //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
-        //     .Select( update => tableType.CreateTypedRecord(update) );
-        // }
         
-        //TODO, what order do these lists update in? also what about SetField?
-        void OnUpdate((List<RxRecord> SetRecords, List<RxRecord> RemovedRecords) update) {
+        protected virtual void IngestUpdate(RecordUpdate update) {
 
-            SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
-            firstUpdate = false;
-
-            // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
-            foreach(RxRecord r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
-            foreach(RxRecord r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
-        }
-
-        protected virtual void IngestRecord(RxRecord newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
             //process the table event to a key and the entity of that key
-            string entityKey = newRecord.Key;
-
-            if (string.IsNullOrEmpty(entityKey)) {
-                Debug.LogError("No key found in " + gameObject.name, gameObject);
-                return;
-            }
-
+            Property p = (Property)update.CurrentValue;
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
-            mudTable.RecordToTable(newRecord);
+            mudTable.PropertyToTable(p);
+            
+            p.TryGetValue("key", out object keyObject);
+            string entityKey = (string)keyObject;
+            
+            if (string.IsNullOrEmpty(entityKey)) { Debug.LogError("No key " + gameObject.name, this); return;}
 
-            IngestTable(entityKey, mudTable, newInfo, newSpawn);
+
+            UpdateInfo info = new UpdateInfo(update.Type, UpdateSource.Onchain);
+            SpawnInfo spawn = new SpawnInfo(null, hasSubscribed ? SpawnSource.Load : SpawnSource.InGame, this);
+
+            IngestTable(entityKey, mudTable, info, spawn);
         }
 
         protected virtual void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
