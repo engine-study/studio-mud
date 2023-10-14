@@ -37,7 +37,7 @@ public class TableSpawner : MonoBehaviour {
 
         if(loaded) {Debug.LogError("Already loaded.", this); return;}
 
-        while(NetworkManager.Initialized == false) {await UniTask.Delay(100);}
+        while(NetworkManager.Initialized == false) {await UniTask.Delay(10);}
         
         for (int i = 0; i < spawnTables.Length; i++) {
 
