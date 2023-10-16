@@ -32,21 +32,19 @@ namespace mud {
         public bool EntityHasComponent(string key) { return ComponentDict.ContainsKey(key); }
         public MUDComponent EntityToComponent(string key) { return ComponentDict[key]; }
 
-        [Header("Settings")]
+        [Header("Required")]
         [SerializeField] MUDComponent componentPrefab;
-        [SerializeField] bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
 
         [Header("Behaviour")]
         [SerializeField] public bool AutoSpawn = true;
-        [SerializeField] bool deletedRecordDestroysEntity = false;
-
-        [Header("Debug")]
         public bool LogTable = false;
+
+        [Header("Components")]
         [SerializeField] List<MUDComponent> components;
 
         CompositeDisposable _disposers = new();
         bool hasInit;
-        bool hasSubscribed = true;
+        bool loading = true;
 
         // public Dictionary<string, MUDComponent> Components;
 
@@ -82,12 +80,14 @@ namespace mud {
 
         public void Spawn(MUDComponent prefab) {
 
-            if(!hasInit) { Debug.LogError("Has to init", this);return; }
+            if(!hasInit) { Debug.LogError(prefab.name + " has not init", this);return; }
+            if(!loading) { Debug.LogError(prefab.name + "already subscribed", this); return; }
+
+            SetPrefab(prefab);
 
             gameObject.name = prefab.MUDTableName;
             AutoSpawn = false;
 
-            SetPrefab(prefab);
             SubscribeAll();    
 
         }
@@ -114,8 +114,8 @@ namespace mud {
 
             var _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(IngestUpdate);
             _disposers.Add(_sub);
-                  
-            hasSubscribed = false;            
+                
+            loading = false;            
   
         }
 
@@ -123,7 +123,7 @@ namespace mud {
         protected virtual void IngestUpdate(RecordUpdate update) {
 
             //process the table event to a key and the entity of that key
-            Property p = (Property)update.CurrentValue;
+            Property p = (Property)update.CurrentRecordValue;
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
             mudTable.PropertyToTable(p);
             
@@ -134,7 +134,7 @@ namespace mud {
 
 
             UpdateInfo info = new UpdateInfo(update.Type, UpdateSource.Onchain);
-            SpawnInfo spawn = new SpawnInfo(null, hasSubscribed ? SpawnSource.Load : SpawnSource.InGame, this);
+            SpawnInfo spawn = new SpawnInfo(null, loading ? SpawnSource.Load : SpawnSource.InGame, this);
 
             IngestTable(entityKey, mudTable, info, spawn);
         }
@@ -172,10 +172,10 @@ namespace mud {
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
-            //delete cleanup
-            if (newInfo.UpdateType == UpdateType.DeleteRecord) {
-                if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
-            }
+            // //delete cleanup
+            // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
+            //     if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
+            // }
 
         }
 
