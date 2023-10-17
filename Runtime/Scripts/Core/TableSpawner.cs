@@ -19,6 +19,7 @@ public class TableSpawner : MonoBehaviour {
 
     [Header("Debug")]
     [SerializeField] bool syncing = false;
+    [SerializeField] private List<TableManager> tables;
 
 
     void Awake() {
@@ -42,6 +43,8 @@ public class TableSpawner : MonoBehaviour {
 
         if(syncing) {Debug.LogError(gameObject.name + ": Already loaded.", this); return;}
         syncing = true; 
+        
+        tables = new List<TableManager>();
 
         for (int i = 0; i < spawnTables.Length; i++) {
 
@@ -52,7 +55,12 @@ public class TableSpawner : MonoBehaviour {
             newTable.LogTable = logAllTables;
             newTable.AutoSpawn = false;
 
-            newTable.Spawn(spawnTables[i]);
+            newTable.RegisterTable(spawnTables[i]);
+            tables.Add(newTable);
+        }
+
+        for (int i = 0; i < spawnTables.Length; i++) {
+            tables[i].Spawn(spawnTables[i]);
         }
 
         OnComplete?.Invoke();

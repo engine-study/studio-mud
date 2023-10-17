@@ -26,9 +26,12 @@ namespace mud
 
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
+            if(tm == null) {Debug.LogError(typeof(T).Name + ": Could not find Table"); return null;}
+            
+            MUDComponent prefab = tm.Prefab;
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
             SpawnInfo si = new SpawnInfo(entity, SpawnSource.InGame, tm);
-            MUDComponent component = entity.AddComponent<T>(FindPrefab<T>(), si);
+            MUDComponent component = entity.AddComponent(prefab, si);
             return component as T;
         }
 
@@ -45,9 +48,8 @@ namespace mud
             return IMudTable.GetValueFromTable<T>(entityKey);
         }
 
-        
-        public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)FindTable<T>()?.Prefab;}
-        public static MUDComponent FindPrefab(IMudTable table) { return FindTableByMUDTable(table)?.Prefab;}
+        // public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)(FindTable<T>()?.Prefab);}
+        // public static MUDComponent FindPrefab(IMudTable table) { return FindTableByMUDTable(table)?.Prefab;}
 
     }
 }

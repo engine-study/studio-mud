@@ -106,7 +106,8 @@ namespace mud {
 
             bool txSuccess = await NetworkManager.World.Write<TFunction>(parameters);
             
-            if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
+            if(Instance.Verbose && txSuccess) Debug.Log("[Tx CONFIRM] " + typeof(TFunction).Name);
+            if(Instance.Verbose && !txSuccess) Debug.LogError("[Tx REVERT] " + typeof(TFunction).Name);
             
             OnRecieve?.Invoke();
             OnTransaction?.Invoke(txSuccess);

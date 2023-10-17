@@ -34,8 +34,8 @@ public class EntityDictionary : MonoBehaviour {
     void OnDestroy() {
         Instance = null;
     }
-
-    public static MUDEntity FindOrSpawnEntity(string newKey) {
+    
+    public static MUDEntity FindOrSpawnEntity(string key) {
 
         if (Instance == null) {
             Debug.LogError("No EntityDictionary Instance found");
@@ -43,11 +43,10 @@ public class EntityDictionary : MonoBehaviour {
         }
 
         //get the entity if it exists or spawn it
-        MUDEntity newEntity = FindEntitySafe(newKey);
+        MUDEntity entity = FindEntitySafe(key);
 
-        if (newEntity != null) {
-            // Debug.Log("Found " + newEntity.name, Instance);
-        } else {
+        if (entity == null) {
+    
             if (Instance.entityPrefab == null) {
                 Instance.entityPrefab = (Resources.Load("Entity") as GameObject);
             }
@@ -58,20 +57,20 @@ public class EntityDictionary : MonoBehaviour {
             }
 
             //spawn the entity if it doesnt exist
-            newEntity = Instantiate(Instance.entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
-            newEntity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(newKey) + "]";
+            entity = Instantiate(Instance.entityPrefab, Vector3.zero, Quaternion.identity, Instance.entityParent).GetComponent<MUDEntity>();
+            entity.gameObject.name = "Entity [" + MUDHelper.TruncateHash(key) + "]";
 
-            newEntity.DoInit(newKey);
-            ToggleEntity(true, newEntity);
+            entity.DoInit(key);
+            ToggleEntity(true, entity);
 
-            // Debug.Log("Spawned " + newEntity.name, Instance);
+            // Debug.Log("Spawned " + entity.name, Instance);
 
             OnEntitySpawned?.Invoke();
 
         }
 
 
-        return newEntity;
+        return entity;
     }
 
     public static void SpawnAllComponentsOntoEntity(MUDEntity entity) {
@@ -98,10 +97,10 @@ public class EntityDictionary : MonoBehaviour {
     public static void ToggleEntity(bool toggle, MUDEntity entity) {
         if (toggle) {
             Instance.spawnedEntities.Add(entity);
-            m_Entities.Add(entity.Key.ToLower(), entity);
+            m_Entities.Add(entity.Key, entity);
         } else {
             Instance.spawnedEntities.Remove(entity);
-            m_Entities.Remove(entity.Key.ToLower());
+            m_Entities.Remove(entity.Key);
         }
     }
 
