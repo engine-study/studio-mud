@@ -92,67 +92,6 @@ MonoBehaviour:
   entityPrefab: {fileID: 0}
   entityParent: {fileID: 0}
   spawnedEntities: []
---- !u!1 &5434828356542120334
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1965001346719452247}
-  - component: {fileID: 9131142393774808648}
-  - component: {fileID: 2483542152087410652}
-  m_Layer: 0
-  m_Name: AreaManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1965001346719452247
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5434828356542120334}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8786384311073745310}
-  m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9131142393774808648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5434828356542120334}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4e0ca1918f678f46a25c89e546f7daa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  width: {x: 0, y: 0}
-  height: {x: 0, y: 0}
-  Entities: []
-  sync: {fileID: 2483542152087410652}
---- !u!114 &2483542152087410652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5434828356542120334}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26c6994f1ba750b409ec50acdba2274e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5719952212631868032
 GameObject:
   m_ObjectHideFlags: 0
@@ -197,6 +136,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 372c4ce9248adbd42935486ab296f4bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Optimistic: 1
   Verbose: 1
 --- !u!1 &7180575907617087376
 GameObject:
@@ -207,7 +147,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8786384311073745310}
-  - component: {fileID: 1200377520162337971}
+  - component: {fileID: 5712842461510900550}
   m_Layer: 0
   m_Name: MUD
   m_TagString: Untagged
@@ -230,11 +170,10 @@ Transform:
   - {fileID: 2094119452106387549}
   - {fileID: 1719053654389764560}
   - {fileID: 2173018970966705068}
-  - {fileID: 1965001346719452247}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1200377520162337971
+--- !u!114 &5712842461510900550
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -243,18 +182,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 7180575907617087376}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88c2f0f44d7cc4c3abe5f498cfeca6be, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ef0393121ab4608aae4ec9fb2e94bc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoConnect: 1
+  uniqueWallets: 0
+  pk: 
   networkType: 0
   local: {fileID: 11400000, guid: 8f9de2d4a845cd9409aa4027b0fdc8b4, type: 2}
-  testnet: {fileID: 11400000, guid: 81361fd2f55627647aa60811fe3080ac, type: 2}
-  mainnet: {fileID: 11400000, guid: 526c97e7537d6274cb7a496684db0980, type: 2}
-  worldAddress: 
-  faucetUrl: 
-  pk: 
-  uniqueWallets: 1
-  disableCache: 1
-  verbose: 0
+  testnet: {fileID: 11400000, guid: ae25882ff4ced2e41b2b0a9914770066, type: 2}
+  mainnet: {fileID: 11400000, guid: c37cc5018cb90234ca19fedb30ef6a2a, type: 2}
   address: 
   addressKey: 

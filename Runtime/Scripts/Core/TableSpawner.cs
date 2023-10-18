@@ -1,58 +1,73 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Client;
+using mud;
 using Cysharp.Threading.Tasks;
-using mud.Unity;
+using mud;
 
 public class TableSpawner : MonoBehaviour {
-
-    public bool Loaded {get{return loaded;}} 
+    
+    public bool Loaded {get{return syncing;}} 
     public static System.Action OnComplete;
     
-    [Header("Spawner")]
-    [SerializeField] bool autoSpawn = true;
+    [Header("Prefabs")]
     [SerializeField] private MUDComponent[] spawnTables;
 
+    [Header("Settings")]
+    [SerializeField] bool AutoSpawn = true;
+    [SerializeField] bool logAllTables = false;
+
     [Header("Debug")]
-    [SerializeField] bool debugAllTables = false;
-    [SerializeField] bool loaded = false;
+    [SerializeField] bool syncing = false;
+    [SerializeField] private List<TableManager> tables;
 
 
-    void Start() {
-        if(autoSpawn) {
-            SpawnTables();
+    void Awake() {
+        if(AutoSpawn) {
+            if(NetworkManager.Initialized) { SpawnTables(); } 
+            else { NetworkManager.OnInitialized += SpawnTables; }
         }
     }
 
+
     void OnDestroy() {
-        loaded = false; 
+        syncing = false; 
+        NetworkManager.OnInitialized -= SpawnTables; 
     }
 
-    public async void SpawnTables() {
+    async void SpawnTables() {
+        await Spawn();
+    }
+
+    public async UniTask Spawn() {
         await LoadTables();
     }
 
     async UniTask LoadTables() {
 
-        if(loaded) {Debug.LogError("Already loaded.", this); return;}
-
-        while(NetworkManager.Initialized == false) {await UniTask.Delay(10);}
+        if(syncing) {Debug.LogError(gameObject.name + ": Already loaded.", this); return;}
+        syncing = true; 
         
+        tables = new List<TableManager>();
+
         for (int i = 0; i < spawnTables.Length; i++) {
 
             TableManager newTable = (new GameObject()).AddComponent<TableManager>();
+
             newTable.transform.position = Vector3.zero;
             newTable.transform.parent = transform;
+            newTable.LogTable = logAllTables;
+            newTable.AutoSpawn = false;
 
-            newTable.SetPrefab(spawnTables[i]);
-            newTable.LogTable = debugAllTables;
-            newTable.AutoSpawn = true;
+            newTable.RegisterTable(spawnTables[i]);
+            tables.Add(newTable);
+        }
 
+        for (int i = 0; i < spawnTables.Length; i++) {
+            tables[i].Spawn(spawnTables[i]);
             await UniTask.Delay(100);
         }
 
-        loaded = true; 
         OnComplete?.Invoke();
     }
 

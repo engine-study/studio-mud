@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace mud.Client {
+namespace mud {
     public class MUDEntity : MonoBehaviour {
 
         public bool HasInit{get{return hasInit;}}
@@ -41,13 +41,15 @@ namespace mud.Client {
 
 
         public void DoInit(string newKey) {
+            
+            if(hasInit) {Debug.LogError("Double init", this); return;}
 
             Init(newKey);
             hasInit = true; 
 
         }
 
-        public virtual void Init(string newKey) {   
+        protected virtual void Init(string newKey) {   
             Debug.Assert(hasInit == false, "Double init", this);
 
             componentDict = new Dictionary<string, MUDComponent>();
@@ -121,11 +123,6 @@ namespace mud.Client {
             componentTypeDict.TryGetValue(componentType, out MUDComponent value);
             return value;
         }
-        
-        public T GetMUDComponent<T>(T component) where T : MUDComponent {
-            componentDict.TryGetValue(component.MUDTableName, out MUDComponent value);
-            return value as T;
-        }
 
         //way of doing a GetComponent on just the roots of the Entity's components
         //quicker than searching everything with a GetComponentInChildren
@@ -137,14 +134,15 @@ namespace mud.Client {
             return null;
         }
 
-
         public T AddComponent<T>(T prefab, SpawnInfo newSpawnInfo) where T : MUDComponent {
-            // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
-            T c = GetMUDComponent(prefab);
 
-            if (c) {
-                // Debug.LogError(prefab.gameObject.name + " already exists.", gameObject);
-            } else {
+            if(!hasInit) {Debug.LogError("Not init", this); return null;}
+            if(prefab == null) {Debug.LogError("No prefab", this); return null;}
+
+            // Debug.Log("Adding " + componentPrefab.gameObject.name, gameObject);
+            T c = (T)GetMUDComponent(prefab.GetType());
+      
+            if (c == null) {
                 //spawn the compoment
                 c = Instantiate(prefab, transform.position, Quaternion.identity, transform);
                 c.gameObject.name = c.gameObject.name.Replace("(Clone)", "");
@@ -164,6 +162,8 @@ namespace mud.Client {
                 OnComponent?.Invoke();
 
                 HandleNewComponent(c);
+            } else {
+                // Debug.LogError(prefab.gameObject.name + " already exists.", gameObject);
             }
 
             return c;

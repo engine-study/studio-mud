@@ -2,23 +2,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using mud.Unity;
-using mud.Client;
-using NetworkManager = mud.Unity.NetworkManager;
+using mud;
+using NetworkManager = mud.NetworkManager;
 using UniRx;
 using ObservableExtensions = UniRx.ObservableExtensions;
 using System.Threading.Tasks;
 using UnityEditor;
+using Newtonsoft.Json;
+using Property = System.Collections.Generic.Dictionary<string, object>;
 
-namespace mud.Client {
+namespace mud {
 
 
     public class TableManager : MonoBehaviour {
 
+        public static TableManager LatestTable;
         public Action<MUDComponent> OnComponentSpawned, OnComponentUpdated;
-        public bool Loaded {get{return hasInit;}}
-        public Action OnInit;
-        public Action OnAdded, OnUpdated, OnDeleted;
+        public bool Loaded {get{return hasSpawned;}}
 
 
         //dictionary of all entities        
@@ -32,127 +32,108 @@ namespace mud.Client {
         public bool EntityHasComponent(string key) { return ComponentDict.ContainsKey(key); }
         public MUDComponent EntityToComponent(string key) { return ComponentDict[key]; }
 
-        [Header("Settings")]
+        [Header("Required")]
         [SerializeField] MUDComponent componentPrefab;
-        [SerializeField] bool subscribeInsert = true, subscribeUpdate = true, subscribeDelete = true;
 
         [Header("Behaviour")]
         [SerializeField] public bool AutoSpawn = true;
-        [SerializeField] bool deletedRecordDestroysEntity = false;
+        public bool LogTable = false;
 
         [Header("Debug")]
-        public bool LogTable = false;
         [SerializeField] List<MUDComponent> components;
+        [SerializeField] bool hasRegistered = false;
+        [SerializeField] bool hasSpawned = false;
+        IDisposable _sub;
 
-        CompositeDisposable _disposers = new();
-        bool hasInit;
-        bool firstUpdate = true;
 
         // public Dictionary<string, MUDComponent> Components;
 
         void Start() {
-
-            if(NetworkManager.Initialized) { DoInit(); } 
-            else { NetworkManager.OnInitialized += DoInit; }
-        
+            if(!hasRegistered) RegisterTable(Prefab);
         }
 
-        void DoInit() {
+        void OnDestroy() {
+            _sub?.Dispose();
+            NetworkManager.OnInitialized -= Spawn;
+            TableDictionary.DeleteTable(this);
+        }
 
-            if(hasInit) { Debug.LogError("Oh no, double Init", this);return; }
-            if (componentPrefab == null) { Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);return;}
-            if (componentPrefab.MUDTableType == null) { Debug.LogError("No table type on " + componentPrefab.gameObject, componentPrefab);return;}
-            if (TableDictionary.TableDict.ContainsKey(ComponentName)) { Debug.LogError("Bad, multiple tables of same type " + ComponentName); return;}
+        public void RegisterTable(MUDComponent newPrefab) {
+
+            if(hasRegistered) { Debug.LogError("Double Init", this);return; }
 
             components = new List<MUDComponent>();
             ComponentDict = new Dictionary<string, MUDComponent>();
 
+            componentPrefab = newPrefab;
+            
+            //check that we have a legit prefab
+            if (Prefab == null) { Debug.LogError("No MUDComponent prefab on " + gameObject.name, this);return;}
+            if (Prefab.MUDTableType == null) { Debug.LogError("No table type on " + Prefab.gameObject, Prefab);return;}
+
+            gameObject.name = Prefab.MUDTableName;
+
+            #if UNITY_EDITOR
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(newPrefab), "Please connect the " + newPrefab.gameObject.name + " prefab from your Project window, not from a " + newPrefab.gameObject.name + " in the scene.", this); 
+            #endif
+
+            if(hasSpawned) { Debug.LogError(Prefab.name + "already subscribed", this); return; }
+            if (TableDictionary.TableDict.ContainsKey(ComponentName)) { Debug.LogError($"Registered {ComponentName} multiple times.", this); return;}
+
+            //Add the table to global table list
             TableDictionary.AddTable(this);
-
-            if(LogTable) Debug.Log("[TABLE] " + "Init: " + gameObject.name);
-
-            hasInit = true;
-            OnInit?.Invoke();
+            
+            hasRegistered = true;
 
             if(AutoSpawn) {
-                Spawn(componentPrefab);
+                if(NetworkManager.Initialized) { DoAutoSpawn(); } 
+                else { NetworkManager.OnInitialized += DoAutoSpawn; }
             }
 
         }   
 
+        public void DoAutoSpawn() { Spawn(componentPrefab);}
+        public void Spawn() { Spawn(Prefab);}
+
         public void Spawn(MUDComponent prefab) {
 
-            if(!hasInit) { Debug.LogError("Has to init", this);return; }
+            if(hasRegistered) { if(prefab != Prefab) {Debug.LogError("Already init, can't change prefab"); return;}}
+            else {RegisterTable(prefab);}
 
-            gameObject.name = prefab.MUDTableName;
-            AutoSpawn = false;
+            LatestTable = this;
 
-            SetPrefab(prefab);
-            SubscribeAll();    
+            // _counterSub = IMudTable.GetUpdates<CounterTable>().ObserveOnMainThread().Subscribe(OnIncrement);
+            _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(Ingest);
+
+            hasSpawned = true;
+            if(LogTable) Debug.Log($"[TABLE {componentPrefab.name}] Spawned.", this);
 
         }
 
-        //PrefabUtility.GetPrefabType into PrefabUtility.GetPrefabAssetType and PrefabUtility.GetPrefabInstanceStatus.
-        //TODO check to see if the prefab set in Editor is an instance or not, give a warning if it is
-        public void SetPrefab(MUDComponent newPrefab) {
-            componentPrefab = newPrefab;
-            #if UNITY_EDITOR
-            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(newPrefab), "Please connect the " + newPrefab.gameObject.name + " prefab from your Project window, not from a " + newPrefab.gameObject.name + " in the scene.", this); 
-            #endif
-        }
+        void Ingest(RecordUpdate update) {
 
-        
-
-        void OnDestroy() {
-            _disposers?.Dispose();
-            NetworkManager.OnInitialized -= DoInit;
-            TableDictionary.DeleteTable(this);
-        }
-
-        //loads a chunk and updates them (TODO how do we prevent double subscribes?)
-        public void SubscribeAll() {
-            var query = new Query().In(componentPrefab.TableReference.TableId);
-            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));        
-        }
-
-        public void Subscribe(Query query) {
-            _disposers.Add(ObservableExtensions.Subscribe(NetworkManager.Instance.ds.RxQuery(query).ObserveOnMainThread(), OnUpdate));
-        }
-
-        //old method        
-        // public IObservable<RecordUpdate> SubscribeTable(IMudTable tableType, mud.Unity.NetworkManager nm, UpdateType updateType) {
-        //     return NetworkManager.Instance.ds.OnDataStoreUpdate
-        //     .Where(update => update.TableId == tableType.TableId.ToString() && update.Type == updateType)
-        //     .Select( update => tableType.CreateTypedRecord(update) );
-        // }
-        
-        //TODO, what order do these lists update in? also what about SetField?
-        void OnUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update) {
-
-            SpawnInfo spawnInfo = new SpawnInfo(null, firstUpdate ? SpawnSource.Load : SpawnSource.InGame, this);
-            firstUpdate = false;
-
-            // if (LogTable) { Debug.Log("[TABLE] " + gameObject.name + ": " + "[Sets " + update.SetRecords?.Count + "] [Deletes " + update.RemovedRecords?.Count + "]"); }
-            foreach(Record r in update.SetRecords) { IngestRecord(r, new UpdateInfo(UpdateType.SetRecord, UpdateSource.Onchain), spawnInfo);}
-            foreach(Record r in update.RemovedRecords) { IngestRecord(r, new UpdateInfo(UpdateType.DeleteRecord, UpdateSource.Onchain), spawnInfo);}
-        }
-
-        protected virtual void IngestRecord(Record newRecord, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
             //process the table event to a key and the entity of that key
-            string entityKey = newRecord.key;
+            string entityKey = update.CurrentRecordKey;
+            if (string.IsNullOrEmpty(entityKey)) { Debug.LogError("No key " + gameObject.name, this); return;}
 
-            if (string.IsNullOrEmpty(entityKey)) {
-                Debug.LogError("No key found in " + gameObject.name, gameObject);
-                return;
-            }
+            //deep logging
+            // if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
+            // if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
+            IMudTable mudTable = null;
+            
+            if(update.Type == UpdateType.SetRecord || update.Type == UpdateType.SetField) {
+                Property p = (Property)update.CurrentRecordValue;
+                mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
+                mudTable.PropertyToTable(p);
+            } 
 
-            IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
-            mudTable.RecordToTable(newRecord);
+            UpdateInfo info = new UpdateInfo(update.Type, UpdateSource.Onchain);
+            SpawnInfo spawn = new SpawnInfo(null, hasSpawned ? SpawnSource.Load : SpawnSource.InGame, this);
 
-            IngestTable(entityKey, mudTable, newInfo, newSpawn);
+            IngestTable(entityKey, mudTable, info, spawn);
         }
 
-        protected virtual void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
+        void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -173,11 +154,10 @@ namespace mud.Client {
                 wasSpawned = true;
             }
 
-            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name.ToUpper() + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
-            //look at Record Equals() and test
+            //look at RxRecord Equals() and test
 
             //send the update to the component
             ComponentDict[entityKey].DoUpdate(mudTable, newInfo);
@@ -185,10 +165,12 @@ namespace mud.Client {
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
-            //delete cleanup
-            if (newInfo.UpdateType == UpdateType.DeleteRecord) {
-                if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
-            }
+            if (LogTable) { Debug.Log($"[{component.Entity.gameObject.name}] {entity.Name} [{newInfo.UpdateType}]", component);}
+
+            // //delete cleanup
+            // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
+            //     if(deletedRecordDestroysEntity) EntityDictionary.DestroyEntity(entityKey);
+            // }
 
         }
 

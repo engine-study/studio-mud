@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace mud.Client
+namespace mud
 {
 
 
@@ -26,9 +26,12 @@ namespace mud.Client
 
             //try to find the tablemanager
             TableManager tm = FindTable<T>();
+            if(tm == null) {Debug.LogError(typeof(T).Name + ": Could not find Table"); return null;}
+            
+            MUDComponent prefab = tm.Prefab;
             MUDEntity entity = EntityDictionary.FindOrSpawnEntity(entityKey);
             SpawnInfo si = new SpawnInfo(entity, SpawnSource.InGame, tm);
-            MUDComponent component = entity.AddComponent<T>(FindPrefab<T>(), si);
+            MUDComponent component = entity.AddComponent(prefab, si);
             return component as T;
         }
 
@@ -39,15 +42,14 @@ namespace mud.Client
         public static TableManager FindTableByMUDTable(IMudTable mudTable) { TableDictionary.TableDict.TryGetValue(mudTable.GetType().Name, out TableManager tm); return tm; }
         public static TableManager FindTableByMUDTable(Type mudTableType) { TableDictionary.TableDict.TryGetValue(mudTableType.Name, out TableManager tm); return tm; }
 
-        public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
+        public static T MakeTable<T>(string entityKey) where T : IMudTable, new() {
             T table = new T();
             // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return IMudTable.GetValueFromTable<T>(entityKey);
+            return IMudTable.MakeTable<T>(entityKey);
         }
 
-        
-        public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)FindTable<T>()?.Prefab;}
-        public static MUDComponent FindPrefab(IMudTable table) { return FindTableByMUDTable(table)?.Prefab;}
+        // public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)(FindTable<T>()?.Prefab);}
+        // public static MUDComponent FindPrefab(IMudTable table) { return FindTableByMUDTable(table)?.Prefab;}
 
     }
 }

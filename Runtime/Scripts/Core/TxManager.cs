@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using mud.Unity;
+using mud;
 using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.RPC.Eth.DTOs;
@@ -11,7 +11,7 @@ using Nethereum.Contracts;
 using Cysharp.Threading.Tasks;
 using System.Net.Http.Headers;
 
-namespace mud.Client {
+namespace mud {
 
     public class TxManager : MonoBehaviour {
 
@@ -104,9 +104,10 @@ namespace mud.Client {
             
             if(Instance.Verbose) Debug.Log("[Tx SENT] " + typeof(TFunction).Name);
 
-            bool txSuccess = await NetworkManager.Instance.worldSend.TxExecute<TFunction>(parameters);
+            bool txSuccess = await NetworkManager.World.Write<TFunction>(parameters);
             
-            if(Instance.Verbose) Debug.Log("[Tx " + (txSuccess ? "CONFIRM" : "REVERT") + "] " + typeof(TFunction).Name);
+            if(Instance.Verbose && txSuccess) Debug.Log("[Tx CONFIRM] " + typeof(TFunction).Name);
+            if(Instance.Verbose && !txSuccess) Debug.LogError("[Tx REVERT] " + typeof(TFunction).Name);
             
             OnRecieve?.Invoke();
             OnTransaction?.Invoke(txSuccess);
