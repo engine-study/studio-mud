@@ -42,10 +42,10 @@ namespace mud
         public static TableManager FindTableByMUDTable(IMudTable mudTable) { TableDictionary.TableDict.TryGetValue(mudTable.GetType().Name, out TableManager tm); return tm; }
         public static TableManager FindTableByMUDTable(Type mudTableType) { TableDictionary.TableDict.TryGetValue(mudTableType.Name, out TableManager tm); return tm; }
 
-        public static T FindValue<T>(string entityKey) where T : IMudTable, new() {
+        public static T MakeTable<T>(string entityKey) where T : IMudTable, new() {
             T table = new T();
             // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return IMudTable.GetValueFromTable<T>(entityKey);
+            return IMudTable.MakeTable<T>(entityKey);
         }
 
         // public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)(FindTable<T>()?.Prefab);}

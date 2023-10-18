@@ -149,7 +149,6 @@ namespace mud {
                 wasSpawned = true;
             }
 
-            if (LogTable) { Debug.Log($"[{componentPrefab.name}] {entity.Name} Update ({newInfo.UpdateType} , {newInfo.Source})", component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
@@ -160,6 +159,8 @@ namespace mud {
 
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
+
+            if (LogTable) { Debug.Log($"[{componentPrefab.name}] {entity.Name} [{component.ActiveTable}]", component);}
 
             // //delete cleanup
             // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
