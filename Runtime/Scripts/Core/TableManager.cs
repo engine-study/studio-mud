@@ -16,6 +16,7 @@ namespace mud {
 
     public class TableManager : MonoBehaviour {
 
+        public static TableManager LatestTable;
         public Action<MUDComponent> OnComponentSpawned, OnComponentUpdated;
         public bool Loaded {get{return hasSpawned;}}
 
@@ -98,6 +99,8 @@ namespace mud {
 
             if(hasRegistered) { if(prefab != Prefab) {Debug.LogError("Already init, can't change prefab"); return;}}
             else {RegisterTable(prefab);}
+
+            LatestTable = this;
 
             // _counterSub = IMudTable.GetUpdates<CounterTable>().ObserveOnMainThread().Subscribe(OnIncrement);
             _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(Ingest);

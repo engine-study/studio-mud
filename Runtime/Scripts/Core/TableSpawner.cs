@@ -6,10 +6,10 @@ using Cysharp.Threading.Tasks;
 using mud;
 
 public class TableSpawner : MonoBehaviour {
-
+    
     public bool Loaded {get{return syncing;}} 
     public static System.Action OnComplete;
-
+    
     [Header("Prefabs")]
     [SerializeField] private MUDComponent[] spawnTables;
 
@@ -35,7 +35,11 @@ public class TableSpawner : MonoBehaviour {
         NetworkManager.OnInitialized -= SpawnTables; 
     }
 
-    public async void SpawnTables() {
+    async void SpawnTables() {
+        await Spawn();
+    }
+
+    public async UniTask Spawn() {
         await LoadTables();
     }
 
