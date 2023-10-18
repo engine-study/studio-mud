@@ -103,7 +103,7 @@ namespace mud {
             _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(Ingest);
 
             hasSpawned = true;
-            if(LogTable) Debug.Log("[TABLE] " + "Spawned: " + componentPrefab.name, this);
+            if(LogTable) Debug.Log($"[TABLE {componentPrefab.name}] Spawned.", this);
 
         }
 
@@ -149,7 +149,7 @@ namespace mud {
                 wasSpawned = true;
             }
 
-            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
+            if (LogTable) { Debug.Log($"[{componentPrefab.name}] {entity.Name} Update ({newInfo.UpdateType} , {newInfo.Source})", component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
