@@ -126,11 +126,11 @@ namespace mud
 
             Debug.Assert(loaded == false, "Already loaded", this);
             
-            loaded = true;
-            OnLoaded?.Invoke();
-
             //send an active event if we are spawning from a live event
             Toggle(true, spawnInfo.Source == SpawnSource.InGame);
+
+            loaded = true;
+            OnLoaded?.Invoke();
 
             PostInit();
             
@@ -172,11 +172,6 @@ namespace mud
         }
 
         public void DoUpdate(IMudTable table, UpdateInfo newInfo) {
-
-            if(table == null) {
-                Debug.LogError(gameObject.name + ": null table", this);
-                return;
-            }
 
             //update our internal table
             IngestUpdate(table, newInfo);

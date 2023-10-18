@@ -116,11 +116,13 @@ namespace mud {
             //deep logging
             // if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
             // if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
-
-            Property p = (Property)update.CurrentRecordValue;
-            IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
-
-            mudTable.PropertyToTable(p);
+            IMudTable mudTable = null;
+            
+            if(update.Type == UpdateType.SetRecord || update.Type == UpdateType.SetField) {
+                Property p = (Property)update.CurrentRecordValue;
+                mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
+                mudTable.PropertyToTable(p);
+            } 
 
             UpdateInfo info = new UpdateInfo(update.Type, UpdateSource.Onchain);
             SpawnInfo spawn = new SpawnInfo(null, hasSpawned ? SpawnSource.Load : SpawnSource.InGame, this);
@@ -160,7 +162,7 @@ namespace mud {
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
-            if (LogTable) { Debug.Log($"[{componentPrefab.name}] {entity.Name} [{component.ActiveTable}]", component);}
+            if (LogTable) { Debug.Log($"[{component.Entity.gameObject.name}] {entity.Name} [{newInfo.UpdateType}]", component);}
 
             // //delete cleanup
             // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
