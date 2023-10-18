@@ -61,6 +61,7 @@ public class TableSpawner : MonoBehaviour {
 
         for (int i = 0; i < spawnTables.Length; i++) {
             tables[i].Spawn(spawnTables[i]);
+            await UniTask.Delay(100);
         }
 
         OnComplete?.Invoke();
