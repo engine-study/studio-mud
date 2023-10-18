@@ -17,7 +17,7 @@ namespace mud {
     public class TableManager : MonoBehaviour {
 
         public Action<MUDComponent> OnComponentSpawned, OnComponentUpdated;
-        public bool Loaded {get{return hasRegistered;}}
+        public bool Loaded {get{return hasSpawned;}}
 
 
         //dictionary of all entities        
@@ -113,8 +113,9 @@ namespace mud {
             string entityKey = update.CurrentRecordKey;
             if (string.IsNullOrEmpty(entityKey)) { Debug.LogError("No key " + gameObject.name, this); return;}
 
-            if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
-            if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
+            //deep logging
+            // if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
+            // if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
 
             Property p = (Property)update.CurrentRecordValue;
             IMudTable mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
@@ -148,7 +149,7 @@ namespace mud {
                 wasSpawned = true;
             }
 
-            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name.ToUpper() + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
+            if (LogTable) { Debug.Log(component.Entity.Name + " [TABLE] " + gameObject.name + ": " + newInfo.UpdateType.ToString() + " , " + newInfo.Source.ToString(), component);}
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
