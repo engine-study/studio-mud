@@ -148,7 +148,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8786384311073745310}
   - component: {fileID: 5712842461510900550}
-  - component: {fileID: 1931788829580650173}
   m_Layer: 0
   m_Name: MUD
   m_TagString: Untagged
@@ -203,18 +202,3 @@ MonoBehaviour:
     _rpcUrl: 
     _chainId: 0
     _contractAddress: 
---- !u!114 &1931788829580650173
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7180575907617087376}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 977803b8463764443b40d128c3160e23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  worldFilePath: worlds
-  worldAddress: 
-  blockNumber: 0

@@ -165,7 +165,7 @@ namespace mud {
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
-            if (LogTable) { Debug.Log($"[{component.Entity.gameObject.name}] {entity.Name} [{newInfo.UpdateType}]", component);}
+            if (LogTable) { Debug.Log($"[{gameObject.name}] {component.Entity.gameObject.name} [{newInfo.UpdateType}]", component);}
 
             // //delete cleanup
             // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
