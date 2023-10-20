@@ -13,6 +13,7 @@ namespace mud {
         public string Key { get { return mudKey; } }
         public string Name {get{return entityName;}}
         public bool Loaded {get{return loaded;}}
+        public bool IsLocal {get{return isLocal;}}
         public List<MUDComponent> Components { get { return components; } }
         public List<Type> ExpectedComponents { get { return expected; } }
         public Action OnComponent;
@@ -27,6 +28,7 @@ namespace mud {
         [Header("MUD")]
         [SerializeField] bool hasInit;
         [SerializeField] bool loaded;
+        [SerializeField] bool isLocal;
         [SerializeField] string mudKey;
         [SerializeField] string entityName;
         [SerializeField] List<MUDComponent> components;
@@ -60,6 +62,7 @@ namespace mud {
             components = new List<MUDComponent>();
 
             mudKey = newKey;
+            isLocal = mudKey == NetworkManager.LocalKey;
         }
 
         //entities must have at least one component and have loaded all expected components
