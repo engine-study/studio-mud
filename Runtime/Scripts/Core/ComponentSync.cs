@@ -66,10 +66,7 @@ namespace mud {
             //add our required components 
             ourTable = MUDWorld.FindTable(MUDComponentType());
             if(ourTable == null) {Debug.LogError("Could not find table " + MUDComponentType().Name); return;}
-            if (!ourComponent.RequiredTypes.Contains(ourTable.Prefab.GetType())) {
-                // Debug.Log(gameObject.name + " Adding our , thisrequired component.", gameObject);
-                ourComponent.RequiredTypes.Add(ourTable.Prefab.GetType());
-            }
+            ourComponent.ToggleRequiredComponent(true, ourTable.Prefab);
             
         }
 

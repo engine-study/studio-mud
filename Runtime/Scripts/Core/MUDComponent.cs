@@ -95,7 +95,9 @@ namespace mud
             Debug.Assert(hasInit == false, "Double init", this);
 
             requiredTypes = new List<Type>();
-            for(int i = 0; i < requiredComponents.Count; i++) {requiredTypes.Add(requiredComponents[i].GetType());}
+            for(int i = 0; i < requiredComponents.Count; i++) {
+                ToggleRequiredComponent(true, requiredComponents[i]);
+            }
 
             updateInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
             networkInfo = new UpdateInfo(UpdateType.SetRecord, UpdateSource.None);
@@ -257,15 +259,13 @@ namespace mud
 
         public void ToggleRequiredComponent(bool toggle, MUDComponent prefab) {
 
-            if(Loaded) {
-                Debug.LogError("Already loaded", this);
-            }
+            if(prefab == null) {Debug.LogError("Null required component", this); return;}
+            if(Loaded) { Debug.LogError("Already loaded", this);}
 
             if(toggle) {
-                if (!requiredComponents.Contains(prefab)) { 
-                    requiredComponents.Add(prefab); 
-                    requiredTypes.Add(prefab.GetType());
-                }
+
+                if(!requiredComponents.Contains(prefab)) { requiredComponents.Add(prefab);}
+                if (!requiredTypes.Contains(prefab.GetType())) { requiredTypes.Add(prefab.GetType());}
             } else {
                 requiredComponents.Remove(prefab);
                 requiredTypes.Remove(prefab.GetType());
