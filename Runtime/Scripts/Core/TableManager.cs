@@ -158,14 +158,15 @@ namespace mud {
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
             //look at RxRecord Equals() and test
+            if (LogTable) { Debug.Log($"[{gameObject.name}] {component.Entity.gameObject.name} [{newInfo.UpdateType}]", component);}
 
             //send the update to the component
             ComponentDict[entityKey].DoUpdate(mudTable, newInfo);
 
+
             if(wasSpawned) {OnComponentSpawned?.Invoke(component);}
             OnComponentUpdated?.Invoke(component);
 
-            if (LogTable) { Debug.Log($"[{gameObject.name}] {component.Entity.gameObject.name} [{newInfo.UpdateType}]", component);}
 
             // //delete cleanup
             // if (newInfo.UpdateType == UpdateType.DeleteRecord) {
