@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using mud;
-using Nethereum.Hex.HexTypes;
-using Nethereum.ABI.FunctionEncoding.Attributes;
-using Nethereum.RPC.Eth.DTOs;
-using Nethereum.Contracts.CQS;
 using Nethereum.Contracts;
 using Cysharp.Threading.Tasks;
-using System.Net.Http.Headers;
 
 namespace mud {
 
@@ -18,9 +13,9 @@ namespace mud {
         public static bool CanSendTx { get { return !IsTxPending; } }
         public static bool IsTxPending {get{return sendingTx;}}
         public static TxManager Instance;
-        public static System.Action<bool> OnUpdate;
-        public static System.Action OnSend, OnRecieve;
-        public static System.Action<bool> OnTransaction;
+        public static Action<bool> OnUpdate;
+        public static Action OnSend, OnRecieve;
+        public static Action<bool> OnTransaction;
 
         private static bool sendingTx;
         private static int transactionCount = 0;
