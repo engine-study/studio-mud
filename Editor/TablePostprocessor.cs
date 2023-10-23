@@ -102,11 +102,47 @@ namespace mud {
             string tableName = filename;
 
             if (toggle) {
-                return mudTable.SpawnTableType(TablePath, Namespace);
+                return SpawnTableType(mudTable, TablePath, Namespace);
             } else {
-                return mudTable.DeleteTableType(TablePath, Namespace);
+                return DeleteTableType(mudTable, TablePath, Namespace);
             }
         }
+        
+
+        static bool SpawnTableType(IMudTable mudTable, string path, string assemblyName) {
+
+            string fileName = path + mudTable.GetType().ToString().Replace(assemblyName + ".", "") + ".asset";
+            MUDTableObject typeFile = (MUDTableObject)AssetDatabase.LoadAssetAtPath(fileName, typeof(MUDTableObject));
+
+            if (typeFile != null) {
+                return false;
+            }
+
+            MUDTableObject asset = (MUDTableObject)ScriptableObject.CreateInstance(typeof(MUDTableObject));
+            asset.SetTable(mudTable.GetType());
+
+            AssetDatabase.CreateAsset(asset, fileName);
+            AssetDatabase.SaveAssets();
+
+            return true;
+        }
+
+        static bool DeleteTableType(IMudTable mudTable, string path, string assemblyName) {
+
+            string fileName = path + mudTable.GetType().ToString().Replace(assemblyName + ".", "") + ".asset";
+
+            MUDTableObject typeFile = (MUDTableObject)AssetDatabase.LoadAssetAtPath(fileName, mudTable.GetType());
+
+            if (typeFile == null) {
+                return false;
+            }
+
+            AssetDatabase.DeleteAsset(fileName);
+            AssetDatabase.SaveAssets();
+
+            return true;
+        }
+
     }
 
 
