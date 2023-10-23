@@ -15,13 +15,15 @@ namespace mud
         public static List<TableManager> Tables {get { return Instance.tables; } }
 
         public static Dictionary<string, TableManager> TableDict;
-        public static Dictionary<Type, TableManager> ComponentDict;
+        public static Dictionary<Type, TableManager> ComponentManagerDict;
+        public static Dictionary<Type, TableManager> TableManagerDict;
         public List<TableManager> tables;
 
         public static void AddTable(TableManager table) {
 
             TableDict.Add(table.ComponentName, table);
-            ComponentDict.Add(table.Prefab.GetType(), table);
+            ComponentManagerDict.Add(table.Prefab.GetType(), table);
+            TableManagerDict.Add(table.Prefab.MUDTableType, table);
 
             Tables.Add(table);
             OnTableToggle?.Invoke(true, table);
@@ -29,13 +31,12 @@ namespace mud
 
         public static void DeleteTable(TableManager table) {
 
-            if(Instance == null) {
-                return;
-            }
+            if(Instance == null) { return;}
             
-
             TableDict.Remove(table.ComponentName);
-            ComponentDict.Remove(table.Prefab.GetType());
+            ComponentManagerDict.Remove(table.Prefab.GetType());
+            TableManagerDict.Remove(table.Prefab.MUDTableType);
+
             Tables.Remove(table);
             OnTableToggle?.Invoke(false, table);
         }
@@ -44,7 +45,8 @@ namespace mud
 
             Instance = this;
             TableDict = new Dictionary<string, TableManager>();
-            ComponentDict = new Dictionary<Type, TableManager>();
+            ComponentManagerDict = new Dictionary<Type, TableManager>();
+            TableManagerDict = new Dictionary<Type, TableManager>();
             tables = new List<TableManager>();
 
         }
@@ -53,7 +55,8 @@ namespace mud
 
             Instance = null;
             TableDict = null;
-            ComponentDict = null;
+            ComponentManagerDict = null;
+            TableManagerDict = null;
             tables = null;
 
         }

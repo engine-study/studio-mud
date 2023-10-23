@@ -40,26 +40,26 @@ namespace mud
         public Type MUDTableType { get { return GetTable().TableType(); }}
 
         [Header("Settings")]
-        [SerializeField] private List<MUDComponent> requiredComponents;
-        [SerializeField] private List<Type> requiredTypes;
-        [NonSerialized] private MUDTableObject tableType;
+        [SerializeField] MUDTableObject table;
+        [SerializeField] List<MUDComponent> requiredComponents;
+        [SerializeField] List<Type> requiredTypes;
 
-        private IMudTable activeTable;
+        [SerializeField] IMudTable activeTable;
 
         [Header("Debug")]
-        [SerializeField] private MUDEntity entity;
-        [SerializeField] private bool hasInit = false;
-        [SerializeField] private bool loaded = false;
-        [SerializeField] private bool isActive = false;
-        [SerializeField] private SpawnInfo spawnInfo;
-        [SerializeField] private UpdateInfo updateInfo, networkInfo, lastInfo;
+        [SerializeField] MUDEntity entity;
+        [SerializeField] bool hasInit = false;
+        [SerializeField] bool loaded = false;
+        [SerializeField] bool isActive = false;
+        [SerializeField] SpawnInfo spawnInfo;
+        [SerializeField] UpdateInfo updateInfo, networkInfo, lastInfo;
         
         //tables
-        private IMudTable onchainTable;
-        private IMudTable overrideTable;
-        private IMudTable optimisticTable;
-        private IMudTable internalRef;
-        private TxUpdate optimisticUpdate;
+        IMudTable onchainTable;
+        IMudTable overrideTable;
+        IMudTable optimisticTable;
+        IMudTable internalRef;
+        TxUpdate optimisticUpdate;
 
 
         protected virtual void Awake() { }
@@ -251,7 +251,11 @@ namespace mud
             IsOptimistic = optimisticUpdate != null;
         }
 
-        protected abstract IMudTable GetTable();
+        protected virtual IMudTable GetTable() {
+            if(internalRef == null) {internalRef = (IMudTable)Activator.CreateInstance(table.Table);}
+            return internalRef; 
+        }
+
         protected abstract void UpdateComponent(IMudTable table, UpdateInfo newInfo);
         protected virtual void UpdateComponentInstant() { }
         protected virtual void UpdateComponentRich() { }

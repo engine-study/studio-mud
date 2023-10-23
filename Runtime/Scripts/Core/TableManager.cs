@@ -72,12 +72,16 @@ namespace mud {
 
             gameObject.name = Prefab.MUDTableName;
 
+            if(LogTable) Debug.Log($"[TABLE {Prefab.MUDTableType}] Added.", this);
+
             #if UNITY_EDITOR
             Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(newPrefab), "Please connect the " + newPrefab.gameObject.name + " prefab from your Project window, not from a " + newPrefab.gameObject.name + " in the scene.", this); 
             #endif
 
             if(hasSpawned) { Debug.LogError(Prefab.name + "already subscribed", this); return; }
             if (TableDictionary.TableDict.ContainsKey(ComponentName)) { Debug.LogError($"Registered {ComponentName} multiple times.", this); return;}
+            if (TableDictionary.ComponentManagerDict.ContainsKey(Prefab.GetType())) { Debug.LogError($"Registered {Prefab.GetType()} multiple times.", this); return;}
+            if (TableDictionary.TableManagerDict.ContainsKey(Prefab.MUDTableType)) { Debug.LogError($"Registered {Prefab.MUDTableType} multiple times.", this); return;}
 
             //Add the table to global table list
             TableDictionary.AddTable(this);

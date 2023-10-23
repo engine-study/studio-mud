@@ -36,9 +36,9 @@ namespace mud
         }
 
 
-        public static TableManager FindTable<T>() where T : MUDComponent {TableDictionary.ComponentDict.TryGetValue(typeof(T), out TableManager tm); return tm;}
-        public static TableManager FindTable<T>(T c) where T : MUDComponent {TableDictionary.ComponentDict.TryGetValue(c.GetType(), out TableManager tm); return tm;}
-        public static TableManager FindTable(Type componentType) {TableDictionary.ComponentDict.TryGetValue(componentType, out TableManager tm); return tm;}
+        public static TableManager FindTable<T>() where T : MUDComponent {TableDictionary.ComponentManagerDict.TryGetValue(typeof(T), out TableManager tm); return tm;}
+        public static TableManager FindTable<T>(T c) where T : MUDComponent {TableDictionary.ComponentManagerDict.TryGetValue(c.GetType(), out TableManager tm); return tm;}
+        public static TableManager FindTable(Type componentType) {TableDictionary.ComponentManagerDict.TryGetValue(componentType, out TableManager tm); return tm;}
         public static TableManager FindTableByMUDTable(IMudTable mudTable) { TableDictionary.TableDict.TryGetValue(mudTable.GetType().Name, out TableManager tm); return tm; }
         public static TableManager FindTableByMUDTable(Type mudTableType) { TableDictionary.TableDict.TryGetValue(mudTableType.Name, out TableManager tm); return tm; }
 
