@@ -17,6 +17,8 @@ namespace mud {
 
         public static TableManager LatestTable;
         public Action<MUDComponent> OnComponentSpawned, OnComponentUpdated;
+        public static Action<TableManager> OnTableRegistered;
+        public static Action<TableManager> OnTableLoading;
         public bool Loaded {get{return hasSpawned;}}
 
 
@@ -84,9 +86,10 @@ namespace mud {
             if (TableDictionary.TableManagerDict.ContainsKey(Prefab.MUDTableType)) { Debug.LogError($"Registered {Prefab.MUDTableType} multiple times.", this); return;}
 
             //Add the table to global table list
-            TableDictionary.AddTable(this);
-            
+            TableDictionary.AddTable(this);            
             hasRegistered = true;
+
+            OnTableRegistered?.Invoke(this);
 
             if(AutoSpawn) {
                 if(NetworkManager.Initialized) { DoAutoSpawn(); } 
