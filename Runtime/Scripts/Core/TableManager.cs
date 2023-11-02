@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using Newtonsoft.Json;
 using Property = System.Collections.Generic.Dictionary<string, object>;
+using Cysharp.Threading.Tasks;
 
 namespace mud {
 
@@ -111,9 +112,14 @@ namespace mud {
             // _counterSub = IMudTable.GetUpdates<CounterTable>().ObserveOnMainThread().Subscribe(OnIncrement);
             _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(Ingest);
 
+            StartCoroutine(SetSpawnedAtEndOfFrame());
+
+        }
+
+        IEnumerator SetSpawnedAtEndOfFrame() {
+            yield return null;
             hasSpawned = true;
             if(LogTable) Debug.Log($"[TABLE {componentPrefab.name}] Spawned.", this);
-
         }
 
         void Ingest(RecordUpdate update) {
@@ -134,12 +140,11 @@ namespace mud {
             } 
 
             UpdateInfo info = new UpdateInfo(update.Type, UpdateSource.Onchain);
-            SpawnInfo spawn = new SpawnInfo(null, hasSpawned ? SpawnSource.Load : SpawnSource.InGame, this);
 
-            IngestTable(entityKey, mudTable, info, spawn);
+            IngestTable(entityKey, mudTable, info);
         }
 
-        void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo, SpawnInfo newSpawn = null) {
+        void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
@@ -155,11 +160,10 @@ namespace mud {
             //spawn the component if we can't find one
             bool wasSpawned = false;
             if(component == null) {
-                SpawnInfo spawn = new SpawnInfo(entity, newSpawn?.Source ?? (Loaded ? SpawnSource.InGame : SpawnSource.Load), this);
+                SpawnInfo spawn = new SpawnInfo(entity, hasSpawned ? SpawnSource.InGame : SpawnSource.Load, this);
                 component = entity.AddComponent(componentPrefab, spawn); 
                 wasSpawned = true;
             }
-
 
             //TODO check if the update is equal to the current table, send event if it is
             //probably do this on the table itself
