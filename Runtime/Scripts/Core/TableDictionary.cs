@@ -14,16 +14,14 @@ namespace mud
         public static TableDictionary Instance;
         public static List<TableManager> Tables {get { return Instance.tables; } }
 
-        public static Dictionary<string, TableManager> TableDict;
+        public static Dictionary<Type, TableManager> TableDict;
         public static Dictionary<Type, TableManager> ComponentManagerDict;
-        public static Dictionary<Type, TableManager> TableManagerDict;
         public List<TableManager> tables;
 
         public static void AddTable(TableManager table) {
 
-            TableDict.Add(table.ComponentName, table);
+            TableDict.Add(table.Prefab.MUDTableType, table);
             ComponentManagerDict.Add(table.Prefab.GetType(), table);
-            TableManagerDict.Add(table.Prefab.MUDTableType, table);
 
             Tables.Add(table);
             OnTableToggle?.Invoke(true, table);
@@ -33,9 +31,8 @@ namespace mud
 
             if(Instance == null) { return;}
             
-            TableDict.Remove(table.ComponentName);
+            TableDict.Remove(table.Prefab.MUDTableType);
             ComponentManagerDict.Remove(table.Prefab.GetType());
-            TableManagerDict.Remove(table.Prefab.MUDTableType);
 
             Tables.Remove(table);
             OnTableToggle?.Invoke(false, table);
@@ -44,9 +41,8 @@ namespace mud
         void Awake() {
 
             Instance = this;
-            TableDict = new Dictionary<string, TableManager>();
+            TableDict = new Dictionary<Type, TableManager>();
             ComponentManagerDict = new Dictionary<Type, TableManager>();
-            TableManagerDict = new Dictionary<Type, TableManager>();
             tables = new List<TableManager>();
 
         }
@@ -56,7 +52,6 @@ namespace mud
             Instance = null;
             TableDict = null;
             ComponentManagerDict = null;
-            TableManagerDict = null;
             tables = null;
 
         }

@@ -25,7 +25,6 @@ namespace mud {
 
         //dictionary of all entities        
         public Type ComponentType { get { return componentPrefab.GetType(); } }
-        public string ComponentName { get { return componentPrefab.MUDTableName; } }
         public List<MUDComponent> Components { get { return components; } }
         public MUDComponent Prefab { get { return componentPrefab; } }
         public Dictionary<string, MUDComponent> ComponentDict;
@@ -82,9 +81,9 @@ namespace mud {
             #endif
 
             if(hasSpawned) { Debug.LogError(Prefab.name + "already subscribed", this); return; }
-            if (TableDictionary.TableDict.ContainsKey(ComponentName)) { Debug.LogError($"Registered {ComponentName} multiple times.", this); return;}
+            
+            if (TableDictionary.TableDict.ContainsKey(Prefab.MUDTableType)) { Debug.LogError($"Registered {Prefab.MUDTableType} multiple times.", this); return;}
             if (TableDictionary.ComponentManagerDict.ContainsKey(Prefab.GetType())) { Debug.LogError($"Registered {Prefab.GetType()} multiple times.", this); return;}
-            if (TableDictionary.TableManagerDict.ContainsKey(Prefab.MUDTableType)) { Debug.LogError($"Registered {Prefab.MUDTableType} multiple times.", this); return;}
 
             //Add the table to global table list
             TableDictionary.AddTable(this);            
@@ -110,7 +109,7 @@ namespace mud {
             LatestTable = this;
 
             // _counterSub = IMudTable.GetUpdates<CounterTable>().ObserveOnMainThread().Subscribe(OnIncrement);
-            _sub = IMudTable.GetUpdates(componentPrefab.TableReference.TableType()).ObserveOnMainThread().Subscribe(Ingest);
+            _sub = IMudTable.GetUpdates(componentPrefab.MUDTable.TableType()).ObserveOnMainThread().Subscribe(Ingest);
 
             StartCoroutine(SetSpawnedAtEndOfFrame());
 

@@ -118,9 +118,10 @@ namespace mud {
         public static TxUpdate MakeOptimisticInsert<T>(string entityKey, params object[] tableParameters) where T : MUDComponent, new() {
             //make the component
             //create the entity if it doesn't exist
-            MUDComponent c = MUDWorld.FindOrMakeComponent<T>(entityKey);
-            TxUpdate update = new TxUpdate(c, UpdateType.SetRecord, tableParameters);
-            return update;
+            // MUDComponent c = MUDWorld.FindOrMakeComponent<T>(entityKey);
+            // TxUpdate update = new TxUpdate(c, UpdateType.SetRecord, tableParameters);
+            // return update;
+            return null;
         }
 
         public static TxUpdate MakeOptimistic(MUDComponent component, params object[] tableParameters) {
@@ -239,7 +240,8 @@ namespace mud {
 
             info = new UpdateInfo(info.UpdateType, UpdateSource.Revert);
             if (info.UpdateType == UpdateType.SetRecord) {
-                component.Destroy();
+                component.DoUpdate(component.OnchainTable, info);
+                // component.DoRelease();
             } else if (info.UpdateType == UpdateType.SetField) {
                 component.DoUpdate(component.OnchainTable, info);
             } else {

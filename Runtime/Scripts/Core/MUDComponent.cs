@@ -26,7 +26,7 @@ namespace mud
         //TODO change this so that it checks the types, not the prefabs themselves
         public List<Type> RequiredTypes { get { return requiredTypes; } }
         public List<MUDComponent> RequiredPrefabs { get { return requiredComponents; } }
-        public Action OnInit, OnLoaded, OnPostInit, OnToggle;
+        public Action OnInit, OnLoaded, OnPostInit, OnReleased, OnToggle;
         public Action<bool> OnToggleActive;
         public Action OnUpdated, OnInstantUpdate, OnRichUpdate, OnValueUpdated, OnCreated, OnDeleted;
         public Action<MUDComponent, UpdateInfo> OnUpdatedInfo;
@@ -35,14 +35,19 @@ namespace mud
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
         //unless we were to manually add the mudworld to the UniMud package by name
-        public IMudTable TableReference { get { return GetTable(); }}
+        public IMudTable MUDTable { get { return GetTable(); }}
         public string MUDTableName { get { return GetTable().TableType().Name; }}
         public Type MUDTableType { get { return GetTable().TableType(); }}
 
-        [Header("Settings")]
+        [Header("Table")]
         [SerializeField] MUDTableObject table;
+
+        [Header("Settings")]
         [SerializeField] List<MUDComponent> requiredComponents;
-        [SerializeField] List<Type> requiredTypes;
+        [SerializeField] bool canPool = false;
+
+        List<MUDComponent> prefabRequirements;
+        List<Type> requiredTypes;
 
         [SerializeField] IMudTable activeTable;
 
@@ -93,7 +98,9 @@ namespace mud
 
             Debug.Assert(hasInit == false, "Double init", this);
 
+            prefabRequirements = new List<MUDComponent>(requiredComponents);
             requiredTypes = new List<Type>();
+
             for(int i = 0; i < requiredComponents.Count; i++) {
                 ToggleRequiredComponent(true, requiredComponents[i]);
             }
@@ -107,6 +114,33 @@ namespace mud
 
             if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(true, this);}
 
+        }
+
+        public void DoRelease() {
+            OnReleased?.Invoke();
+            Release();
+        }
+
+        //reverse of Init
+        protected virtual void Release() {
+
+            if(canPool) {
+    
+                Toggle(false, false, true);
+
+                loaded = false; 
+                hasInit = false;
+                isActive = false;
+                entity = null;
+                spawnInfo = null;
+                activeTable = null;
+                
+                //reset required list
+                requiredComponents = prefabRequirements;
+            } else {
+                Destroy(gameObject);
+            }
+            
         }
 
         async UniTask DoLoad() {
@@ -156,10 +190,6 @@ namespace mud
 
             return components == requiredTypes.Count;
 
-        }
-
-        public virtual void Destroy() {
-            GameObject.Destroy(gameObject);
         }
 
         protected virtual void OnDestroy() {

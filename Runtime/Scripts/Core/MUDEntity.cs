@@ -23,6 +23,7 @@ namespace mud {
         public Action<MUDEntity> OnLoadedInfo, OnUpdatedInfo;
         Dictionary<string, MUDComponent> componentDict;
         Dictionary<Type, MUDComponent> componentTypeDict;
+        Dictionary<Type, MUDComponent> tableTypeDict;
 
 
         [Header("MUD")]
@@ -56,6 +57,7 @@ namespace mud {
 
             componentDict = new Dictionary<string, MUDComponent>();
             componentTypeDict = new Dictionary<Type, MUDComponent>();
+            tableTypeDict = new Dictionary<Type, MUDComponent>();
 
             expected = new List<Type>();
             expectedComponents = new List<MUDComponent>();
@@ -117,15 +119,11 @@ namespace mud {
 
         //feels like a hack but, we have to use GetType() when the function is passed a component (in this case typeof(T) returns wrong base class (compile-time type))
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
-        public T GetMUDComponent<T>() where T : MUDComponent {
-            componentTypeDict.TryGetValue(typeof(T), out MUDComponent value);
-            return value as T;
-        }
-
-        public MUDComponent GetMUDComponent(Type componentType) {
-            componentTypeDict.TryGetValue(componentType, out MUDComponent value);
-            return value;
-        }
+        public T GetMUDComponent<T>() where T : MUDComponent { componentTypeDict.TryGetValue(typeof(T), out MUDComponent value); return value as T; }
+        public MUDComponent GetMUDComponent(Type componentType) { componentTypeDict.TryGetValue(componentType, out MUDComponent value); return value; }
+        public C GetMUDComponentByTable<T,C>() where T : IMudTable where C : MUDComponent { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return (C)value; }
+        public MUDComponent GetMUDComponentByTable<T>() where T : IMudTable { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return value;}
+        public MUDComponent GetMUDComponentByTable(Type componentType) { tableTypeDict.TryGetValue(componentType, out MUDComponent value); return value;}
 
         //way of doing a GetComponent on just the roots of the Entity's components
         //quicker than searching everything with a GetComponentInChildren
@@ -156,6 +154,7 @@ namespace mud {
                 components.Add(c);
                 componentDict.Add(c.MUDTableName, c);
                 componentTypeDict.Add(c.GetType(), c);
+                tableTypeDict.Add(c.MUDTableType, c);
 
                 //init it
                 c.DoInit(newSpawnInfo);
@@ -179,7 +178,7 @@ namespace mud {
         }
 
         protected virtual void Destroy() {
-            for (int i = components.Count - 1; i > -1; i--) { RemoveComponent(components[i]); }
+            // for (int i = components.Count - 1; i > -1; i--) { RemoveComponent(components[i]); }
         }
 
         public void RemoveComponent(MUDComponent c) {
@@ -187,16 +186,23 @@ namespace mud {
             if (c == null) {
 
             } else {
+
                 c.OnUpdatedInfo -= ComponentUpdate;
+                
                 components.Remove(c);
                 componentDict.Remove(c.GetType().Name);
                 componentTypeDict.Remove(c.GetType());
+                tableTypeDict.Remove(c.MUDTableType);
+
                 OnComponentRemoved?.Invoke(c);
+
+                c.DoRelease();
+
             }
 
             OnComponent?.Invoke();
 
-            Destroy(c);
+
         }
         
 

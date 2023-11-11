@@ -23,7 +23,7 @@ namespace mud {
         protected MUDComponent ourComponent;
 
         //if we wanted to sync position, we would return the Position component class for example
-        public abstract Type MUDComponentType();
+        public abstract Type TableType();
 
         public void SetSyncType(ComponentSyncType newType) {
             syncType = newType;
@@ -64,8 +64,8 @@ namespace mud {
             if(debug) {Debug.Log(gameObject.name + " Add components", this);}
 
             //add our required components 
-            ourTable = MUDWorld.FindTable(MUDComponentType());
-            if(ourTable == null) {Debug.LogError("Could not find table " + MUDComponentType().Name); return;}
+            ourTable = MUDWorld.GetManager(TableType());
+            if(ourTable == null) {Debug.LogError("Could not find table " + TableType().Name); return;}
             ourComponent.ToggleRequiredComponent(true, ourTable.Prefab);
             
         }
@@ -88,8 +88,8 @@ namespace mud {
         protected virtual void InitComponents() {
 
             //get our targetcomponent
-            targetComponent = ourComponent.Entity.GetMUDComponent(MUDComponentType());
-            if(targetComponent == null) { Debug.LogError("Couldn't find " + MUDComponentType() + " to sync.", this);}
+            targetComponent = ourComponent.Entity.GetMUDComponentByTable(TableType());
+            if(targetComponent == null) { Debug.LogError("Couldn't find " + TableType() + " to sync.", this);}
 
         }
 
