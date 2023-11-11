@@ -2,27 +2,31 @@
 
 ## ⚠️ HEAVILY WORK IN PROGRESS ⚠️
 
-![example4](https://github.com/engine-study/studio-mud/assets/7606952/5ddf082c-d84b-41c0-b31f-8cbc560fee1a)
+## Features 
+- This package extends UniMUD, a Unity3D package for [MUD](https://mud.dev/).
+- Studio-MUD defines a parent `MUDComponent` class that, when inherited, links a MUD Table to a Unity Prefab.
+- All the components of an entity spawn under their respective `MUDEntity`.
+- A `MUDComponent` can have "required components" (other components on the same `MUDEntity`), and will wait until all are loaded, after which a `PostInit()` method is called.
 
 ## Installation 
-1. Install Unity 2022.3.x
-2. Create a project with the forked template - https://github.com/neilsonnn/mud-template-unity
-3. Open Unity Package Manager
-4. Click "Add package from git URL" and paste `https://github.com/engine-study/studio-mud.git`
+1. Create a project with [UniMUD](https://github.com/emergenceland/UniMUD)
+2. Open Unity and open the Package Manager
+3. Click "Add package from git URL" and add `https://github.com/engine-study/studio-mud.git`
 
 ## Usage
 
 For each MUD table you must do the following:
 
-1. Create a new C# script of `MUDComponent` class (ex. `PositionComponent`).
-2. Design a prefab and attach the component script to it (ie. a `DamageComponent` might have spark FX).
-3. Add a `TableManager` script into the scene.
-5. Link the **component prefab** to the **manager** in the inspector.
-6. Run `pnpm run dev:node` and `pnpm run dev` and enter Play Mode
-8. Your **component prefab** should spawn under its Entity.
+1. Create a C# script of `MUDComponent` class (ex. `HealthComponent`).
+2. Design a prefab and attach the component script to it (ex. a `HealthComponent` might have FX particle system for getting hurt on its Prefab).
+3. Override `UpdateComponent` and handle how client renders changes.
+4. Link the **Prefab** to the **Manager** in the inspector.
+5. In Git Bash, run `pnpm dev`  `pnpm dev:unity`.
+6. Then, run `pnpm dev:unity` in another Git Bash tab.
+7. Your **Prefab** should spawn when you enter Play Mode.
 
-## Syncing
+## TODO
+- Pooling
+- Indexing
 
-Inherit from ComponentSync and add to a **component prefab** to easily keep it synced with the other components on the entity.
-For example: ___
-
+![example4](https://github.com/engine-study/studio-mud/assets/7606952/5ddf082c-d84b-41c0-b31f-8cbc560fee1a)
