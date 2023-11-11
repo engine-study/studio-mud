@@ -17,13 +17,12 @@
 
 For each MUD table you must do the following:
 
-1. Create a C# script of `MUDComponent` class (ex. `HealthComponent`).
-2. Design a prefab and attach the component script to it (ex. a `HealthComponent` might have FX particle system for getting hurt on its Prefab).
-3. Override `UpdateComponent` and handle how client renders changes.
-4. Link the **Prefab** to the **Manager** in the inspector.
-5. In Git Bash, run `pnpm dev`  `pnpm dev:unity`.
-6. Then, run `pnpm dev:unity` in another Git Bash tab.
-7. Your **Prefab** should spawn when you enter Play Mode.
+1. In Git Bash, run `pnpm dev`, then, run `pnpm dev:unity` in another Git Bash tab to link the world.
+2. Create a C# script of `MUDComponent` class (ex. `HealthComponent`).
+3. Design a prefab and attach the component script to it (ex. a `HealthComponent` might have FX particle system for getting hurt on its Prefab).
+4. Override `UpdateComponent` and handle how client renders changes.
+5. Link the **Prefab** to the **Manager** in the inspector.
+6. Your **Prefab** should spawn when you enter Play Mode.
 
 ## TODO
 - Pooling
