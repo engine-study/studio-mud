@@ -180,7 +180,7 @@ namespace mud {
         public UpdateInfo Info {get{return info;}}
         [SerializeField] private UpdateInfo info;
         [SerializeField] private MUDComponent component;
-        [SerializeField] private IMudTable optimistic;
+        [SerializeField] private MUDTable optimistic;
         [SerializeField] private UniTask<bool> tx;
         
         public TxUpdate(MUDComponent c, UpdateType newType, params object[] tableParameters) {
@@ -196,7 +196,7 @@ namespace mud {
 
             //create an optimistic table
             if(info.UpdateType == UpdateType.SetRecord || info.UpdateType == UpdateType.SetField) {
-                optimistic = (IMudTable)System.Activator.CreateInstance(tableType);
+                optimistic = (MUDTable)System.Activator.CreateInstance(tableType);
                 optimistic.SetValues(tableParameters);
             } else {
                 if (component.OnchainTable == null) { Debug.LogError(component.gameObject.name + ": No onchain table", c); }

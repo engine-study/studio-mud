@@ -21,7 +21,7 @@ namespace mud {
         #if UNITY_EDITOR
         public void SetTable(Type newtable) {
 
-            IMudTable table = (IMudTable)Activator.CreateInstance(newtable);
+            MUDTable table = (MUDTable)Activator.CreateInstance(newtable);
             
             tableName = table.TableType().FullName;
             tableUpdateName = table.TableUpdateType().FullName;

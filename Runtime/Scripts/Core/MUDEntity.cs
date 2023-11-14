@@ -121,8 +121,8 @@ namespace mud {
         //and when the function doesn't have a comonent ex. (GetMudComponent<PositionComponent>), then we can safely use typeof(T);
         public T GetMUDComponent<T>() where T : MUDComponent { componentTypeDict.TryGetValue(typeof(T), out MUDComponent value); return value as T; }
         public MUDComponent GetMUDComponent(Type componentType) { componentTypeDict.TryGetValue(componentType, out MUDComponent value); return value; }
-        public C GetMUDComponentByTable<T,C>() where T : IMudTable where C : MUDComponent { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return (C)value; }
-        public MUDComponent GetMUDComponentByTable<T>() where T : IMudTable { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return value;}
+        public C GetMUDComponentByTable<T,C>() where T : MUDTable where C : MUDComponent { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return (C)value; }
+        public MUDComponent GetMUDComponentByTable<T>() where T : MUDTable { tableTypeDict.TryGetValue(typeof(T), out MUDComponent value); return value;}
         public MUDComponent GetMUDComponentByTable(Type componentType) { tableTypeDict.TryGetValue(componentType, out MUDComponent value); return value;}
 
         //way of doing a GetComponent on just the roots of the Entity's components

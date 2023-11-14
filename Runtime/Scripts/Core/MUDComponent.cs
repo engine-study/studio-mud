@@ -18,8 +18,8 @@ namespace mud
         public bool Loaded { get { return loaded; } }
         public bool HasInit { get { return hasInit; } }
         public bool IsOptimistic { get; private set; }
-        public IMudTable ActiveTable { get { return activeTable; } }
-        public IMudTable OnchainTable { get { return onchainTable; } }
+        public MUDTable ActiveTable { get { return activeTable; } }
+        public MUDTable OnchainTable { get { return onchainTable; } }
         public SpawnInfo SpawnInfo {get{return spawnInfo;}}
         public UpdateInfo NetworkInfo {get{return networkInfo;}}
         public UpdateInfo UpdateInfo {get{return updateInfo;}}
@@ -35,7 +35,7 @@ namespace mud
 
         //all this junk is because Unity packages cant access the namespaces inside the UNity project
         //unless we were to manually add the mudworld to the UniMud package by name
-        public IMudTable MUDTable { get { return GetTable(); }}
+        public MUDTable MUDTable { get { return GetTable(); }}
         public string MUDTableName { get { return GetTable().TableType().Name; }}
         public Type MUDTableType { get { return GetTable().TableType(); }}
 
@@ -49,7 +49,7 @@ namespace mud
         List<MUDComponent> prefabRequirements;
         List<Type> requiredTypes;
 
-        [SerializeField] IMudTable activeTable;
+        [SerializeField] MUDTable activeTable;
 
         [Header("Debug")]
         [SerializeField] MUDEntity entity;
@@ -60,10 +60,10 @@ namespace mud
         [SerializeField] UpdateInfo updateInfo, networkInfo, lastInfo;
         
         //tables
-        IMudTable onchainTable;
-        IMudTable overrideTable;
-        IMudTable optimisticTable;
-        IMudTable internalRef;
+        MUDTable onchainTable;
+        MUDTable overrideTable;
+        MUDTable optimisticTable;
+        MUDTable internalRef;
         TxUpdate optimisticUpdate;
 
 
@@ -202,7 +202,7 @@ namespace mud
             if(spawnInfo.Table) {spawnInfo.Table.RegisterComponent(false, this);}
         }
 
-        public void DoUpdate(IMudTable table, UpdateInfo newInfo) {
+        public void DoUpdate(MUDTable table, UpdateInfo newInfo) {
 
             //update our internal table
             IngestUpdate(table, newInfo);
@@ -229,7 +229,7 @@ namespace mud
             return Loaded && UpdateInfo.Source != UpdateSource.Revert;
         } 
 
-        protected virtual void IngestUpdate(IMudTable table, UpdateInfo newInfo) {
+        protected virtual void IngestUpdate(MUDTable table, UpdateInfo newInfo) {
 
             //cache last info
             lastInfo = new UpdateInfo(updateInfo);
@@ -281,12 +281,12 @@ namespace mud
             IsOptimistic = optimisticUpdate != null;
         }
 
-        protected virtual IMudTable GetTable() {
-            if(internalRef == null) {internalRef = (IMudTable)Activator.CreateInstance(table.Table);}
+        protected virtual MUDTable GetTable() {
+            if(internalRef == null) {internalRef = (MUDTable)Activator.CreateInstance(table.Table);}
             return internalRef; 
         }
 
-        protected abstract void UpdateComponent(IMudTable table, UpdateInfo newInfo);
+        protected abstract void UpdateComponent(MUDTable table, UpdateInfo newInfo);
         protected virtual void UpdateComponentInstant() { }
         protected virtual void UpdateComponentRich() { }
 

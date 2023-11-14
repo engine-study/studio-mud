@@ -14,7 +14,7 @@ namespace mud
         }
 
      
-        public static MUDComponent FindComponent<T>(string entity) where T : IMudTable, new() { 
+        public static MUDComponent FindComponent<T>(string entity) where T : MUDTable, new() { 
             //try to find the tablemanager
             TableManager tm = GetManager<T>();
             MUDComponent component = null;
@@ -24,11 +24,11 @@ namespace mud
 
         //necessary in cases where Components have been reused for multiple tables (ie. )
         //we only let them search components through the tables
-        public static C FindComponent<T, C>(string entity) where T : IMudTable, new() where C : MUDComponent, new(){  return (C)FindComponent<T>(entity);}
+        public static C FindComponent<T, C>(string entity) where T : MUDTable, new() where C : MUDComponent, new(){  return (C)FindComponent<T>(entity);}
 
-        public static C FindOrMakeComponent<T,C>(MUDEntity entity) where T : IMudTable, new() where C : MUDComponent, new() { return (C)FindOrMakeComponent<T>(entity.Key); }
-        public static MUDComponent FindOrMakeComponent<T>(MUDEntity entity) where T : IMudTable, new() { return FindOrMakeComponent<T>(entity.Key); }
-        public static MUDComponent FindOrMakeComponent<T>(string entityKey) where T : IMudTable, new() {
+        public static C FindOrMakeComponent<T,C>(MUDEntity entity) where T : MUDTable, new() where C : MUDComponent, new() { return (C)FindOrMakeComponent<T>(entity.Key); }
+        public static MUDComponent FindOrMakeComponent<T>(MUDEntity entity) where T : MUDTable, new() { return FindOrMakeComponent<T>(entity.Key); }
+        public static MUDComponent FindOrMakeComponent<T>(string entityKey) where T : MUDTable, new() {
 
             //try to find the tablemanager
             TableManager tm = GetManager<T>();
@@ -42,14 +42,14 @@ namespace mud
         }
 
 
-        public static TableManager GetManager<T>() where T : IMudTable { TableDictionary.TableDict.TryGetValue(typeof(T), out TableManager tm); return tm; }
-        public static TableManager GetManager(IMudTable mudTable) {return GetManager(mudTable.GetType()); }
+        public static TableManager GetManager<T>() where T : MUDTable { TableDictionary.TableDict.TryGetValue(typeof(T), out TableManager tm); return tm; }
+        public static TableManager GetManager(MUDTable mudTable) {return GetManager(mudTable.GetType()); }
         public static TableManager GetManager(Type mudTable) {TableDictionary.TableDict.TryGetValue(mudTable, out TableManager tm); return tm; }
 
-        public static T GetTable<T>(string entityKey) where T : IMudTable, new() {
+        public static T GetTable<T>(string entityKey) where T : MUDTable, new() {
             T table = new T();
             // IMudTable table = (IMudTable)Activator.CreateInstance(component.TableType);
-            return IMudTable.GetTable<T>(entityKey);
+            return MUDTable.GetTable<T>(entityKey);
         }
 
         // public static T FindPrefab<T>() where T : MUDComponent, new() { return (T)(FindTable<T>()?.Prefab);}

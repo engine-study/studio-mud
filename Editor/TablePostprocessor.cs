@@ -84,7 +84,7 @@ namespace mud {
                 return false;
             }
 
-            IMudTable mudTable = (IMudTable)Activator.CreateInstance(t);
+            MUDTable mudTable = (MUDTable)Activator.CreateInstance(t);
 
             if (mudTable == null) {
                 // Debug.LogError("Not a table class: " + filename);
@@ -92,7 +92,7 @@ namespace mud {
             }
 
             //the parent class IMudTable is being imported, ignore, dont process
-            if (mudTable.GetType() == typeof(IMudTable)) {
+            if (mudTable.GetType() == typeof(MUDTable)) {
                 return false;
             }
 
@@ -109,7 +109,7 @@ namespace mud {
         }
         
 
-        static bool SpawnTableType(IMudTable mudTable, string path, string assemblyName) {
+        static bool SpawnTableType(MUDTable mudTable, string path, string assemblyName) {
 
             string fileName = path + mudTable.GetType().ToString().Replace(assemblyName + ".", "") + ".asset";
             MUDTableObject typeFile = (MUDTableObject)AssetDatabase.LoadAssetAtPath(fileName, typeof(MUDTableObject));
@@ -127,7 +127,7 @@ namespace mud {
             return true;
         }
 
-        static bool DeleteTableType(IMudTable mudTable, string path, string assemblyName) {
+        static bool DeleteTableType(MUDTable mudTable, string path, string assemblyName) {
 
             string fileName = path + mudTable.GetType().ToString().Replace(assemblyName + ".", "") + ".asset";
 

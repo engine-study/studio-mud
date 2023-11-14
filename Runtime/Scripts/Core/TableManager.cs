@@ -109,7 +109,7 @@ namespace mud {
             LatestTable = this;
 
             // _counterSub = IMudTable.GetUpdates<CounterTable>().ObserveOnMainThread().Subscribe(OnIncrement);
-            _sub = IMudTable.GetUpdates(componentPrefab.MUDTable.TableType()).ObserveOnMainThread().Subscribe(Ingest);
+            _sub = MUDTable.GetUpdates(componentPrefab.MUDTable.TableType()).ObserveOnMainThread().Subscribe(Ingest);
 
             StartCoroutine(SetSpawnedAtEndOfFrame());
 
@@ -130,11 +130,11 @@ namespace mud {
             //deep logging
             // if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
             // if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
-            IMudTable mudTable = null;
+            MUDTable mudTable = null;
             
             if(update.Type == UpdateType.SetRecord || update.Type == UpdateType.SetField) {
                 Property p = (Property)update.CurrentRecordValue;
-                mudTable = (IMudTable)Activator.CreateInstance(componentPrefab.MUDTableType);
+                mudTable = (MUDTable)Activator.CreateInstance(componentPrefab.MUDTableType);
                 mudTable.PropertyToTable(p);
             } 
 
@@ -143,7 +143,7 @@ namespace mud {
             IngestTable(entityKey, mudTable, info);
         }
 
-        void IngestTable(string entityKey, IMudTable mudTable, UpdateInfo newInfo) {
+        void IngestTable(string entityKey, MUDTable mudTable, UpdateInfo newInfo) {
 
             if (string.IsNullOrEmpty(entityKey)) {
                 Debug.LogError("No key found in " + gameObject.name, gameObject);
