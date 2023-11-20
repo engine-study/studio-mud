@@ -10,12 +10,10 @@ public class TableSpawner : MonoBehaviour {
     public bool Loaded {get{return syncing;}} 
     public static System.Action OnComplete;
     
-    [Header("Prefabs")]
-    [SerializeField] private MUDComponent[] spawnTables;
-
     [Header("Settings")]
     [SerializeField] bool AutoSpawn = true;
     [SerializeField] bool logAllTables = false;
+    [SerializeField] private MUDComponent[] spawnTables;
 
     [Header("Debug")]
     [SerializeField] bool syncing = false;
