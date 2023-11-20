@@ -24,27 +24,26 @@ public class TableSpawner : MonoBehaviour {
 
     void Awake() {
         if(AutoSpawn) {
-            if(NetworkManager.Initialized) { SpawnTables(); } 
-            else { NetworkManager.OnInitialized += SpawnTables; }
+            if(NetworkManager.Initialized) { AutoSpawnTables(); } 
+            else { NetworkManager.OnInitialized += AutoSpawnTables; }
         }
     }
 
-
     void OnDestroy() {
         syncing = false; 
-        NetworkManager.OnInitialized -= SpawnTables; 
+        NetworkManager.OnInitialized -= AutoSpawnTables; 
     }
 
-    async void SpawnTables() {
+    async void AutoSpawnTables() {
+
+        spawnTables = Resources.LoadAll<MUDComponent>("Components/"); 
+        Debug.Log($"Loaded {spawnTables.Length} components.");
+    
         await Spawn();
     }
 
     public async UniTask Spawn() {
-        await LoadTables();
-    }
-
-    async UniTask LoadTables() {
-
+       
         if(syncing) {Debug.LogError(gameObject.name + ": Already loaded.", this); return;}
         syncing = true; 
         
