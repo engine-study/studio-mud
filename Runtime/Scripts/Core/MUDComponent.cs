@@ -282,11 +282,12 @@ namespace mud
         }
 
         protected virtual MUDTable GetTable() {
+            
             if(internalRef == null) {
                 if(table == null) {Debug.LogError($"Please connect a MUD Table to {gameObject.name}"); return null;}
                 internalRef = (MUDTable)Activator.CreateInstance(table.Table);
             }
-            if(internalRef == null) {Debug.LogError($"Please connect a MUD Table to {gameObject.name}");}
+
             return internalRef; 
         }
 
