@@ -135,7 +135,7 @@ namespace mud {
             }
 
             if (useMaterial) {
-                texture = textures[(int)MUDHelper.RandomNumber(0, 100, component.Entity, randomType, seed + 5)];
+                texture = textures[(int)MUDHelper.RandomNumber(0, textures.Length-1, component.Entity, randomType, seed + 5)];
                 Renderer r = GetComponentInChildren<Renderer>();
                 if(r) r.material.mainTexture = texture;
             }
