@@ -85,7 +85,7 @@ namespace mud {
 
             while(txSuccess == false && timeout > 0) {
                 txSuccess = await SendDirect<TFunction>(parameters);
-                if (!txSuccess) { attempts--; await UniTask.Delay(1500); }
+                if (!txSuccess) { attempts--; await UniTask.Delay(millisecondDelay); }
             }
 
             return txSuccess;
