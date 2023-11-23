@@ -28,7 +28,10 @@ namespace mud {
         [Header("Random Position")]
         [SerializeField] private bool usePos = false;
         [SerializeField] private Vector3 minPos, maxPos;
-
+        [Header("Random Material")]
+        [SerializeField] private bool useMaterial = false;
+        private Texture2D texture;
+        [SerializeField] private Texture2D [] textures;
 
         [Header("Debug")]
         [SerializeField] private int child = -1;
@@ -129,6 +132,12 @@ namespace mud {
                 position = (int)MUDHelper.RandomNumber(0, 100, component.Entity, randomType, seed + 3);
                 position = position * .01f;
                 transform.localPosition = Vector3.Lerp(minPos, maxPos, position);
+            }
+
+            if (useMaterial) {
+                texture = textures[(int)MUDHelper.RandomNumber(0, 100, component.Entity, randomType, seed + 5)];
+                Renderer r = GetComponentInChildren<Renderer>();
+                if(r) r.material.mainTexture = texture;
             }
 
             init = true;
