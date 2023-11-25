@@ -15,13 +15,11 @@ namespace mud
         public static List<TableManager> Tables {get { return Instance.tables; } }
 
         public static Dictionary<Type, TableManager> TableDict;
-        public static Dictionary<Type, TableManager> ComponentManagerDict;
         public List<TableManager> tables;
 
         public static void AddTable(TableManager table) {
 
             TableDict.Add(table.Prefab.MUDTableType, table);
-            ComponentManagerDict.Add(table.Prefab.GetType(), table);
 
             Tables.Add(table);
             OnTableToggle?.Invoke(true, table);
@@ -32,7 +30,6 @@ namespace mud
             if(Instance == null) { return;}
             
             TableDict.Remove(table.Prefab.MUDTableType);
-            ComponentManagerDict.Remove(table.Prefab.GetType());
 
             Tables.Remove(table);
             OnTableToggle?.Invoke(false, table);
@@ -42,7 +39,6 @@ namespace mud
 
             Instance = this;
             TableDict = new Dictionary<Type, TableManager>();
-            ComponentManagerDict = new Dictionary<Type, TableManager>();
             tables = new List<TableManager>();
 
         }
@@ -51,7 +47,6 @@ namespace mud
 
             Instance = null;
             TableDict = null;
-            ComponentManagerDict = null;
             tables = null;
 
         }

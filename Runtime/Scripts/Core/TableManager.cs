@@ -83,7 +83,6 @@ namespace mud {
             if(hasSpawned) { Debug.LogError(Prefab.name + "already subscribed", this); return; }
             
             if (TableDictionary.TableDict.ContainsKey(Prefab.MUDTableType)) { Debug.LogError($"Registered {Prefab.MUDTableType} multiple times.", this); return;}
-            if (TableDictionary.ComponentManagerDict.ContainsKey(Prefab.GetType())) { Debug.LogError($"Registered {Prefab.GetType()} multiple times.", this); return;}
 
             //Add the table to global table list
             TableDictionary.AddTable(this);            
