@@ -11,7 +11,7 @@ namespace mud
     public enum SpawnSource{Load, InGame}
     public enum UpdateSource {None, Onchain, Optimistic, Revert, Override}
 
-    public abstract class MUDComponent : MonoBehaviour {
+    public class MUDComponent : MonoBehaviour {
 
         public MUDEntity Entity { get { return entity; } }
         public bool Active { get { return isActive; } }
@@ -291,7 +291,7 @@ namespace mud
             return internalRef; 
         }
 
-        protected abstract void UpdateComponent(MUDTable table, UpdateInfo newInfo);
+        protected virtual void UpdateComponent(MUDTable table, UpdateInfo newInfo) {}
         protected virtual void UpdateComponentInstant() { }
         protected virtual void UpdateComponentRich() { }
 
