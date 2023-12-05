@@ -6,6 +6,7 @@ using mud;
 public class MUDPosition : MUDComponent
 {
 
+    [Header("Position")]
     public Vector3 position = Vector3.zero;
     protected override void UpdateComponent(MUDTable table, UpdateInfo newInfo) {
 

@@ -6,8 +6,16 @@ using UnityEngine.PlayerLoop;
 //toggles the entity on/off based on the value
 //this will hide all components on the entity
 public class MUDVisibility : MUDComponent {
+
+    [Header("Visible")]
+    public bool visible;
+
     protected override void UpdateComponent(MUDTable table, UpdateInfo newInfo) {
-        Entity.Toggle((bool)(table.RawValue?["value"]));
+
+        table.RawValue.TryGetValue("value", out object value);
+        visible = value == null ? false : (bool)value;
+        
+        Entity.Toggle(visible);
     }
 
 }
