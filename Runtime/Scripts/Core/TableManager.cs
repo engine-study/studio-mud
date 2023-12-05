@@ -130,11 +130,11 @@ namespace mud {
             // if (LogTable) {Debug.Log($"Key: {entityKey}", this);}
             // if (LogTable) {Debug.Log($"Update: {JsonConvert.SerializeObject(update)}", this);}
             MUDTable mudTable = null;
-            mudTable.update = update;
             
             if(update.Type == UpdateType.SetRecord || update.Type == UpdateType.SetField) {
                 Property p = (Property)update.CurrentRecordValue;
-                mudTable = (MUDTable)Activator.CreateInstance(componentPrefab.MUDTableType);
+                mudTable = (MUDTable)Activator.CreateInstance(componentPrefab.MUDTableType);            
+                mudTable.update = update;
                 mudTable.PropertyToTable(p);
             } 
 
