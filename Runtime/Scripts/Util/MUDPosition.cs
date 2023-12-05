@@ -7,18 +7,19 @@ public class MUDPosition : MUDComponent
 {
 
     [Header("Position")]
+    public bool is2D;
     public Vector3 position = Vector3.zero;
     protected override void UpdateComponent(MUDTable table, UpdateInfo newInfo) {
 
-        table.RawValue.TryGetValue("x", out object x);
-        table.RawValue.TryGetValue("y", out object y);
-        table.RawValue.TryGetValue("z", out object z);
+        bool hasX = TryValue("x", out int x);
+        bool hasY = TryValue("y", out int y);
+        bool hasZ = TryValue("z", out int z);
 
         //2D pos, shift Y position to Z value
-        if(z == null) {
-            position = new Vector3(x == null ? position.x : (float)x, 0f, y == null ? position.y : (float)y);
+        if(is2D) {
+            position = new Vector3(hasX ? x : position.x, 0f, hasY ? y : position.y);
         } else {
-            position = new Vector3(x == null ? position.x : (float)x, y == null ? position.y : (float)y, z == null ? position.z : (float)z);
+            position = new Vector3(hasX ? x : position.x, hasY ? y : position.y, hasZ ? z : position.z);
         }
 
         transform.position = position;

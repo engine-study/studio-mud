@@ -310,5 +310,16 @@ namespace mud
             }
         }
 
+        public bool TryValue<T>(string value, out T result) {
+            ActiveTable.RawValue.TryGetValue(value, out object tableObject);
+            if (tableObject is T) {
+                result = (T)tableObject;
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
     }
 }

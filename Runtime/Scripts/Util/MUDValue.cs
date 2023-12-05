@@ -13,18 +13,10 @@ public class MUDValue : MUDComponent
 
      protected override void UpdateComponent(MUDTable table, UpdateInfo newInfo) {
 
-        table.RawValue.TryGetValue("value", out object value);
-        table.RawValue.TryGetValue("y", out object y);
-        table.RawValue.TryGetValue("z", out object z);
-
-        if(value == null) {
-            return;
-        }
-
-        IntValue = (int)value;
-        UIntValue = (uint)value;
-        BoolValue = (bool)value;
-        BigIntValue = (BigInteger)value;
+        TryValue("value", out IntValue);
+        TryValue("value", out UIntValue);
+        TryValue("value", out BoolValue);
+        TryValue("value", out BigIntValue);
 
     }
 
