@@ -12,10 +12,12 @@ public class MUDVisibility : MUDComponent {
 
     protected override void UpdateComponent(MUDTable table, UpdateInfo newInfo) {
 
-        table.RawValue.TryGetValue("value", out object value);
-        visible = value == null ? false : (bool)value;
-        
-        Entity.Toggle(visible);
+        if(newInfo.UpdateType == UpdateType.DeleteRecord) {
+            Entity.Toggle(false);
+        } else {
+            TryValue("value", out visible);
+            Entity.Toggle(visible);
+        }
     }
 
 }
