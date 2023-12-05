@@ -24,7 +24,4 @@ public class MUDPosition : MUDComponent
 
     }
 
-    void OnDrawGizmosSelected() {
-
-    }
 }
