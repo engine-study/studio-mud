@@ -133,7 +133,8 @@ namespace mud {
             
             if(update.Type == UpdateType.SetRecord || update.Type == UpdateType.SetField) {
                 Property p = (Property)update.CurrentRecordValue;
-                mudTable = (MUDTable)Activator.CreateInstance(componentPrefab.MUDTableType);
+                mudTable = (MUDTable)Activator.CreateInstance(componentPrefab.MUDTableType);            
+                mudTable.update = update;
                 mudTable.PropertyToTable(p);
             } 
 
