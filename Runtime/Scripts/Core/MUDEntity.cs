@@ -19,6 +19,7 @@ namespace mud {
         public Action OnComponent;
         public Action<MUDComponent> OnComponentAdded, OnComponentRemoved;
         public Action<MUDComponent, UpdateInfo> OnComponentUpdated;
+        //OnLoaded is not very reliable, only calls the first time we get enough components to satisfy RequiredComponents
         public Action OnLoaded, OnUpdated;
         public Action<MUDEntity> OnLoadedInfo, OnUpdatedInfo;
         Dictionary<string, MUDComponent> componentDict;
@@ -104,6 +105,8 @@ namespace mud {
         }
 
         void DoLoad() {
+            
+            if(loaded) {return;}
 
             loaded = true;
             OnLoaded?.Invoke();
