@@ -104,6 +104,8 @@ namespace mud {
         }
 
         void DoLoad() {
+            
+            if(loaded) {return;}
 
             loaded = true;
             OnLoaded?.Invoke();
